@@ -1,0 +1,160 @@
+@import './variables.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* Card Structure */
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+  background-color: var(--color-surface-elevated);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-neon);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-surface-elevated);
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Layout Utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.gap-md {
+  gap: 1rem;
+}
+
+.gap-lg {
+  gap: 1.5rem;
+}
+
+.grid {
+  display: grid;
+}
+
+/* Scrollbar styling for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-elevated);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border);
+}

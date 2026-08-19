@@ -1,0 +1,24 @@
+# Node
+gui/node_modules/
+gui/dist/
+gui/build/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+backend/venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep models but ignore temp/logs if needed (User explicitly wants model pushed, so DO NOT ignore models)
+# logs/ # Let's keep logs since the PDF and history are there.

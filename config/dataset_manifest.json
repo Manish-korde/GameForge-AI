@@ -1,0 +1,8 @@
+{
+    "unique_images": 282511,
+    "train_size": 254260,
+    "validation_size": 14126,
+    "test_size": 14125,
+    "image_dimensions": "128x128x4 RGBA",
+    "seed": 42
+}

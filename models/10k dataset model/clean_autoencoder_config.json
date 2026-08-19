@@ -1,0 +1,16 @@
+{
+    "dataset": "evilsocket/alucard-sprites",
+    "total_source_images": 312550,
+    "training_images": 9000,
+    "validation_images": 1000,
+    "test_images": 1000,
+    "duplicate_removal": true,
+    "image_size": "128x128",
+    "channels": 4,
+    "batch_size": 32,
+    "epochs_max": 50,
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "loss": "MSE",
+    "test_mse": 0.0012514815898612142
+}

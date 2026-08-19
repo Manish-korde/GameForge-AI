@@ -1,0 +1,15 @@
+{
+    "experiment_name": "AE_280K_full",
+    "dataset_name": "evilsocket/alucard-sprites",
+    "image_height": 128,
+    "image_width": 128,
+    "channels": 4,
+    "train_ratio": 0.9,
+    "validation_ratio": 0.05,
+    "test_ratio": 0.05,
+    "epochs": 50,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "loss": "mse",
+    "seed": 42
+}
