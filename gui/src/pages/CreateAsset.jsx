@@ -225,23 +225,39 @@ const CreateAsset = () => {
                   {aeResult.metrics && (
                     <div className="bg-[#151515] rounded-xl p-6 border border-border mb-8 max-w-2xl mx-auto shadow-lg">
                       <h5 className="text-sm text-secondary uppercase tracking-wider mb-4 font-semibold text-left">Real-Time Evaluation Metrics</h5>
-                      <div className="grid grid-cols-4 gap-4 text-center">
-                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                      
+                      {/* Primary Error Metrics */}
+                      <div className="grid grid-cols-2 gap-4 text-center mb-4">
+                        <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
                           <div className="text-xs text-secondary mb-1">MSE Loss</div>
-                          <div className="font-mono text-primary font-bold">{aeResult.metrics.mse.toFixed(6)}</div>
+                          <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mse.toFixed(6)}</div>
                         </div>
-                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                        <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
                           <div className="text-xs text-secondary mb-1">MAE Loss</div>
-                          <div className="font-mono text-primary font-bold">{aeResult.metrics.mae.toFixed(6)}</div>
+                          <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mae.toFixed(6)}</div>
+                        </div>
+                      </div>
+
+                      {/* Visual Accuracy Metrics */}
+                      <div className="grid grid-cols-3 gap-4 text-center mb-6">
+                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                          <div className="text-xs text-secondary mb-1">Color Palette Match</div>
+                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.color_match.toFixed(2)}%</div>
                         </div>
                         <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">PSNR</div>
-                          <div className="font-mono text-primary font-bold">{aeResult.metrics.psnr.toFixed(2)} dB</div>
+                          <div className="text-xs text-secondary mb-1">Exact Pixel Match</div>
+                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.exact_match.toFixed(2)}%</div>
                         </div>
                         <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">SSIM</div>
-                          <div className="font-mono text-primary font-bold">{aeResult.metrics.ssim.toFixed(4)}</div>
+                          <div className="text-xs text-secondary mb-1">Alpha Mask IoU</div>
+                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.alpha_iou.toFixed(2)}%</div>
                         </div>
+                      </div>
+
+                      {/* Silent Footer Metrics */}
+                      <div className="flex justify-between items-center text-[#555] text-[10px] border-t border-[#333] pt-3 px-2">
+                        <span>PSNR: {aeResult.metrics.psnr.toFixed(2)} dB</span>
+                        <span>SSIM: {aeResult.metrics.ssim.toFixed(4)}</span>
                       </div>
                     </div>
                   )}

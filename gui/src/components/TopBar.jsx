@@ -16,7 +16,7 @@ const TopBar = () => {
   return (
     <header className="topbar flex items-center justify-between">
       <div className="topbar-left">
-        <strong>GEN AI STUDIO</strong>
+        <strong>GameForge AI</strong>
       </div>
       <div className="topbar-center">
         Current Project: Untitled Game

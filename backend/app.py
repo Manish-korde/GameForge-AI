@@ -95,6 +95,24 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
         psnr = float(tf.image.psnr(input_tensor, output_tensor, max_val=1.0).numpy()[0])
         ssim = float(tf.image.ssim(input_tensor[:,:,:,:3], output_tensor[:,:,:,:3], max_val=1.0).numpy()[0])
         
+        # New Advanced Metrics
+        threshold = 0.05
+        exact_match = float(np.mean(np.abs(input_tensor - output_tensor) <= threshold) * 100)
+        
+        alpha_true = input_tensor[0, :, :, 3] > 0.5
+        alpha_pred = output_tensor[0, :, :, 3] > 0.5
+        intersection = np.logical_and(alpha_true, alpha_pred).sum()
+        union = np.logical_or(alpha_true, alpha_pred).sum()
+        alpha_iou = float((intersection / union) * 100) if union > 0 else 100.0
+        
+        rgb_true = input_tensor[0, :, :, :3]
+        rgb_pred = output_tensor[0, :, :, :3]
+        color_diff = np.abs(rgb_true - rgb_pred)
+        if alpha_true.sum() > 0:
+            color_match = float(np.mean(color_diff[alpha_true] <= threshold) * 100)
+        else:
+            color_match = 100.0
+        
         # 4. Postprocess
         reconstructed_img = postprocess_image(output_tensor)
         original_processed_img = postprocess_image(input_tensor)
@@ -106,7 +124,10 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
                 "mse": mse,
                 "mae": mae,
                 "psnr": psnr,
-                "ssim": ssim
+                "ssim": ssim,
+                "exact_match": exact_match,
+                "alpha_iou": alpha_iou,
+                "color_match": color_match
             }
         }
     except Exception as e:
