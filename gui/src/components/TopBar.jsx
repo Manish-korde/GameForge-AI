@@ -11,6 +11,8 @@ const TopBar = () => {
       setAeStatus(status);
     };
     fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -22,7 +24,7 @@ const TopBar = () => {
         Current Project: Untitled Game
       </div>
       <div className="topbar-right flex items-center gap-md">
-        <div className="status-indicator" style={{ fontSize: '0.85rem', color: aeStatus.includes('Loaded') ? '#4ade80' : '#f87171' }}>
+        <div className="status-indicator" style={{ fontSize: '0.85rem', color: (aeStatus.includes('Autoencoder: Loaded') && aeStatus.includes('VAE: Loaded')) ? '#4ade80' : aeStatus.includes('Loading') ? '#f59e0b' : '#f87171' }}>
           {aeStatus}
         </div>
         <div className="status-indicator">
