@@ -1,0 +1,8 @@
+{
+    "epochs": 50,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "loss": "Beta-VAE SSE",
+    "beta": 0.001
+}

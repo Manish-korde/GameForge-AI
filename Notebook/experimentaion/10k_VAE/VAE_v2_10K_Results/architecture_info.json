@@ -1,0 +1,32 @@
+{
+    "input_shape": [
+        128,
+        128,
+        4
+    ],
+    "latent_shape": [
+        8,
+        8,
+        256
+    ],
+    "encoder_layers": [
+        "input_layer",
+        "conv2d",
+        "conv2d_1",
+        "conv2d_2",
+        "conv2d_3",
+        "flatten",
+        "z_mean",
+        "z_log_var",
+        "sampling"
+    ],
+    "decoder_layers": [
+        "input_layer_1",
+        "dense",
+        "reshape",
+        "conv2d_transpose",
+        "conv2d_transpose_1",
+        "conv2d_transpose_2",
+        "conv2d_transpose_3"
+    ]
+}

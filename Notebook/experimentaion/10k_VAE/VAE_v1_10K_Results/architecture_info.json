@@ -1,0 +1,19 @@
+{
+    "model_type": "VAE",
+    "latent_dim": 256,
+    "input_shape": [
+        128,
+        128,
+        4
+    ],
+    "output_shape": [
+        128,
+        128,
+        4
+    ],
+    "model_parameters": 13678916,
+    "encoder_parameters": 8777824,
+    "decoder_parameters": 4901092,
+    "tensorflow_version": "2.20.0",
+    "keras_version": "3.13.2"
+}

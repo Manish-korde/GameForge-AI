@@ -22,3 +22,8 @@ Thumbs.db
 
 # Keep models but ignore temp/logs if needed (User explicitly wants model pushed, so DO NOT ignore models)
 # logs/ # Let's keep logs since the PDF and history are there.
+
+# Ignore files over 100MB to avoid GitHub push rejection
+*.npy
+*.weights.h5
+Notebook/experimentaion/**/*.keras

@@ -5,14 +5,25 @@ const DEMO_MODE = true; // Hardcoded for now until backend is connected
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const generateDesign = async (prompt) => {
-  if (DEMO_MODE) {
-    await delay(1500); // simulate processing
+  try {
+    const formData = new FormData();
+    formData.append("prompt", prompt);
+    
+    const res = await fetch(`${BACKEND_URL}/generate_concept`, {
+      method: "POST",
+      body: formData,
+    });
+    
+    if (!res.ok) throw new Error("Concept generation failed");
+    const data = await res.json();
     return {
       status: 'success',
-      data: mockStructuredDesign(prompt)
+      data: data
     };
+  } catch (err) {
+    console.error("Design Generation Error:", err);
+    throw err;
   }
-  // Future: Real API call
 };
 
 export const fetchExperiments = async () => {
@@ -82,6 +93,25 @@ export const runAEInference = async (imageUrl) => {
     return await res.json();
   } catch (err) {
     console.error("AE Error:", err);
+    throw err;
+  }
+};
+
+export const runVAEInference = async (imageUrl, scale = 1.0) => {
+  try {
+    const formData = new FormData();
+    formData.append("image_url", imageUrl);
+    formData.append("scale", scale);
+    
+    const res = await fetch(`${BACKEND_URL}/generate_variants`, {
+      method: "POST",
+      body: formData,
+    });
+    
+    if (!res.ok) throw new Error("VAE Inference failed");
+    return await res.json();
+  } catch (err) {
+    console.error("VAE Error:", err);
     throw err;
   }
 };

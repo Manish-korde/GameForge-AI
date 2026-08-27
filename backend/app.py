@@ -8,6 +8,41 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import tensorflow as tf
+import google.generativeai as genai
+from dotenv import load_dotenv
+import json
+
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+@tf.keras.utils.register_keras_serializable()
+class Sampling(tf.keras.layers.Layer):
+    """Uses (z_mean, z_log_var) to sample z."""
+    def call(self, inputs):
+        z_mean, z_log_var = inputs
+        batch = tf.shape(z_mean)[0]
+        dim = tf.shape(z_mean)[1]
+        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+# Monkey patch layers for newer Keras model compat (stripping quantization_config)
+layers_to_patch = [
+    tf.keras.layers.Dense,
+    tf.keras.layers.Conv2D,
+    tf.keras.layers.Conv2DTranspose,
+    tf.keras.layers.Flatten,
+    tf.keras.layers.Reshape,
+    tf.keras.layers.InputLayer
+]
+
+for layer_cls in layers_to_patch:
+    original_init = layer_cls.__init__
+    def make_patched_init(orig_init):
+        def patched_init(self, *args, **kwargs):
+            kwargs.pop('quantization_config', None)
+            orig_init(self, *args, **kwargs)
+        return patched_init
+    layer_cls.__init__ = make_patched_init(original_init)
 
 app = FastAPI()
 
@@ -24,12 +59,27 @@ MODEL_PATH = os.path.abspath(os.path.join(
     "..", "models", "280k dataset model", "AE_280K_best.keras"
 ))
 
+VAE_ENCODER_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), 
+    "..", "models", "280k model VAE (VAE v2)", "VAE_280K_Outputs", "encoder_280k_final.keras"
+))
+
+VAE_DECODER_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), 
+    "..", "models", "280k model VAE (VAE v2)", "VAE_280K_Outputs", "decoder_280k_final.keras"
+))
+
 model = None
 model_status = "Model unavailable"
+
+vae_encoder = None
+vae_decoder = None
+vae_status = "Model unavailable"
 
 @app.on_event("startup")
 async def load_model():
     global model, model_status
+    global vae_encoder, vae_decoder, vae_status
     try:
         if os.path.exists(MODEL_PATH):
             print(f"Loading model from {MODEL_PATH}")
@@ -40,10 +90,26 @@ async def load_model():
             print(f"Model file not found: {MODEL_PATH}")
     except Exception as e:
         print(f"Error loading model: {e}")
+        
+    try:
+        if os.path.exists(VAE_ENCODER_PATH) and os.path.exists(VAE_DECODER_PATH):
+            print(f"Loading VAE Encoder from {VAE_ENCODER_PATH}")
+            vae_encoder = tf.keras.models.load_model(VAE_ENCODER_PATH, custom_objects={'Sampling': Sampling})
+            print(f"Loading VAE Decoder from {VAE_DECODER_PATH}")
+            vae_decoder = tf.keras.models.load_model(VAE_DECODER_PATH, custom_objects={'Sampling': Sampling})
+            vae_status = "Loaded"
+            print("VAE models loaded successfully.")
+        else:
+            print("VAE model files not found.")
+    except Exception as e:
+        print(f"Error loading VAE models: {e}")
 
 @app.get("/status")
 def status():
-    return {"status": f"Autoencoder: {model_status}"}
+    return {
+        "status": f"Autoencoder: {model_status}",
+        "vae_status": f"VAE: {vae_status}"
+    }
 
 class ReconstructRequest(BaseModel):
     image_url: str
@@ -131,4 +197,115 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
             }
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate_variants")
+async def generate_variants(
+    image_url: str = Form(None), 
+    file: UploadFile = File(None),
+    scale: float = Form(1.0)
+):
+    if vae_encoder is None or vae_decoder is None:
+        raise HTTPException(status_code=503, detail="VAE Model unavailable")
+    
+    try:
+        # Resolve image
+        image = None
+        if file:
+            image_bytes = await file.read()
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
+        elif image_url:
+            if image_url.startswith("http"):
+                response = requests.get(image_url)
+                image = Image.open(io.BytesIO(response.content)).convert("RGBA")
+            else:
+                raise HTTPException(status_code=400, detail="Invalid image_url")
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either image_url or file")
+        
+        # 1. Preprocess
+        input_tensor = preprocess_image(image)
+        
+        # 2. Encode to get latent mean
+        # encoder returns [z_mean, z_log_var, z]
+        z_mean, z_log_var, _ = vae_encoder.predict(input_tensor)
+        
+        # 3. Apply perturbation scaling based on global prior std (1.0)
+        batch = tf.shape(z_mean)[0]
+        dim = tf.shape(z_mean)[1]
+        epsilon = tf.random.normal(shape=tf.shape(z_mean))
+        
+        # Following mathematical resolution: z_variant = \mu + (scale \cdot \epsilon)
+        z_variant = z_mean + (scale * epsilon)
+        
+        # 4. Decode
+        output_tensor = vae_decoder.predict(z_variant)
+        
+        # 5. Postprocess back to PIL image
+        variant_image = postprocess_image(output_tensor[0:1])
+        
+        buffered = io.BytesIO()
+        variant_image.save(buffered, format="PNG")
+        variant_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        
+        return {
+            "variant": f"data:image/png;base64,{variant_b64}",
+            "scale_applied": scale
+        }
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate_concept")
+async def generate_concept(prompt: str = Form(...)):
+    try:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable not set. Please set it in a .env file.")
+        
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        system_instructions = """You are an expert game designer. Generate a structured game concept document based on the user's prompt. 
+You MUST return ONLY a raw JSON object with no markdown formatting, no code blocks, and no extra text.
+The JSON must perfectly match this structure:
+{
+  "theme": "String (e.g., Dark Fantasy)",
+  "environment": "String (e.g., Cursed Forest Village)",
+  "characters": [
+    { "name": "String", "desc": "String" }
+  ],
+  "weapons": [
+    { "name": "String", "desc": "String" }
+  ],
+  "props": [
+    { "name": "String", "desc": "String" }
+  ],
+  "visualStyle": "String (e.g., Pixel Art)",
+  "rawOutput": "String containing a formatted text summary of the concept"
+}"""
+        
+        response = model.generate_content(f"{system_instructions}\n\nUser Prompt: {prompt}")
+        
+        raw_text = response.text.strip()
+        
+        # Clean markdown code blocks if the model accidentally includes them
+        if raw_text.startswith("```json"):
+            raw_text = raw_text.replace("```json", "", 1)
+        if raw_text.startswith("```"):
+            raw_text = raw_text.replace("```", "", 1)
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+            
+        json_data = json.loads(raw_text.strip())
+        
+        return json_data
+    except json.JSONDecodeError as e:
+        print("Failed to parse JSON from LLM:", response.text)
+        raise HTTPException(status_code=500, detail="LLM returned invalid JSON")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

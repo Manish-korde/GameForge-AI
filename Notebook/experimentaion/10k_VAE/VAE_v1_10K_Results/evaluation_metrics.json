@@ -1,0 +1,16 @@
+{
+    "model": "VAE",
+    "dataset": "10K",
+    "test_images": 1000,
+    "test_mse": 0.009059835225343704,
+    "test_mae": 0.03696688637137413,
+    "mean_psnr_db": 21.222238540649414,
+    "median_psnr_db": 21.6473331451416,
+    "min_psnr_db": 11.268524169921875,
+    "max_psnr_db": 27.37809181213379,
+    "best_validation_loss": 762.856201171875,
+    "best_epoch": 45,
+    "epochs_completed": 50,
+    "latent_dim": 256,
+    "vae_parameters": 13678916
+}
