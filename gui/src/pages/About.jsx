@@ -112,7 +112,7 @@ const About = () => {
           </div>
           <div className="p-3 bg-surface-elevated rounded border border-border">
             <strong className="text-white text-sm">3. Variational Autoencoder (VAE 280K)</strong>
-            <p className="mt-1">Continuous latent space representation ($z \sim \mathcal{N}$). Powers sub-millisecond similarity search (< 1ms across 25,000 vectors) and smooth real-sprite morphing without replacing human artists.</p>
+            <p className="mt-1">Continuous Gaussian latent space representation. Powers sub-millisecond similarity search (&lt; 1ms across 25,000 vectors) and smooth real-sprite morphing without replacing human artists.</p>
           </div>
         </div>
       </div>
