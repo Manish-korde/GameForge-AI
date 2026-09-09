@@ -35,23 +35,70 @@ export const generateConcept = async (prompt) => {
       throw err;
     }
     console.warn("Transformer Concept API call failed, using client fallback:", err);
+    const pLower = (prompt || "").toLowerCase();
+    
+    let genre = "16-bit Retro Game";
+    let role = "Protagonist";
+    let attrs = ["Agile Movement", "Special Ability", "Quick Dash"];
+    let theme = "Adventure World";
+    let hazards = ["Environmental Hazards", "Time Limit"];
+    let enemies = ["Rival Competitor", "Obstacle Drone"];
+    let tags = ["hero_character", "tool_item", "action_effect", "tile_ground"];
+
+    if (pLower.includes("pizza") || pLower.includes("delivery")) {
+      genre = "Delivery Simulation";
+      role = "Delivery Courier";
+      attrs = ["Order Handling", "Route Navigation", "Speed Dash"];
+      theme = "Metropolitan City Streets";
+      hazards = ["Heavy Traffic", "Slippery Road Puddles", "Strict Delivery Timer"];
+      enemies = ["Stray Street Dogs", "Traffic Drones", "Impatient Customers"];
+      tags = ["delivery_courier", "scooter_vehicle", "pizza_box_item", "city_street_tile"];
+    } else if (pLower.includes("farm") || pLower.includes("crop")) {
+      genre = "Farming Simulator";
+      role = "Master Farmer";
+      attrs = ["Crop Harvesting", "Tool Upgrades", "Seasonal Planning"];
+      theme = "Sunlit Countryside Valley";
+      hazards = ["Sudden Frost", "Drought Hazard", "Pest Infestation"];
+      enemies = ["Wild Boars", "Locust Swarms", "Crows"];
+      tags = ["farmer_character", "tractor_vehicle", "crop_item", "farm_field_tile"];
+    } else if (pLower.includes("race") || pLower.includes("car")) {
+      genre = "Arcade Street Racing";
+      role = "Street Racer";
+      attrs = ["Nitro Boost", "Drift Precision", "Engine Tuning"];
+      theme = "Neon Highway Circuit";
+      hazards = ["Oil Slicks", "Road Debris", "Sharp Hairpin Turns"];
+      enemies = ["Rival Street Racers", "Police Interceptors"];
+      tags = ["racecar_vehicle", "nitro_item", "exhaust_effect", "highway_tile"];
+    } else if (pLower.includes("space") || pLower.includes("ship")) {
+      genre = "Sci-Fi Space Exploration";
+      role = "Starship Commander";
+      attrs = ["Plasma Thrusters", "Shield Boosting", "Laser Targeting"];
+      theme = "Deep Space Orbital Station";
+      hazards = ["Asteroid Belts", "Solar Flares", "Hull Depressurization"];
+      enemies = ["Rogue AI Drones", "Alien Harvesters", "Space Pirates"];
+      tags = ["spaceship_vehicle", "laser_weapon", "plasma_effect", "space_station_tile"];
+    }
+
+    const titleWords = (prompt || "Game").split(" ").filter(w => w.length > 3).slice(0, 2);
+    const title = titleWords.length > 0 ? titleWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "GameForge Spec";
+
     return {
       status: 'success',
       data: {
-        game_title: "Sunken Temple Rogue",
+        game_title: title,
         prompt_parsed: prompt,
-        genre: "Pixel Art RPG / Dungeon Crawler",
-        art_style: "16-bit Dark Fantasy Pixel Art",
+        genre: genre,
+        art_style: "16-bit Retro Pixel Art",
         main_character: {
-          role: "Rogue",
-          attributes: ["Agile", "Stealthy", "Dual Daggers"]
+          role: role,
+          attributes: attrs
         },
         environment: {
-          theme: "Sunken Temple",
-          hazards: ["Acid Traps", "Flooded Chambers"]
+          theme: theme,
+          hazards: hazards
         },
-        enemies: ["Serpent Boss", "Slime Monster"],
-        recommended_asset_tags: ["rogue_character", "dagger_weapon", "acid_effect", "temple_tile"],
+        enemies: enemies,
+        recommended_asset_tags: tags,
         status: "Fallback"
       }
     };

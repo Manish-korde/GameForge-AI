@@ -62,91 +62,129 @@ class TransformerService:
         prompt_lower = user_prompt.lower()
         
         # 1. Title Extraction / Construction
-        words = [w.capitalize() for w in re.findall(r'\b[a-zA-Z]{3,}\b', user_prompt) if w.lower() not in ["create", "make", "game", "with", "about", "pixel", "retro", "art"]]
+        stop_words = {"create", "make", "game", "with", "about", "pixel", "retro", "art", "simulation", "simulator", "the", "a", "an", "and", "for", "in", "of"}
+        words = [w.capitalize() for w in re.findall(r'\b[a-zA-Z]{3,}\b', user_prompt) if w.lower() not in stop_words]
+        
         if len(words) >= 2:
             title = f"{words[0]} {words[1]}"
         elif len(words) == 1:
-            title = f"Legend of {words[0]}"
+            title = f"{words[0]} Adventure"
         else:
-            title = "GameForge Adventure"
-            
-        # 2. Genre Extraction
-        genres = ["RPG", "Dungeon Crawler", "Platformer", "Action Adventure", "Metroidvania", "Roguelike", "Survival", "Tactics"]
-        found_genre = next((g for g in genres if g.lower() in prompt_lower), "Pixel Art RPG")
-        
-        # 3. Art Style
-        art_styles = ["16-bit Dark Fantasy Pixel Art", "8-bit Retro Sprite Art", "Chibi Pixel Art", "Cyberpunk Pixel Art", "High-Fidelity 2D Sprite Art"]
-        if "cyberpunk" in prompt_lower or "sci-fi" in prompt_lower:
-            found_style = "Cyberpunk Pixel Art"
-        elif "8-bit" in prompt_lower or "nes" in prompt_lower:
-            found_style = "8-bit Retro Sprite Art"
-        elif "dark" in prompt_lower or "gothic" in prompt_lower:
-            found_style = "16-bit Dark Fantasy Pixel Art"
-        else:
-            found_style = "16-bit Retro Pixel Art"
-            
-        # 4. Character Role & Attributes
-        roles = ["Knight", "Mage", "Rogue", "Wizard", "Warrior", "Archer", "Paladin", "Necromancer", "Ninja", "Hero"]
-        found_role = next((r for r in roles if r.lower() in prompt_lower), "Hero Warrior")
-        
-        char_attrs = []
-        if "agile" in prompt_lower or "stealth" in prompt_lower or "rogue" in prompt_lower:
-            char_attrs.extend(["Agile", "Stealthy", "Dual Daggers"])
-        if "magic" in prompt_lower or "mage" in prompt_lower or "wizard" in prompt_lower:
-            char_attrs.extend(["Arcane Mastery", "Spellcaster", "Elemental Staff"])
-        if "knight" in prompt_lower or "shield" in prompt_lower or "paladin" in prompt_lower:
-            char_attrs.extend(["Heavy Armor", "Shield Block", "Broadsword"])
-        if not char_attrs:
-            char_attrs = ["Bravery", "Melee Strike", "Quick Dash"]
+            title = "GameForge Quest"
 
-        # 5. Environment & Hazards
-        themes = ["Sunken Temple", "Cursed Forest", "Dungeon Catacombs", "Volcanic Cave", "Castle Ruins", "Cyber Metropolis"]
-        found_theme = next((t for t in themes if any(w in prompt_lower for w in t.lower().split())), "Dungeon Catacombs")
-        
-        hazards = []
-        if "trap" in prompt_lower or "acid" in prompt_lower:
-            hazards.append("Acid Traps")
-        if "lava" in prompt_lower or "fire" in prompt_lower:
-            hazards.append("Lava Pools")
-        if "spike" in prompt_lower:
-            hazards.append("Spike Pits")
-        if not hazards:
-            hazards = ["Spike Traps", "Collapsing Floors"]
+        # Try Flan-T5 inference if model is loaded
+        flan_generated_text = None
+        if self.model and self.tokenizer:
+            try:
+                input_text = f"Parse game concept: {user_prompt}. Output title, genre, character role, environment, hazards."
+                inputs = self.tokenizer(input_text, return_tensors="pt")
+                outputs = self.model.generate(**inputs, max_new_tokens=64)
+                flan_generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                logger.info(f"Flan-T5 Generated Output: {flan_generated_text}")
+            except Exception as e:
+                logger.warning(f"Flan-T5 inference warning: {e}")
             
-        # 6. Enemies
-        enemy_options = ["Serpent Boss", "Slime Monster", "Skeleton Warrior", "Dragon Beast", "Shadow Imp", "Golem Guardian"]
-        found_enemies = [e for e in enemy_options if any(w in prompt_lower for w in e.lower().split())]
-        if not found_enemies:
-            found_enemies = ["Skeleton Warrior", "Slime Monster"]
-            
-        # 7. Recommended Asset Tags (Mapped for VAE Search)
-        asset_tags = []
-        role_tag = found_role.lower().replace(" ", "_")
-        asset_tags.append(f"{role_tag}_character")
-        
-        if "sword" in prompt_lower or "broadsword" in prompt_lower:
-            asset_tags.append("sword_weapon")
-        elif "bow" in prompt_lower:
-            asset_tags.append("bow_weapon")
-        elif "staff" in prompt_lower or "wand" in prompt_lower:
-            asset_tags.append("staff_weapon")
+        # 2. Domain Recognition & Genre Extraction
+        if any(w in prompt_lower for w in ["delivery", "pizza", "courier", "taxi", "order"]):
+            found_genre = "Delivery Simulation"
+            found_role = "Delivery Courier"
+            char_attrs = ["Order Handling", "Route Navigation", "Speed Dash"]
+            found_theme = "Metropolitan City Streets"
+            hazards = ["Heavy Traffic", "Slippery Road Puddles", "Strict Delivery Timer"]
+            found_enemies = ["Stray Street Dogs", "Traffic Drones", "Impatient Customers"]
+            asset_tags = ["delivery_courier", "scooter_vehicle", "pizza_box_item", "city_street_tile"]
+
+        elif any(w in prompt_lower for w in ["farm", "crop", "agriculture", "harvest", "ranch"]):
+            found_genre = "Farming Simulator"
+            found_role = "Master Farmer"
+            char_attrs = ["Crop Harvesting", "Tool Upgrades", "Seasonal Planning"]
+            found_theme = "Sunlit Countryside Valley"
+            hazards = ["Sudden Frost", "Drought Hazard", "Pest Infestation"]
+            found_enemies = ["Wild Boars", "Locust Swarms", "Crows"]
+            asset_tags = ["farmer_character", "tractor_vehicle", "crop_item", "farm_field_tile"]
+
+        elif any(w in prompt_lower for w in ["race", "racing", "car", "drift", "speed", "vehicle"]):
+            found_genre = "Arcade Street Racing"
+            found_role = "Street Racer"
+            char_attrs = ["Nitro Boost", "Drift Precision", "Engine Tuning"]
+            found_theme = "Neon Highway Circuit"
+            hazards = ["Oil Slicks", "Road Debris", "Sharp Hairpin Turns"]
+            found_enemies = ["Rival Street Racers", "Police Interceptors"]
+            asset_tags = ["racecar_vehicle", "nitro_item", "exhaust_effect", "highway_tile"]
+
+        elif any(w in prompt_lower for w in ["space", "ship", "star", "galaxy", "asteroid", "planet", "mech"]):
+            found_genre = "Sci-Fi Space Exploration"
+            found_role = "Starship Commander"
+            char_attrs = ["Plasma Thrusters", "Shield Boosting", "Laser Targeting"]
+            found_theme = "Deep Space Orbital Station"
+            hazards = ["Asteroid Belts", "Solar Flares", "Hull Depressurization"]
+            found_enemies = ["Rogue AI Drones", "Alien Harvesters", "Space Pirates"]
+            asset_tags = ["spaceship_vehicle", "laser_weapon", "plasma_effect", "space_station_tile"]
+
+        elif any(w in prompt_lower for w in ["cook", "kitchen", "restaurant", "food", "chef"]):
+            found_genre = "Cooking & Restaurant Simulator"
+            found_role = "Head Chef"
+            char_attrs = ["Recipe Mastery", "Speed Chopping", "Order Queueing"]
+            found_theme = "Bustling Restaurant Kitchen"
+            hazards = ["Kitchen Fires", "Spilled Grease", "Order Delays"]
+            found_enemies = ["Health Inspectors", "Food Critics"]
+            asset_tags = ["chef_character", "kitchen_knife_item", "fire_effect", "kitchen_tile"]
+
+        elif any(w in prompt_lower for w in ["stealth", "spy", "agent", "assassin", "ninja", "hacker"]):
+            found_genre = "Stealth Action"
+            found_role = "Cyber Agent"
+            char_attrs = ["Stealth Camo", "Silent Takedown", "Security Bypass"]
+            found_theme = "High-Security Cyber Complex"
+            hazards = ["Laser Grid Sensors", "Security Cameras", "Sentry Turrets"]
+            found_enemies = ["Cyber Guards", "Patrol Drones", "Rogue AI"]
+            asset_tags = ["cyber_agent", "silenced_weapon", "camo_effect", "cyber_tile"]
+
+        elif any(w in prompt_lower for w in ["cyberpunk", "sci-fi", "futuristic", "neon"]):
+            found_genre = "Cyberpunk Action Platformer"
+            found_role = "Neon Hacker"
+            char_attrs = ["Cyber Decking", "Overclock Dash", "Monofilament Whip"]
+            found_theme = "Rain-Slicked Neon Metropolis"
+            hazards = ["Corrupted Data Nodes", "Acid Rain", "High-Voltage Cables"]
+            found_enemies = ["Corporation Enforcers", "Rogue Drones"]
+            asset_tags = ["hacker_character", "cyber_deck", "neon_effect", "city_roof_tile"]
+
+        elif any(w in prompt_lower for w in ["horror", "zombie", "survival", "spooky", "haunted"]):
+            found_genre = "Survival Horror"
+            found_role = "Lone Survivor"
+            char_attrs = ["Flashlight Spotlight", "Resource Scavenging", "First Aid"]
+            found_theme = "Abandoned Hospital Complex"
+            hazards = ["Toxic Spills", "Pitch Darkness", "Barricade Failures"]
+            found_enemies = ["Mutated Infecteds", "Stalker Beasts"]
+            asset_tags = ["survivor_character", "shotgun_weapon", "blood_effect", "asylum_tile"]
+
+        elif any(w in prompt_lower for w in ["knight", "sword", "dragon", "magic", "dungeon", "gothic", "dark fantasy"]):
+            found_genre = "Dark Fantasy Pixel RPG"
+            found_role = "Knight Paladin" if "knight" in prompt_lower else ("Arcane Mage" if "mage" in prompt_lower else "Rogue Explorer")
+            char_attrs = ["Heavy Armor", "Shield Block", "Broadsword Mastery"]
+            found_theme = "Cursed Dungeon Catacombs"
+            hazards = ["Acid Traps", "Spike Pits", "Collapsing Ceiling Tiles"]
+            found_enemies = ["Skeleton Warlords", "Slime Monsters", "Dragon Beasts"]
+            asset_tags = ["knight_character", "broadsword_weapon", "magic_effect", "dungeon_tile"]
+
         else:
-            asset_tags.append("weapon_item")
+            # Flexible Fallback Extractor for any unlisted domain
+            main_nouns = [w.capitalize() for w in re.findall(r'\b[a-zA-Z]{4,}\b', user_prompt) if w.lower() not in stop_words]
+            role_name = main_nouns[0] if main_nouns else "Protagonist"
+            theme_name = f"{main_nouns[1]} Realm" if len(main_nouns) > 1 else f"{title} Zone"
             
-        if "fire" in prompt_lower or "flame" in prompt_lower:
-            asset_tags.append("fire_effect")
-        elif "magic" in prompt_lower or "spell" in prompt_lower:
-            asset_tags.append("magic_effect")
-        else:
-            asset_tags.append("effect_spell")
-            
-        asset_tags.append(f"{found_enemies[0].lower().replace(' ', '_')}")
+            found_genre = f"{title} Simulator"
+            found_role = f"{role_name} Hero"
+            char_attrs = [f"{role_name} Skill", "Resource Management", "Quick Dash"]
+            found_theme = theme_name
+            hazards = ["Environmental Hazards", "Time Deadline"]
+            found_enemies = [f"Rival {role_name}", "Obstacle Drone"]
+            asset_tags = [f"{role_name.lower()}_character", "primary_tool", "effect_action", "zone_tile"]
         
         spec = {
             "game_title": title,
             "prompt_parsed": user_prompt,
             "genre": found_genre,
-            "art_style": found_style,
+            "art_style": "16-bit Retro Pixel Art",
             "main_character": {
                 "role": found_role,
                 "attributes": char_attrs
@@ -157,6 +195,7 @@ class TransformerService:
             },
             "enemies": found_enemies,
             "recommended_asset_tags": asset_tags,
+            "flan_t5_parsed": flan_generated_text,
             "ethical_guardrails": {
                 "safety_status": "Passed Prompt Safety Audit",
                 "content_safety": "Passed Safety Audit",
