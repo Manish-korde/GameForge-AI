@@ -17,27 +17,6 @@ const ConceptPlanner = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleGenerate = async (selectedPrompt) => {
-    const textToUse = selectedPrompt || prompt;
-    if (!textToUse || !textToUse.strip?.() && !textToUse.length) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await generateConcept(textToUse);
-      if (res && res.data) {
-        setConceptSpec(res.data);
-      } else {
-        throw new Error("Invalid response format");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to generate concept specification. Check backend connection.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const [isApproved, setIsApproved] = useState(false);
 
   const handleGenerate = async (selectedPrompt) => {
