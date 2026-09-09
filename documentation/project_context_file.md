@@ -42,8 +42,8 @@ This document serves as the definitive architectural knowledge base for **GameFo
 
 ### The Three Review Components:
 1. **Transformer Model**: Semantic planning layer. Translates natural language game descriptions into structured game specification sheets (JSON) detailing themes, character types, environment features, weapon properties, and NPC specs.
-2. **Autoencoder (AE)**: Baseline model trained on **280,000 sprites**. Used for high-precision deterministic reconstruction (`MSE: 0.00166`, `PSNR: 28.52 dB`, `SSIM: 0.9248`) and outlier sprite data cleaning.
-3. **Variational Autoencoder (VAE)**: Probabilistic model trained on **280,000 sprites** ($\beta$-VAE with $\beta=0.001$). Learns a continuous probabilistic latent space for 2D asset clustering, fast vector similarity search, and smooth real-sprite-to-real-sprite interpolation (A → B). *Framed as probabilistic latent space analysis and experimental sampling (avoiding claims of production-ready sprite generation).*
+2. **Autoencoder (AE)**: Baseline model trained on **280,000 sprites**. Used for high-precision deterministic reconstruction (`MSE: 0.00166`, `PSNR: 28.52 dB`, `SSIM: 0.9248`) and outlier sprite screening (flagging the highest-error 5% of assets exceeding P95 MSE threshold `0.001313`).
+3. **Variational Autoencoder (VAE)**: Probabilistic model trained on **280,000 sprites** ($\beta$-VAE with $\beta=0.001$). Learns a continuous probabilistic latent space for 2D asset clustering, fast vector similarity search, and smooth real-sprite-to-real-sprite interpolation (A → B). Evaluated on a 5,000-sprite candidate pool, achieving **84.40% KNN category accuracy** (**+19.21% lift** over the **65.19% majority baseline**). *Framed as probabilistic latent space analysis and experimental sampling (avoiding claims of production-ready sprite generation).*
 
 ---
 

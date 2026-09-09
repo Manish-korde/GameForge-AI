@@ -10,17 +10,15 @@ const Sidebar = () => {
       <nav className="sidebar-nav">
         <NavLink to="/" end className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Dashboard</NavLink>
         
-        <div className="nav-section">Create</div>
-        <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Game Concept</NavLink>
-        <div className="nav-link disabled">Asset Generator</div>
-        <div className="nav-link disabled">NPC / Lore</div>
+        <div className="nav-section">Create & Explore</div>
+        <NavLink to="/concept" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🎯 Game Concept (T5)</NavLink>
+        <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🎨 Asset Studio & VAE</NavLink>
 
         <div className="nav-section">AI Pipeline</div>
-        <div className="nav-link disabled">Transformer</div>
-        <div className="nav-link disabled">Diffusion</div>
-        <div className="nav-link disabled">VAE</div>
-        <div className="nav-link disabled">Autoencoder</div>
-        <div className="nav-link disabled">GAN</div>
+        <NavLink to="/concept" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>⚡ Transformer Planner</NavLink>
+        <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🧬 VAE Latent Engine</NavLink>
+        <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🔍 Autoencoder Outliers</NavLink>
+
 
         <div className="nav-separator"></div>
 

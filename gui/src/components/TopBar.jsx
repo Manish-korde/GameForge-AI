@@ -24,7 +24,7 @@ const TopBar = () => {
         Current Project: Untitled Game
       </div>
       <div className="topbar-right flex items-center gap-md">
-        <div className="status-indicator" style={{ fontSize: '0.85rem', color: (aeStatus.includes('Autoencoder: Loaded') && aeStatus.includes('VAE: Loaded')) ? '#4ade80' : aeStatus.includes('Loading') ? '#f59e0b' : '#f87171' }}>
+        <div className="status-indicator" style={{ fontSize: '0.85rem', color: (aeStatus.includes('Autoencoder: Loaded') && aeStatus.includes('VAE: Loaded')) ? '#4ade80' : (aeStatus.includes('Loading') || aeStatus.includes('Checking')) ? '#f59e0b' : '#f87171' }}>
           {aeStatus}
         </div>
         <div className="status-indicator">

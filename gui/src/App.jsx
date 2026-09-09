@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import AppShell from './components/AppShell';
 import Dashboard from './pages/Dashboard';
+import ConceptPlanner from './pages/ConceptPlanner';
 import CreateAsset from './pages/CreateAsset';
 import AssetLibrary from './pages/AssetLibrary';
 import Experiments from './pages/Experiments';
@@ -11,6 +12,7 @@ function App() {
     <Routes>
       <Route path="/" element={<AppShell />}>
         <Route index element={<Dashboard />} />
+        <Route path="concept" element={<ConceptPlanner />} />
         <Route path="create" element={<CreateAsset />} />
         <Route path="library" element={<AssetLibrary />} />
         <Route path="experiments" element={<Experiments />} />
@@ -19,5 +21,6 @@ function App() {
     </Routes>
   );
 }
+
 
 export default App;

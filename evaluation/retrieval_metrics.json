@@ -1,0 +1,13 @@
+{
+    "query_count": 100,
+    "gallery_count": 5000,
+    "ae": {
+        "precision_at_1": 0.68,
+        "precision_at_5": 0.626
+    },
+    "vae": {
+        "precision_at_1": 0.66,
+        "precision_at_5": 0.628
+    },
+    "winner": "VAE"
+}

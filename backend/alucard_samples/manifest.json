@@ -1,0 +1,162 @@
+[
+  {
+    "sample_id": 0,
+    "dataset_idx": 0,
+    "label": "Arcane Mage",
+    "text_prompt": "pixel art, gray, small, wizard, mage, spellcaster, back view",
+    "filename": "alucard_0.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_0.png"
+  },
+  {
+    "sample_id": 1,
+    "dataset_idx": 1,
+    "label": "Knight Warrior",
+    "text_prompt": "pixel art, gray, small, character, hero, adventurer, three-quarter view",
+    "filename": "alucard_1.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_1.png"
+  },
+  {
+    "sample_id": 2,
+    "dataset_idx": 4,
+    "label": "Flame Aura",
+    "text_prompt": "pixel art, brown, small, wizard, mage, spellcaster, front view",
+    "filename": "alucard_2.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_2.png"
+  },
+  {
+    "sample_id": 3,
+    "dataset_idx": 5,
+    "label": "Plate Armor",
+    "text_prompt": "pixel art, colorful, medium-sized, warrior, armored character, back view",
+    "filename": "alucard_3.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_3.png"
+  },
+  {
+    "sample_id": 4,
+    "dataset_idx": 9,
+    "label": "Iron Helmet",
+    "text_prompt": "pixel art, brown, medium-sized, helmet, hat, headwear, front view",
+    "filename": "alucard_4.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_4.png"
+  },
+  {
+    "sample_id": 5,
+    "dataset_idx": 15,
+    "label": "Magic Staff",
+    "text_prompt": "pixel art, brown, large, staff, wand, magical weapon, three-quarter view",
+    "filename": "alucard_5.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_5.png"
+  },
+  {
+    "sample_id": 6,
+    "dataset_idx": 16,
+    "label": "Demon Guardian",
+    "text_prompt": "pixel art, gray, small, monster, enemy creature, back view",
+    "filename": "alucard_6.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_6.png"
+  },
+  {
+    "sample_id": 7,
+    "dataset_idx": 17,
+    "label": "Health Potion",
+    "text_prompt": "pixel art, colorful, medium-sized, potion, bottle, consumable, back view",
+    "filename": "alucard_7.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_7.png"
+  },
+  {
+    "sample_id": 8,
+    "dataset_idx": 26,
+    "label": "Green Slime",
+    "text_prompt": "pixel art, brown, small, slime, blob creature, three-quarter view",
+    "filename": "alucard_8.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_8.png"
+  },
+  {
+    "sample_id": 9,
+    "dataset_idx": 32,
+    "label": "Longbow",
+    "text_prompt": "pixel art, dark, large, bow, ranged weapon, back view",
+    "filename": "alucard_9.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_9.png"
+  },
+  {
+    "sample_id": 10,
+    "dataset_idx": 809,
+    "label": "Broadsword",
+    "text_prompt": "pixel art, gray, small, sword, blade weapon, three-quarter view",
+    "filename": "alucard_10.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_10.png"
+  },
+  {
+    "sample_id": 11,
+    "dataset_idx": 100,
+    "label": "Sprite #11",
+    "text_prompt": "pixel art, colorful, small, warrior, armored character, three-quarter view",
+    "filename": "alucard_11.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_11.png"
+  },
+  {
+    "sample_id": 12,
+    "dataset_idx": 101,
+    "label": "Sprite #12",
+    "text_prompt": "pixel art, gray, small, warrior, armored character, front view",
+    "filename": "alucard_12.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_12.png"
+  },
+  {
+    "sample_id": 13,
+    "dataset_idx": 102,
+    "label": "Sprite #13",
+    "text_prompt": "pixel art, colorful, small, warrior, armored character, three-quarter view",
+    "filename": "alucard_13.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_13.png"
+  },
+  {
+    "sample_id": 14,
+    "dataset_idx": 103,
+    "label": "Sprite #14",
+    "text_prompt": "pixel art, brown, medium-sized, wizard, mage, spellcaster, front view",
+    "filename": "alucard_14.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_14.png"
+  },
+  {
+    "sample_id": 15,
+    "dataset_idx": 104,
+    "label": "Sprite #15",
+    "text_prompt": "pixel art, colorful, small, key, tool, utility item, back view",
+    "filename": "alucard_15.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_15.png"
+  },
+  {
+    "sample_id": 16,
+    "dataset_idx": 105,
+    "label": "Sprite #16",
+    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, three-quarter view",
+    "filename": "alucard_16.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_16.png"
+  },
+  {
+    "sample_id": 17,
+    "dataset_idx": 106,
+    "label": "Sprite #17",
+    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, front view",
+    "filename": "alucard_17.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_17.png"
+  },
+  {
+    "sample_id": 18,
+    "dataset_idx": 107,
+    "label": "Sprite #18",
+    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, three-quarter view",
+    "filename": "alucard_18.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_18.png"
+  },
+  {
+    "sample_id": 19,
+    "dataset_idx": 108,
+    "label": "Sprite #19",
+    "text_prompt": "pixel art, colorful, small, staff, wand, magical weapon, back view",
+    "filename": "alucard_19.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_19.png"
+  }
+]

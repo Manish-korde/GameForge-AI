@@ -1,0 +1,182 @@
+{
+  "dataset_name": "GEM/viggo (ViGGO Video Game Dialogue Dataset)",
+  "total_population": 6900,
+  "splits": {
+    "train": 5103,
+    "validation": 714,
+    "test": 1083
+  },
+  "intent_category_distribution": [
+    {
+      "Category / Intent": "inform",
+      "Count": 3000,
+      "Percentage": 43.48
+    },
+    {
+      "Category / Intent": "give_opinion",
+      "Count": 750,
+      "Percentage": 10.87
+    },
+    {
+      "Category / Intent": "verify_attribute",
+      "Count": 750,
+      "Percentage": 10.87
+    },
+    {
+      "Category / Intent": "request",
+      "Count": 450,
+      "Percentage": 6.52
+    },
+    {
+      "Category / Intent": "confirm",
+      "Count": 450,
+      "Percentage": 6.52
+    },
+    {
+      "Category / Intent": "suggest",
+      "Count": 450,
+      "Percentage": 6.52
+    },
+    {
+      "Category / Intent": "request_explanation",
+      "Count": 450,
+      "Percentage": 6.52
+    },
+    {
+      "Category / Intent": "recommend",
+      "Count": 450,
+      "Percentage": 6.52
+    },
+    {
+      "Category / Intent": "request_attribute",
+      "Count": 150,
+      "Percentage": 2.17
+    }
+  ],
+  "intent_majority_baseline_pct": 43.48,
+  "genre_category_distribution": [
+    {
+      "Genre": "Not Specified",
+      "Count": 2817,
+      "Percentage": 40.83
+    },
+    {
+      "Genre": "action-adventure",
+      "Count": 1017,
+      "Percentage": 14.74
+    },
+    {
+      "Genre": "adventure",
+      "Count": 591,
+      "Percentage": 8.57
+    },
+    {
+      "Genre": "driving/racing",
+      "Count": 489,
+      "Percentage": 7.09
+    },
+    {
+      "Genre": "simulation",
+      "Count": 345,
+      "Percentage": 5.0
+    },
+    {
+      "Genre": "action",
+      "Count": 273,
+      "Percentage": 3.96
+    },
+    {
+      "Genre": "role-playing",
+      "Count": 237,
+      "Percentage": 3.43
+    },
+    {
+      "Genre": "real-time strategy",
+      "Count": 195,
+      "Percentage": 2.83
+    },
+    {
+      "Genre": "sport",
+      "Count": 177,
+      "Percentage": 2.57
+    },
+    {
+      "Genre": "indie",
+      "Count": 132,
+      "Percentage": 1.91
+    },
+    {
+      "Genre": "music",
+      "Count": 87,
+      "Percentage": 1.26
+    },
+    {
+      "Genre": "platformer",
+      "Count": 72,
+      "Percentage": 1.04
+    },
+    {
+      "Genre": "arcade",
+      "Count": 72,
+      "Percentage": 1.04
+    },
+    {
+      "Genre": "vehicular combat",
+      "Count": 57,
+      "Percentage": 0.83
+    },
+    {
+      "Genre": "MMORPG",
+      "Count": 54,
+      "Percentage": 0.78
+    },
+    {
+      "Genre": "shooter",
+      "Count": 51,
+      "Percentage": 0.74
+    },
+    {
+      "Genre": "hack-and-slash",
+      "Count": 45,
+      "Percentage": 0.65
+    },
+    {
+      "Genre": "text adventure",
+      "Count": 42,
+      "Percentage": 0.61
+    },
+    {
+      "Genre": "strategy",
+      "Count": 42,
+      "Percentage": 0.61
+    },
+    {
+      "Genre": "pinball",
+      "Count": 39,
+      "Percentage": 0.57
+    },
+    {
+      "Genre": "trivia/board game",
+      "Count": 33,
+      "Percentage": 0.48
+    },
+    {
+      "Genre": "turn-based strategy",
+      "Count": 33,
+      "Percentage": 0.48
+    }
+  ],
+  "genre_majority_baseline_pct": 24.91,
+  "knn_intent_benchmark": {
+    "test_sample_size": 1083,
+    "test_majority_baseline_pct": 29.92,
+    "knn_accuracy_pct": 61.31,
+    "lift_percentage_points": 31.39
+  },
+  "knn_genre_benchmark": {
+    "test_sample_size": 582,
+    "test_majority_baseline_pct": 27.32,
+    "knn_accuracy_pct": 98.11,
+    "lift_percentage_points": 70.79
+  }
+}

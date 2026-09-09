@@ -49,39 +49,41 @@ Our project presents **three distinct model components**, each fulfilling a tech
 * **Technical Value**: Provides the natural language interface and semantic structuring layer that grounds downstream asset requirements.
 
 ### 2. Autoencoder (AE)
-* **Dataset**: Trained & evaluated on the **280,000 2D Game Asset Dataset (Alucard)**.
+* **Dataset**: Trained & evaluated on the **282,511 2D Game Asset Dataset (Alucard)** ($128 \times 128 \times 4$ RGBA).
 * **Role**: Deterministic baseline compression and high-precision pixel-art reconstruction.
-* **Performance**: MSE `0.00166`, PSNR `28.52 dB`, SSIM `0.9248`.
-* **Defensible Application**: **Data Cleaning & Outlier Detection**. High-reconstruction-error assets from the trained AE are automatically flagged as corrupted, misaligned, or outlier sprites.
+* **Performance**: Median MSE `0.000782`, PSNR `28.52 dB`, SSIM `0.9248`.
+* **Defensible Application**: **Data Quality Verification & Outlier Screening**. Automatically surfaces the highest-error 5% of assets exceeding the empirical $95\text{th}$ percentile MSE threshold (`0.001313`) for review.
 
 ### 3. Variational Autoencoder (VAE)
-* **Dataset**: Trained & evaluated on the **280,000 2D Game Asset Dataset (Alucard)**.
+* **Dataset**: Trained & evaluated on the **282,511 2D Game Asset Dataset (Alucard)**.
+* **Active Search Index**: **25,000 Pre-Indexed Latent Vectors** (`latent_gallery_index_25k.npy`) serving distance matching in **< 1ms**.
 * **Role**: Probabilistic latent representation learning ($z \sim \mathcal{N}(\mu, \sigma^2)$).
-* **Defensible Application**: **Probabilistic Latent Space Analysis & Controlled Real-Sprite Interpolation (A → B)**.
-* **Framing Note**: The VAE learns a continuous latent representation of game assets for 2D visual clustering, similarity search, and smooth real-sprite-to-real-sprite morphing. *Sampling and interpolation are presented as experimental generative capabilities rather than production-ready asset generators.*
+* **Performance**: Evaluated on a 5,000-sprite candidate pool, achieving **84.40% KNN category accuracy** (a **+19.21 percentage point lift** over the 65.19% majority-class baseline) and **62.80% Precision@5** retrieval precision.
+* **Defensible Application**: **Probabilistic Latent Space Analysis, Visual Similarity Search, & Controlled Real-Sprite Morphing (A → B)**.
 
 ---
 
 ## 📊 The Single Dataset Story: 280K Game Assets
 
-To ensure a controlled, fair scientific comparison between AE and VAE, **both models were trained on the exact same dataset**:
+To ensure a controlled, fair scientific comparison between AE and VAE, **both models were trained on the exact same 282,511 dataset**:
 
 ```text
-              280K Game Assets (Alucard Dataset)
-                     │
-             ┌───────┴───────┐
-             ↓               ↓
-            AE              VAE
-             ↓               ↓
-       Reconstruction   Latent Space
-       / Data Cleaning  Analysis & Interpolation
+               282,511 Game Assets (Alucard Dataset)
+                         │
+         ┌───────────────┴───────────────┐
+         ↓                               ↓
+        AE                              VAE
+         ↓                               ↓
+  Reconstruction MSE            Continuous Latent Space
+ Quality Control (P95)       Visual Search (25K Index < 1ms)
+(Median MSE: 0.000782)      (KNN Acc: 84.4% vs 65.2% baseline)
 ```
 
 ### Dataset Specifications:
-- **Source**: 280,000 2D Pixel-Art Game Sprites (Alucard Dataset).
-- **Dimensions**: $128 \times 128 \times 4$ (RGBA with hard alpha transparency mask).
-- **Preprocessing**: Pixel normalization to $[0.0, 1.0]$.
-- **Splits**: 80% Train, 10% Validation, 10% Test.
+- **Source**: 282,511 2D Pixel-Art Game Sprites (Alucard Dataset).
+- **Dimensions**: $128 \times 128 \times 4$ (RGBA with transparent alpha mask).
+- **100.00% Category Breakdown**: Characters (**65.19%**), Unknown/Misc (**15.84%**), Items (**6.39%**), Enemies (**5.75%**), Weapons (**4.38%**), Tiles (**1.92%**), Props (**0.35%**), Effects (**0.18%**).
+- **Project Status & Ground Truth**: See [CURRENT_PROJECT_STATUS.md](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/documentation/CURRENT_PROJECT_STATUS.md) for the definitive status document.
 
 ---
 

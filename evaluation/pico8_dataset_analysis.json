@@ -1,0 +1,89 @@
+{
+  "dataset_name": "Fraser/pico-8-games (PICO-8 Game Cartridges Dataset)",
+  "total_population": 10967,
+  "splits": {
+    "train": 8773,
+    "test": 2194
+  },
+  "category_distribution": [
+    {
+      "Category": "General Retro & Casual",
+      "Count": 6781,
+      "Percentage": 61.83
+    },
+    {
+      "Category": "Shooter & Shmup",
+      "Count": 659,
+      "Percentage": 6.01
+    },
+    {
+      "Category": "Arcade",
+      "Count": 620,
+      "Percentage": 5.65
+    },
+    {
+      "Category": "Puzzle",
+      "Count": 575,
+      "Percentage": 5.24
+    },
+    {
+      "Category": "Demoscene & Music",
+      "Count": 556,
+      "Percentage": 5.07
+    },
+    {
+      "Category": "Platformer",
+      "Count": 530,
+      "Percentage": 4.83
+    },
+    {
+      "Category": "Celeste & Mods",
+      "Count": 315,
+      "Percentage": 2.87
+    },
+    {
+      "Category": "RPG & Roguelike",
+      "Count": 250,
+      "Percentage": 2.28
+    },
+    {
+      "Category": "Adventure",
+      "Count": 199,
+      "Percentage": 1.81
+    },
+    {
+      "Category": "Action",
+      "Count": 170,
+      "Percentage": 1.55
+    },
+    {
+      "Category": "Strategy & Tactics",
+      "Count": 124,
+      "Percentage": 1.13
+    },
+    {
+      "Category": "Tools & Utilities",
+      "Count": 97,
+      "Percentage": 0.88
+    },
+    {
+      "Category": "Simulation",
+      "Count": 91,
+      "Percentage": 0.83
+    }
+  ],
+  "majority_class_baseline_pct": 61.83,
+  "knn_benchmark_full_corpus": {
+    "test_sample_size": 2194,
+    "test_majority_baseline_pct": 61.85,
+    "knn_accuracy_pct": 63.76,
+    "lift_percentage_points": 1.91
+  },
+  "knn_benchmark_specified_genres": {
+    "subsample_size": 4186,
+    "test_sample_size": 838,
+    "test_majority_baseline_pct": 15.75,
+    "knn_accuracy_pct": 36.04,
+    "lift_percentage_points": 20.29
+  }
+}
