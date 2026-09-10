@@ -37,7 +37,31 @@
 
 ---
 
-## 📚 Slide 5: Literature Review
+## 📊 Slide 5: Dataset Analysis & Corpus Breakdown
+
+* **Primary Visual Corpus (`evilsocket/alucard-sprites`)**:
+  * **Scale**: **282,511 Unique RGBA Sprites** ($128 \times 128 \times 4$ pixels with full 8-bit alpha mask).
+  * **License**: `CC-BY-NC-SA 4.0` (Creative Commons Non-Commercial Attribution).
+* **100.00% Category Population Distribution**:
+  * 🎭 **Characters & Heroes**: **65.19%** (184,170 sprites) — *Naive Majority Class Baseline*
+  * ❓ **Unknown / Misc**: **15.84%** (44,750 sprites)
+  * 🧪 **Items & Consumables**: **6.39%** (18,052 sprites)
+  * 👾 **Enemies & Monsters**: **5.75%** (16,244 sprites)
+  * ⚔️ **Weapons**: **4.38%** (12,374 sprites)
+  * 🧱 **Tiles & Environment**: **1.92%** (5,424 sprites)
+  * 📦 **Props & Decor**: **0.35%** (988 sprites)
+  * ✨ **Effects & Spells**: **0.18%** (509 sprites)
+* **Empirical Image Structure Metrics**:
+  * **Mean Bounding Box Area**: **65.54%** (Average sprite content fill)
+  * **Mean Non-Transparent Alpha**: **53.25%** (Active non-zero pixel coverage)
+  * **Mean Aspect Ratio**: **0.74** (Height-dominant character geometry)
+* **Cross-Dataset Validation Benchmarks**:
+  * **ViGGO Dialogue Corpus**: 6,900 NLP samples (`CC-BY 4.0`)
+  * **PICO-8 Cartridge Corpus**: 10,967 Game Cartridges (`CC-BY-NC-SA 4.0`)
+
+---
+
+## 📚 Slide 6: Literature Review
 
 1. **Vaswani, A., et al. (2017). *Attention Is All You Need.***  
    * **Relevance**: Foundation for Transformer (`Flan-T5`) semantic sequence-to-sequence planning.
