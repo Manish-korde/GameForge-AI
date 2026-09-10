@@ -42,6 +42,11 @@
 * **Primary Visual Corpus (`evilsocket/alucard-sprites`)**:
   * **Scale**: **282,511 Unique RGBA Sprites** ($128 \times 128 \times 4$ pixels with full 8-bit alpha mask).
   * **License**: `CC-BY-NC-SA 4.0` (Creative Commons Non-Commercial Attribution).
+  * **Train / Val / Test Split (Identical for AE & VAE)**:
+    * 🏋️ **Training Set (90%)**: **254,260 images** (Model parameter optimization)
+    * 🔍 **Validation Set (5%)**: **14,126 images** (Early stopping & checkpoint saving)
+    * 🧪 **Held-Out Test Set (5%)**: **14,125 images** (Final metric calculation & P95 QA audit)
+    * ⚡ **Pre-Indexed Vector Index**: **25,000 vectors** (`latent_gallery_index_25k.npy` < 1ms search)
 * **100.00% Category Population Distribution**:
   * 🎭 **Characters & Heroes**: **65.19%** (184,170 sprites) — *Naive Majority Class Baseline*
   * ❓ **Unknown / Misc**: **15.84%** (44,750 sprites)
