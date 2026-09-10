@@ -1,0 +1,27 @@
+{
+  "model": "google/flan-t5-small",
+  "model_directory": "F:\\Project\\GameForge-AI\\models\\gameforge_t5",
+  "test_examples": 200,
+  "valid_json": {
+    "count": 200,
+    "percentage": 100.0
+  },
+  "schema_valid": {
+    "count": 200,
+    "percentage": 100.0
+  },
+  "exact_match": {
+    "count": 22,
+    "percentage": 11.0
+  },
+  "scalar_accuracy": {
+    "theme": 97.5,
+    "environment": 64.0,
+    "visualStyle": 52.5
+  },
+  "list_name_jaccard": {
+    "characters": 100.0,
+    "weapons": 50.0,
+    "props": 70.0
+  }
+}

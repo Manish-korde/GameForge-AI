@@ -30,3 +30,10 @@ dec_*.png
 *.npy
 *.weights.h5
 Notebook/experimentaion/**/*.keras
+
+# GameForge AI training checkpoints
+models/gameforge_t5_checkpoints/
+models/gameforge_t5_checkpoints_before_json_fix/
+
+# Previous/backup model
+models/gameforge_t5_before_json_fix/
