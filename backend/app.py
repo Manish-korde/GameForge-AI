@@ -103,26 +103,41 @@ def image_to_base64(image: Image.Image) -> str:
 ALUCARD_INDEX = []
 
 SAMPLE_CATEGORIES = {
-    0: {"category": "Character", "label": "Arcane Mage", "text": "pixel art, gray, small, wizard, mage, spellcaster, back view"},
-    1: {"category": "Character", "label": "Knight Warrior", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    2: {"category": "Effect / Spell", "label": "Flame Aura", "text": "pixel art, brown, small, wizard, mage, spellcaster, front view"},
-    3: {"category": "Item / Equipment", "label": "Plate Armor", "text": "pixel art, colorful, medium-sized, warrior, armored character, back view"},
-    4: {"category": "Item / Equipment", "label": "Iron Helmet", "text": "pixel art, brown, medium-sized, helmet, hat, headwear, front view"},
-    5: {"category": "Weapon", "label": "Magic Staff", "text": "pixel art, brown, large, staff, wand, magical weapon, three-quarter view"},
-    6: {"category": "Enemy / Monster", "label": "Demon Guardian", "text": "pixel art, gray, small, monster, enemy creature, back view"},
-    7: {"category": "Item / Consumable", "label": "Health Potion", "text": "pixel art, colorful, medium-sized, potion, bottle, consumable, back view"},
-    8: {"category": "Enemy / Monster", "label": "Green Slime", "text": "pixel art, brown, small, slime, blob creature, three-quarter view"},
-    9: {"category": "Weapon", "label": "Longbow", "text": "pixel art, dark, large, bow, ranged weapon, back view"},
-    10: {"category": "Weapon", "label": "Broadsword", "text": "pixel art, gray, small, sword, blade weapon, three-quarter view"},
-    11: {"category": "Character", "label": "Warrior Sprite", "text": "pixel art, colorful, small, warrior, armored character, three-quarter view"},
-    12: {"category": "Character", "label": "Warrior Sprite (Front)", "text": "pixel art, gray, small, warrior, armored character, front view"},
-    13: {"category": "Character", "label": "Warrior Sprite (Side)", "text": "pixel art, colorful, small, warrior, armored character, three-quarter view"},
-    14: {"category": "Character", "label": "Mage Sprite", "text": "pixel art, brown, medium-sized, wizard, mage, spellcaster, front view"},
-    15: {"category": "Item / Equipment", "label": "Key Item", "text": "pixel art, colorful, small, key, tool, utility item, back view"},
-    16: {"category": "Character", "label": "Adventurer Sprite", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    17: {"category": "Character", "label": "Adventurer Sprite (Front)", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
-    18: {"category": "Character", "label": "Adventurer Sprite (Side)", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    19: {"category": "Weapon", "label": "Staff Sprite", "text": "pixel art, colorful, small, staff, wand, magical weapon, back view"}
+    0: {"category": "Character", "label": "Arcane Mage", "text": "pixel art, wizard, mage, spellcaster character"},
+    1: {"category": "Character", "label": "Knight Paladin", "text": "pixel art, armored paladin, knight warrior"},
+    2: {"category": "Character", "label": "Flame Sorcerer", "text": "pixel art, flame sorcerer, fire mage character"},
+    3: {"category": "Character", "label": "Armored Guardian", "text": "pixel art, armored warrior, heavy guardian character"},
+    4: {"category": "Character", "label": "Royal Knight", "text": "pixel art, royal knight warrior character"},
+    5: {"category": "Character", "label": "Shadow Warrior", "text": "pixel art, shadow warrior character"},
+    6: {"category": "Enemy / Monster", "label": "Demon Specter", "text": "pixel art, demon creature enemy monster"},
+    7: {"category": "Character", "label": "Forest Ranger", "text": "pixel art, forest ranger scout character"},
+    8: {"category": "Enemy / Monster", "label": "Slime Beast", "text": "pixel art, green slime blob creature enemy"},
+    9: {"category": "Character", "label": "Elven Archer", "text": "pixel art, elven archer bow character"},
+    10: {"category": "Character", "label": "Dark Necromancer", "text": "pixel art, dark necromancer caster character"},
+    11: {"category": "Character", "label": "Rogue Assassin", "text": "pixel art, stealth rogue assassin character"},
+    12: {"category": "Character", "label": "Shadow Ninja", "text": "pixel art, shadow ninja warrior character"},
+    13: {"category": "Character", "label": "Blood Berserker", "text": "pixel art, blood berserker warrior character"},
+    14: {"category": "Character", "label": "Forest Elf", "text": "pixel art, forest elf mage character"},
+    15: {"category": "Character", "label": "Dwarf Defender", "text": "pixel art, dwarf warrior defender character"},
+    16: {"category": "Character", "label": "Adventurer Hero", "text": "pixel art, blonde adventurer hero boy character"},
+    17: {"category": "Enemy / Monster", "label": "Skeleton Warrior", "text": "pixel art, skeleton undead warrior enemy"},
+    18: {"category": "Character", "label": "Frost Maiden", "text": "pixel art, frost maiden sorceress character"},
+    19: {"category": "Enemy / Monster", "label": "Fire Elemental", "text": "pixel art, fire elemental creature monster"},
+    20: {"category": "Character", "label": "Cyber Knight", "text": "pixel art, cyber knight sci-fi hero character"},
+    21: {"category": "Character", "label": "Golden Templar", "text": "pixel art, golden paladin warrior character"},
+    22: {"category": "Character", "label": "Shieldbearer", "text": "pixel art, shieldbearer defender warrior character"},
+    23: {"category": "Character", "label": "Battle Master", "text": "pixel art, battle master warrior character"},
+    24: {"category": "Character", "label": "Crossbow Scout", "text": "pixel art, crossbow scout ranger character"},
+    25: {"category": "Enemy / Monster", "label": "Goblin Raider", "text": "pixel art, goblin raider monster enemy"},
+    26: {"category": "Enemy / Monster", "label": "Orc Chieftain", "text": "pixel art, orc chieftain boss enemy"},
+    27: {"category": "Character", "label": "High Priest", "text": "pixel art, holy high priest cleric character"},
+    28: {"category": "Character", "label": "Phoenix Cultist", "text": "pixel art, phoenix cultist spellcaster character"},
+    29: {"category": "Character", "label": "Dragon Slayer", "text": "pixel art, dragon slayer hero warrior character"},
+    30: {"category": "Character", "label": "Cyber Sentinel", "text": "pixel art, cyber sentinel futuristic warrior"},
+    31: {"category": "Character", "label": "Starship Commander", "text": "pixel art, starship commander sci-fi character"},
+    32: {"category": "Enemy / Monster", "label": "Alien Droid", "text": "pixel art, alien droid robot enemy"},
+    33: {"category": "Character", "label": "Void Stalker", "text": "pixel art, void stalker character"},
+    34: {"category": "Character", "label": "Purple Elf Mage", "text": "pixel art, purple female elf mage holding staff spear"}
 }
 
 
@@ -139,7 +154,7 @@ def preindex_alucard_samples():
         
         batch_tensors = []
         metadata = []
-        for i in range(20):
+        for i in range(35):
             img_path = os.path.join(samples_dir, f"alucard_{i}.png")
             if os.path.exists(img_path):
                 img = Image.open(img_path).convert("RGBA")
@@ -259,6 +274,19 @@ def status():
         "transformer_status": f"Transformer: {transformer_status}"
     }
 
+@app.get("/alucard_samples_manifest")
+def get_alucard_samples_manifest():
+    result = []
+    for i in range(35):
+        cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}"})
+        result.append({
+            "id": i,
+            "label": f"Sprite #{i+1}: {cat_info['label']}",
+            "category": cat_info["category"],
+            "url": f"http://127.0.0.1:8000/alucard_samples/alucard_{i}.png"
+        })
+    return result
+
 @app.get("/ethical_guidelines")
 def ethical_guidelines():
     return {
@@ -303,6 +331,14 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
             local_file = os.path.join(samples_dir, filename)
             if os.path.exists(local_file):
                 return Image.open(local_file).convert("RGBA")
+        if "alucard_dataset_image" in url_or_path:
+            try:
+                img_id = int(url_or_path.rstrip("/").split("/")[-1])
+                raw_ds = get_raw_dataset()
+                if raw_ds is not None and 0 <= img_id < len(raw_ds):
+                    return raw_ds[img_id]["image"].convert("RGBA")
+            except Exception as e:
+                print(f"Error reading dataset image directly: {e}")
         if url_or_path.startswith("data:image"):
             header, encoded = url_or_path.split(",", 1)
             data = base64.b64decode(encoded)
@@ -515,14 +551,17 @@ async def interpolate_vae(
         tensor_b = preprocess_image(image_b)
         
         # 2. Encode to get latent means
-        z_mean_a, _, _ = vae_encoder.predict(tensor_a)
-        z_mean_b, _, _ = vae_encoder.predict(tensor_b)
+        enc_out_a = vae_encoder.predict(tensor_a, verbose=0)
+        z_mean_a = enc_out_a[0] if isinstance(enc_out_a, list) else enc_out_a
+        
+        enc_out_b = vae_encoder.predict(tensor_b, verbose=0)
+        z_mean_b = enc_out_b[0] if isinstance(enc_out_b, list) else enc_out_b
         
         # 3. Interpolate in latent space
         z_interpolated = (1.0 - alpha) * z_mean_a + alpha * z_mean_b
         
         # 4. Decode
-        output_tensor = vae_decoder.predict(z_interpolated)
+        output_tensor = vae_decoder.predict(z_interpolated, verbose=0)
         
         # 5. Postprocess back to PIL image
         interp_image = postprocess_image(output_tensor[0:1])

@@ -5,7 +5,53 @@ const DEMO_MODE = true; // Hardcoded for now until backend is connected
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const HUMAN_SPRITES = Array.from({ length: 20 }, (_, i) => `http://127.0.0.1:8000/alucard_samples/alucard_${i}.png`);
+const HUMAN_SPRITES = Array.from({ length: 35 }, (_, i) => `http://127.0.0.1:8000/alucard_samples/alucard_${i}.png`);
+
+export const SAMPLE_SPRITES_35 = [
+  { id: 0, label: "Sprite #1: Arcane Mage", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_0.png" },
+  { id: 1, label: "Sprite #2: Knight Paladin", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_1.png" },
+  { id: 2, label: "Sprite #3: Flame Sorcerer", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_2.png" },
+  { id: 3, label: "Sprite #4: Armored Guardian", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_3.png" },
+  { id: 4, label: "Sprite #5: Royal Knight", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_4.png" },
+  { id: 5, label: "Sprite #6: Shadow Warrior", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_5.png" },
+  { id: 6, label: "Sprite #7: Demon Specter", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_6.png" },
+  { id: 7, label: "Sprite #8: Forest Ranger", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_7.png" },
+  { id: 8, label: "Sprite #9: Slime Beast", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_8.png" },
+  { id: 9, label: "Sprite #10: Elven Archer", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_9.png" },
+  { id: 10, label: "Sprite #11: Dark Necromancer", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_10.png" },
+  { id: 11, label: "Sprite #12: Rogue Assassin", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_11.png" },
+  { id: 12, label: "Sprite #13: Shadow Ninja", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_12.png" },
+  { id: 13, label: "Sprite #14: Blood Berserker", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_13.png" },
+  { id: 14, label: "Sprite #15: Forest Elf", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_14.png" },
+  { id: 15, label: "Sprite #16: Dwarf Defender", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_15.png" },
+  { id: 16, label: "Sprite #17: Adventurer Hero", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_16.png" },
+  { id: 17, label: "Sprite #18: Skeleton Warrior", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_17.png" },
+  { id: 18, label: "Sprite #19: Frost Maiden", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_18.png" },
+  { id: 19, label: "Sprite #20: Fire Elemental", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_19.png" },
+  { id: 20, label: "Sprite #21: Cyber Knight", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_20.png" },
+  { id: 21, label: "Sprite #22: Golden Templar", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_21.png" },
+  { id: 22, label: "Sprite #23: Shieldbearer", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_22.png" },
+  { id: 23, label: "Sprite #24: Battle Master", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_23.png" },
+  { id: 24, label: "Sprite #25: Crossbow Scout", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_24.png" },
+  { id: 25, label: "Sprite #26: Goblin Raider", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_25.png" },
+  { id: 26, label: "Sprite #27: Orc Chieftain", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_26.png" },
+  { id: 27, label: "Sprite #28: High Priest", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_27.png" },
+  { id: 28, label: "Sprite #29: Phoenix Cultist", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_28.png" },
+  { id: 29, label: "Sprite #30: Dragon Slayer", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_29.png" },
+  { id: 30, label: "Sprite #31: Cyber Sentinel", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_30.png" },
+  { id: 31, label: "Sprite #32: Starship Commander", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_31.png" },
+  { id: 32, label: "Sprite #33: Alien Droid", category: "Enemy", url: "http://127.0.0.1:8000/alucard_samples/alucard_32.png" },
+  { id: 33, label: "Sprite #34: Void Stalker", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_33.png" },
+  { id: 34, label: "Sprite #35: Purple Elf Mage", category: "Character", url: "http://127.0.0.1:8000/alucard_samples/alucard_34.png" }
+];
+
+export const fetchSampleSpritesManifest = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/alucard_samples_manifest`);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+  return SAMPLE_SPRITES_35;
+};
 
 export const fetchRandomHumanSprite = () => {
   return HUMAN_SPRITES[Math.floor(Math.random() * HUMAN_SPRITES.length)];
@@ -132,42 +178,21 @@ export const fetchLibraryAssets = async () => {
 
 export const generateImage = async (spec) => {
   if (DEMO_MODE) {
-    await delay(3000);
-    const promptText = ((spec.prompt || spec.prompt_parsed || spec.game_title || "") + " " + (spec.main_character?.role || "")).toLowerCase();
-    let index = 1; // Default to Knight Warrior
-    
-    if (promptText.includes("boot") || promptText.includes("footwear")) index = 0;
-    else if (promptText.includes("knight") || promptText.includes("warrior")) index = 1;
-    else if (promptText.includes("demon") || promptText.includes("guardian")) index = 2;
-    else if (promptText.includes("armor")) index = 3;
-    else if (promptText.includes("helmet")) index = 4;
-    else if (promptText.includes("staff") || promptText.includes("wand")) index = 5;
-    else if (promptText.includes("potion")) index = 7;
-    else if (promptText.includes("slime") || promptText.includes("blob")) index = 8;
-    else if (promptText.includes("bow") || promptText.includes("archer") || promptText.includes("longbow")) index = 9;
-    else if (promptText.includes("sword") || promptText.includes("blade")) index = 10;
-    else if (promptText.includes("mage") || promptText.includes("wizard") || promptText.includes("spellcaster")) index = 12;
-    else if (promptText.includes("rogue") || promptText.includes("assassin")) index = 13;
-    else if (promptText.includes("ring")) index = 14;
-    else if (promptText.includes("torch")) index = 15;
-    else if (promptText.includes("necromancer")) index = 16;
-    else if (promptText.includes("axe")) index = 17;
-    else if (promptText.includes("skeleton")) index = 18;
-    else if (promptText.includes("scroll")) index = 19;
-    else {
-      index = Math.floor(Math.random() * 20);
-    }
+    await delay(1500);
+    const randomIndex = Math.floor(Math.random() * SAMPLE_SPRITES_35.length);
+    const selectedSprite = SAMPLE_SPRITES_35[randomIndex];
     
     return {
       status: 'success',
       data: {
         id: 'asset-' + Date.now(),
-        name: (spec.game_title || 'Concept') + ' Asset',
+        name: selectedSprite.label.split(": ")[1] || selectedSprite.label,
         type: 'Image',
         source: 'Diffusion',
         model: 'Diffusion Model',
-        prompt: spec.prompt || spec.prompt_parsed,
-        imageUrl: `http://127.0.0.1:8000/alucard_samples/alucard_${index}.png`,
+        prompt: spec.prompt || spec.prompt_parsed || 'Pixel art character sprite',
+        imageUrl: selectedSprite.url,
+        spriteId: selectedSprite.id,
         createdAt: new Date().toISOString(),
         status: 'Completed'
       }

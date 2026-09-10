@@ -66,7 +66,7 @@ const Experiments = () => {
               <div className="text-2xl font-bold text-amber-400 mt-1">
                 {metrics?.outliers?.percentile_95_mse ? metrics.outliers.percentile_95_mse.toFixed(5) : '0.00131'}
               </div>
-              <div className="text-xs text-secondary mt-1">Flags top 5% highest-error assets</div>
+              <div className="text-xs text-secondary mt-1">Flags top 5% unusual assets for human inspection</div>
             </div>
           </div>
 
@@ -139,7 +139,7 @@ const Experiments = () => {
 
                   <tr>
                     <td className="py-3 px-4 font-semibold text-white">Defensible Role</td>
-                    <td className="py-3 px-4 text-xs">Outlier Screening & Data Quality Verification</td>
+                    <td className="py-3 px-4 text-xs">Automated Asset QA & Reconstruction-Based Outlier Screening</td>
                     <td className="py-3 px-4 text-xs text-indigo-300 font-semibold">Visual Search, Clustering & Real-Sprite Interpolation</td>
                     <td className="py-3 px-4 text-xs font-bold text-white">Both Complementary</td>
                   </tr>

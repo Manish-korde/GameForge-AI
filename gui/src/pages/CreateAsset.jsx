@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { generateDesign, generateImage, runAEInference, runVAEInference, runNoisyAEInference, runVAEInterpolation, fetchRandomHumanSprite, searchSimilarAssets, clusterAssets, detectDuplicateAsset, getAnomalyScore, retrieveMoreCategoryAssets } from '../services/api';
+import { useState, useEffect } from 'react';
+import { generateDesign, generateImage, runAEInference, runVAEInference, runNoisyAEInference, runVAEInterpolation, fetchRandomHumanSprite, searchSimilarAssets, clusterAssets, detectDuplicateAsset, getAnomalyScore, retrieveMoreCategoryAssets, SAMPLE_SPRITES_35, fetchSampleSpritesManifest } from '../services/api';
 
 const CreateAsset = () => {
   const [prompt, setPrompt] = useState('');
@@ -9,6 +9,7 @@ const CreateAsset = () => {
   const [generatedAsset, setGeneratedAsset] = useState(null);
   const [aeResult, setAeResult] = useState(null);
   const [isAELoading, setIsAELoading] = useState(false);
+  const [isAeApproved, setIsAeApproved] = useState(false);
   const [noisyAeResult, setNoisyAeResult] = useState(null);
   const [isNoisyAELoading, setIsNoisyAELoading] = useState(false);
   const [noiseScale, setNoiseScale] = useState(0.2);
@@ -18,7 +19,16 @@ const CreateAsset = () => {
   const [isVAELoading, setIsVAELoading] = useState(false);
   const [vaeScale, setVaeScale] = useState(1.0);
   
-  const localSprites = Array.from({ length: 20 }, (_, i) => `http://127.0.0.1:8000/alucard_samples/alucard_${i}.png`);
+  const [spriteList, setSpriteList] = useState(SAMPLE_SPRITES_35);
+
+  useEffect(() => {
+    fetchSampleSpritesManifest().then(data => {
+      if (data && data.length > 0) {
+        setSpriteList(data);
+      }
+    });
+  }, []);
+
   const [characterAUrl, setCharacterAUrl] = useState('');
   const [characterBUrl, setCharacterBUrl] = useState('');
   const [interpolationAlpha, setInterpolationAlpha] = useState(0.5);
@@ -56,7 +66,7 @@ const CreateAsset = () => {
     setNoisyAeResult(null);
     setVaeResult(null);
     setCharacterAUrl(res.data.imageUrl);
-    setCharacterBUrl(localSprites[5]); // Default Character B
+    setCharacterBUrl(spriteList[5]?.url || spriteList[0]?.url); // Default Character B
     setInterpolatedResult(null);
     setActiveView('original');
     setIsLoading(false);
@@ -229,7 +239,7 @@ const CreateAsset = () => {
       setAeResult(null);
       setNoisyAeResult(null);
       setVaeResult(null);
-      setCharacterBUrl(localSprites[5]);
+      setCharacterBUrl(spriteList[5]?.url || spriteList[0]?.url);
       setInterpolatedResult(null);
       setActiveView('original');
       setStep(3);
@@ -319,19 +329,52 @@ const CreateAsset = () => {
       {step === 3 && generatedAsset && (
         <div className="grid grid-cols-3 gap-lg mt-4">
           <div className="col-span-1">
-             <div className="card">
-               <h3 className="mb-4">Asset Details</h3>
-               <div className="text-sm text-secondary mb-1">Name</div>
-               <div className="mb-4">{generatedAsset.name}</div>
-               <div className="text-sm text-secondary mb-1">Prompt</div>
-               <div className="mb-4 text-sm">{generatedAsset.prompt}</div>
-               <button className="btn btn-secondary w-full mb-2" onClick={handleRunAE} disabled={isAELoading || isVAELoading}>
-                 {isAELoading ? 'Running AE...' : 'Run through AE'}
-               </button>
-               <button className="btn btn-secondary w-full mb-2" onClick={() => setActiveView('vae')} disabled={isAELoading || isVAELoading}>
-                 Create VAE Variations
-               </button>
-             </div>
+              <div className="card text-left">
+                <h3 className="mb-4">Asset Details</h3>
+                <div className="text-sm text-secondary mb-1">Name</div>
+                <div className="mb-3 font-semibold text-white">{generatedAsset.name}</div>
+                <div className="text-sm text-secondary mb-1">Prompt</div>
+                <div className="mb-4 text-sm">{generatedAsset.prompt}</div>
+
+                {/* Dropdown with 35 Character Sprites */}
+                <div className="mb-5 text-left border-t border-b border-[#252530] py-3">
+                  <label className="block text-xs font-semibold text-indigo-300 mb-1.5 flex justify-between items-center">
+                    <span>🎭 Select Character Sprite</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">35 Available</span>
+                  </label>
+                  <select 
+                    value={generatedAsset.imageUrl} 
+                    onChange={(e) => {
+                      const targetUrl = e.target.value;
+                      const foundItem = spriteList.find(s => s.url === targetUrl);
+                      const newName = foundItem ? (foundItem.label.split(": ")[1] || foundItem.label) : generatedAsset.name;
+                      setGeneratedAsset({
+                        ...generatedAsset,
+                        name: newName,
+                        imageUrl: targetUrl
+                      });
+                      setCharacterAUrl(targetUrl);
+                      setAeResult(null);
+                      setNoisyAeResult(null);
+                      setVaeResult(null);
+                    }}
+                    className="bg-[#181820] border border-[#3a3a45] text-xs text-white rounded-lg p-2.5 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
+                  >
+                    {spriteList.map((s) => (
+                      <option key={s.id} value={s.url}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button className="btn btn-secondary w-full mb-2" onClick={handleRunAE} disabled={isAELoading || isVAELoading}>
+                  {isAELoading ? 'Running AE...' : 'Run through AE'}
+                </button>
+                <button className="btn btn-secondary w-full mb-2" onClick={() => setActiveView('vae')} disabled={isAELoading || isVAELoading}>
+                  Create VAE Variations
+                </button>
+              </div>
           </div>
           <div className="col-span-2">
             <div className="card text-center flex flex-col items-center h-full">
@@ -365,8 +408,16 @@ const CreateAsset = () => {
 
               {activeView === 'ae' && aeResult && (
                 <div className="w-full">
-                  <h4 className="mb-6 text-xl font-bold">Autoencoder Inference</h4>
-                  <div className="flex gap-lg justify-center mb-8">
+                  <div className="mb-6 text-center border-b border-[#25252e] pb-4">
+                    <h4 className="text-2xl font-bold text-white">
+                      🔍 Autoencoder Inference & Outlier Screening
+                    </h4>
+                    <p className="text-xs text-secondary mt-1 max-w-2xl mx-auto">
+                      Deterministic high-precision reconstruction baseline & <strong>Automated Asset QA & Reconstruction-Based Outlier Screening</strong> relative to the learned 280K visual distribution.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-lg justify-center mb-6">
                     <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
                       <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Original (Scaled)</span>
                       <img src={aeResult.original_processed} alt="Original processed" className="rounded shadow-sm" style={{ width: '256px', height: '256px', imageRendering: 'pixelated', border: '1px solid #333' }} />
@@ -378,41 +429,112 @@ const CreateAsset = () => {
                   </div>
 
                   {aeResult.metrics && (
-                    <div className="bg-[#151515] rounded-xl p-6 border border-border mb-8 max-w-2xl mx-auto shadow-lg">
-                      <h5 className="text-sm text-secondary uppercase tracking-wider mb-4 font-semibold text-left">Real-Time Evaluation Metrics</h5>
-                      
-                      {/* Primary Error Metrics */}
-                      <div className="grid grid-cols-2 gap-4 text-center mb-4">
-                        <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">MSE Loss</div>
-                          <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mse.toFixed(6)}</div>
+                    <div className="max-w-2xl mx-auto mb-8">
+                      {/* Automated Asset QA Outlier Status Banner */}
+                      {aeResult.metrics.mse <= 0.001313 ? (
+                        <div className="p-4 mb-6 rounded-xl border bg-emerald-950/40 border-emerald-500/50 flex items-center justify-between text-left shadow-lg">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">🟢</span>
+                            <div>
+                              <h5 className="text-emerald-400 font-bold text-sm">Automated Asset QA: Passed In-Distribution Audit</h5>
+                              <p className="text-xs text-gray-300 mt-0.5">
+                                Reconstruction MSE (<span className="font-mono text-emerald-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) is below the P95 outlier threshold (<code className="text-emerald-300">0.001313</code>). Asset matches the learned 280K visual distribution.
+                              </p>
+                            </div>
+                          </div>
+                          <span className="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs px-3 py-1 font-semibold">In-Distribution</span>
                         </div>
-                        <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">MAE Loss</div>
-                          <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mae.toFixed(6)}</div>
+                      ) : (
+                        <div className="p-4 mb-6 rounded-xl border bg-amber-950/40 border-amber-500/50 flex items-center justify-between text-left shadow-lg">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">⚠️</span>
+                            <div>
+                              <h5 className="text-amber-400 font-bold text-sm">Automated Asset QA: Flagged for Human Review (Outlier Detected)</h5>
+                              <p className="text-xs text-gray-300 mt-0.5">
+                                Reconstruction MSE (<span className="font-mono text-amber-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) exceeds the P95 outlier threshold (<code className="text-amber-300">0.001313</code>). This asset is unusual relative to the learned distribution and is flagged for manual inspection.
+                              </p>
+                            </div>
+                          </div>
+                          <span className="badge bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs px-3 py-1 font-semibold">Flagged Outlier</span>
+                        </div>
+                      )}
+
+                      {/* Real-Time Evaluation Metrics */}
+                      <div className="bg-[#151515] rounded-xl p-6 border border-border mb-6 shadow-lg text-left">
+                        <h5 className="text-sm text-secondary uppercase tracking-wider mb-4 font-semibold">Real-Time Evaluation Metrics</h5>
+                        
+                        {/* Primary Error Metrics */}
+                        <div className="grid grid-cols-2 gap-4 text-center mb-4">
+                          <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
+                            <div className="text-xs text-secondary mb-1">MSE Loss</div>
+                            <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mse.toFixed(6)}</div>
+                          </div>
+                          <div className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
+                            <div className="text-xs text-secondary mb-1">MAE Loss</div>
+                            <div className="font-mono text-primary text-xl font-bold">{aeResult.metrics.mae.toFixed(6)}</div>
+                          </div>
+                        </div>
+
+                        {/* Visual Accuracy Metrics */}
+                        <div className="grid grid-cols-3 gap-4 text-center mb-6">
+                          <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                            <div className="text-xs text-secondary mb-1">Color Palette Match</div>
+                            <div className="font-mono text-green-400 font-bold">{aeResult.metrics.color_match.toFixed(2)}%</div>
+                          </div>
+                          <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                            <div className="text-xs text-secondary mb-1">Exact Pixel Match</div>
+                            <div className="font-mono text-green-400 font-bold">{aeResult.metrics.exact_match.toFixed(2)}%</div>
+                          </div>
+                          <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
+                            <div className="text-xs text-secondary mb-1">Alpha Mask IoU</div>
+                            <div className="font-mono text-green-400 font-bold">{aeResult.metrics.alpha_iou.toFixed(2)}%</div>
+                          </div>
+                        </div>
+
+                        {/* Footer Metrics */}
+                        <div className="flex justify-between items-center text-[#777] text-xs border-t border-[#333] pt-3 px-2 font-mono">
+                          <span>PSNR: {aeResult.metrics.psnr.toFixed(2)} dB</span>
+                          <span>SSIM: {aeResult.metrics.ssim.toFixed(4)}</span>
                         </div>
                       </div>
 
-                      {/* Visual Accuracy Metrics */}
-                      <div className="grid grid-cols-3 gap-4 text-center mb-6">
-                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">Color Palette Match</div>
-                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.color_match.toFixed(2)}%</div>
-                        </div>
-                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">Exact Pixel Match</div>
-                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.exact_match.toFixed(2)}%</div>
-                        </div>
-                        <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
-                          <div className="text-xs text-secondary mb-1">Alpha Mask IoU</div>
-                          <div className="font-mono text-green-400 font-bold">{aeResult.metrics.alpha_iou.toFixed(2)}%</div>
-                        </div>
-                      </div>
+                      {/* Human Designer Oversight & Sign-off Checkpoint Card */}
+                      <div className="bg-[#181820] rounded-xl p-5 border border-[#2a2a35] shadow-lg text-left">
+                        <h5 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                          🤝 Human Designer Oversight Checkpoint
+                        </h5>
+                        <p className="text-xs text-secondary mb-4">
+                          Review the reconstruction metrics and outlier screening audit above, then sign off to approve or flag this asset for project library export.
+                        </p>
 
-                      {/* Silent Footer Metrics */}
-                      <div className="flex justify-between items-center text-[#555] text-[10px] border-t border-[#333] pt-3 px-2">
-                        <span>PSNR: {aeResult.metrics.psnr.toFixed(2)} dB</span>
-                        <span>SSIM: {aeResult.metrics.ssim.toFixed(4)}</span>
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-3 border-t border-[#2a2a35]">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={isAeApproved}
+                              onChange={(e) => setIsAeApproved(e.target.checked)}
+                              className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
+                            />
+                            <span className={`text-xs ${isAeApproved ? 'text-emerald-400 font-semibold' : 'text-gray-300'}`}>
+                              I have reviewed this asset's reconstruction & QA outlier screening status
+                            </span>
+                          </label>
+
+                          <button 
+                            className="btn text-xs py-2 px-4 transition-all"
+                            disabled={!isAeApproved}
+                            style={{
+                              backgroundColor: isAeApproved ? '#10b981' : '#374151',
+                              borderColor: isAeApproved ? '#059669' : '#4b5563',
+                              color: '#ffffff',
+                              opacity: isAeApproved ? 1 : 0.5,
+                              cursor: isAeApproved ? 'pointer' : 'not-allowed'
+                            }}
+                            onClick={() => alert("Asset approved for project library!")}
+                          >
+                            {isAeApproved ? "Approve Asset for Library 🚀" : "Approval Required"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -712,20 +834,27 @@ const CreateAsset = () => {
                     <h4 className="mb-6 text-xl font-bold">VAE Character Interpolation</h4>
                     
                     <div className="flex gap-lg justify-center mb-6">
-                      <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
+                      <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg max-w-xs w-full">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Character A</span>
-                        <img src={characterAUrl || generatedAsset?.imageUrl} alt="Sprite A" className="rounded shadow-sm mb-3" style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} />
+                        <img 
+                          src={characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url} 
+                          alt="Sprite A" 
+                          className="rounded shadow-sm mb-3 bg-[#101014]" 
+                          style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 
+                        />
                         <select 
-                          value={characterAUrl}
+                          value={characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url}
                           onChange={(e) => {
                             setCharacterAUrl(e.target.value);
                             setInterpolatedResult(null);
                           }}
-                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-1.5 w-full focus:outline-none focus:border-primary"
+                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-2 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
                         >
-                          <option value={generatedAsset?.imageUrl}>Generated Asset</option>
-                          {localSprites.map((url, i) => (
-                            <option key={i} value={url}>Sprite #{i}</option>
+                          {!spriteList.some(s => s.url === generatedAsset?.imageUrl) && generatedAsset?.imageUrl && (
+                            <option value={generatedAsset.imageUrl}>Custom Upload ({generatedAsset.name})</option>
+                          )}
+                          {spriteList.map((s) => (
+                            <option key={s.id} value={s.url}>{s.label}</option>
                           ))}
                         </select>
                       </div>
@@ -748,20 +877,27 @@ const CreateAsset = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
+                      <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg max-w-xs w-full">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Character B</span>
-                        <img src={characterBUrl || localSprites[5]} alt="Sprite B" className="rounded shadow-sm mb-3" style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} />
+                        <img 
+                          src={characterBUrl || spriteList[34]?.url || spriteList[0]?.url} 
+                          alt="Sprite B" 
+                          className="rounded shadow-sm mb-3 bg-[#101014]" 
+                          style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 
+                        />
                         <select 
-                          value={characterBUrl}
+                          value={characterBUrl || spriteList[34]?.url || spriteList[0]?.url}
                           onChange={(e) => {
                             setCharacterBUrl(e.target.value);
                             setInterpolatedResult(null);
                           }}
-                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-1.5 w-full focus:outline-none focus:border-primary"
+                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-2 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
                         >
-                          <option value={generatedAsset?.imageUrl}>Generated Asset</option>
-                          {localSprites.map((url, i) => (
-                            <option key={i} value={url}>Sprite #{i}</option>
+                          {!spriteList.some(s => s.url === generatedAsset?.imageUrl) && generatedAsset?.imageUrl && (
+                            <option value={generatedAsset.imageUrl}>Custom Upload ({generatedAsset.name})</option>
+                          )}
+                          {spriteList.map((s) => (
+                            <option key={s.id} value={s.url}>{s.label}</option>
                           ))}
                         </select>
                       </div>

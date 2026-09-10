@@ -108,7 +108,7 @@ const About = () => {
           </div>
           <div className="p-3 bg-surface-elevated rounded border border-border">
             <strong className="text-white text-sm">2. Autoencoder (AE 280K)</strong>
-            <p className="mt-1">High-precision deterministic reconstruction baseline (`Median MSE: 0.000782`). Surfacing the highest-error 5% of assets exceeding the P95 MSE threshold (`0.001313`) for automated QA review.</p>
+            <p className="mt-1">High-precision deterministic reconstruction baseline (Median MSE: 0.000254). Performs <strong>Automated Asset QA & Reconstruction-Based Outlier Screening</strong> by identifying assets with high reconstruction error relative to the learned visual distribution. Assets exceeding the P95 MSE threshold (0.001313) are automatically flagged for further human inspection.</p>
           </div>
           <div className="p-3 bg-surface-elevated rounded border border-border">
             <strong className="text-white text-sm">3. Variational Autoencoder (VAE 280K)</strong>

@@ -57,10 +57,10 @@ GameForge AI employs a modular, tri-model architecture:
 - Integrates a real-time regex safety audit intercepting prohibited content and re-grounding commercial trademark terms (*Mario*, *Pokemon*) into generic inspired archetypes.
 
 ### B. Deep Autoencoder (AE 280K)
-- **Role**: Deterministic high-precision reconstruction baseline.
-- **Architecture**: 4-stage convolutional encoder-decoder with bottleneck compression.
-- **Reconstruction Quality**: Achieves $R^2 = 0.9997$ with Median MSE of $0.000254$.
-- **Automated QA Routine**: Surfaces the top 5% highest reconstruction error items (exceeding P95 MSE threshold of $0.001313$) for automated quality review.
+- **Role**: High-precision deterministic reconstruction baseline.
+- **Defensible Application**: **Automated Asset QA & Reconstruction-Based Outlier Screening**.
+- **Mechanism**: Learns the visual distribution of the training asset library. Assets with high reconstruction error relative to the learned distribution (exceeding the P95 MSE threshold of `0.001313`) are automatically flagged for further human inspection.
+- **Reconstruction Quality**: Achieves Median MSE of `0.000254` (PSNR `28.52 dB`, SSIM `0.9248`).
 
 ### C. Variational Autoencoder (VAE 280K)
 - **Role**: Continuous Gaussian latent space modeling ($z \sim \mathcal{N}(\mu, \sigma^2)$).

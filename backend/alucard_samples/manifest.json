@@ -3,160 +3,280 @@
     "sample_id": 0,
     "dataset_idx": 0,
     "label": "Arcane Mage",
-    "text_prompt": "pixel art, gray, small, wizard, mage, spellcaster, back view",
+    "text_prompt": "pixel art sprite arcane mage",
     "filename": "alucard_0.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_0.png"
   },
   {
     "sample_id": 1,
     "dataset_idx": 1,
-    "label": "Knight Warrior",
-    "text_prompt": "pixel art, gray, small, character, hero, adventurer, three-quarter view",
+    "label": "Knight Paladin",
+    "text_prompt": "pixel art sprite knight paladin",
     "filename": "alucard_1.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_1.png"
   },
   {
     "sample_id": 2,
-    "dataset_idx": 4,
-    "label": "Flame Aura",
-    "text_prompt": "pixel art, brown, small, wizard, mage, spellcaster, front view",
+    "dataset_idx": 2,
+    "label": "Flame Sorcerer",
+    "text_prompt": "pixel art sprite flame sorcerer",
     "filename": "alucard_2.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_2.png"
   },
   {
     "sample_id": 3,
-    "dataset_idx": 5,
-    "label": "Plate Armor",
-    "text_prompt": "pixel art, colorful, medium-sized, warrior, armored character, back view",
+    "dataset_idx": 3,
+    "label": "Armored Guardian",
+    "text_prompt": "pixel art sprite armored guardian",
     "filename": "alucard_3.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_3.png"
   },
   {
     "sample_id": 4,
-    "dataset_idx": 9,
-    "label": "Iron Helmet",
-    "text_prompt": "pixel art, brown, medium-sized, helmet, hat, headwear, front view",
+    "dataset_idx": 4,
+    "label": "Royal Knight",
+    "text_prompt": "pixel art sprite royal knight",
     "filename": "alucard_4.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_4.png"
   },
   {
     "sample_id": 5,
-    "dataset_idx": 15,
-    "label": "Magic Staff",
-    "text_prompt": "pixel art, brown, large, staff, wand, magical weapon, three-quarter view",
+    "dataset_idx": 5,
+    "label": "Shadow Warrior",
+    "text_prompt": "pixel art sprite shadow warrior",
     "filename": "alucard_5.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_5.png"
   },
   {
     "sample_id": 6,
-    "dataset_idx": 16,
-    "label": "Demon Guardian",
-    "text_prompt": "pixel art, gray, small, monster, enemy creature, back view",
+    "dataset_idx": 6,
+    "label": "Demon Specter",
+    "text_prompt": "pixel art sprite demon specter",
     "filename": "alucard_6.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_6.png"
   },
   {
     "sample_id": 7,
-    "dataset_idx": 17,
-    "label": "Health Potion",
-    "text_prompt": "pixel art, colorful, medium-sized, potion, bottle, consumable, back view",
+    "dataset_idx": 7,
+    "label": "Forest Ranger",
+    "text_prompt": "pixel art sprite forest ranger",
     "filename": "alucard_7.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_7.png"
   },
   {
     "sample_id": 8,
-    "dataset_idx": 26,
-    "label": "Green Slime",
-    "text_prompt": "pixel art, brown, small, slime, blob creature, three-quarter view",
+    "dataset_idx": 8,
+    "label": "Slime Beast",
+    "text_prompt": "pixel art sprite slime beast",
     "filename": "alucard_8.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_8.png"
   },
   {
     "sample_id": 9,
-    "dataset_idx": 32,
-    "label": "Longbow",
-    "text_prompt": "pixel art, dark, large, bow, ranged weapon, back view",
+    "dataset_idx": 9,
+    "label": "Elven Archer",
+    "text_prompt": "pixel art sprite elven archer",
     "filename": "alucard_9.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_9.png"
   },
   {
     "sample_id": 10,
-    "dataset_idx": 809,
-    "label": "Broadsword",
-    "text_prompt": "pixel art, gray, small, sword, blade weapon, three-quarter view",
+    "dataset_idx": 10,
+    "label": "Dark Necromancer",
+    "text_prompt": "pixel art sprite dark necromancer",
     "filename": "alucard_10.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_10.png"
   },
   {
     "sample_id": 11,
-    "dataset_idx": 100,
-    "label": "Sprite #11",
-    "text_prompt": "pixel art, colorful, small, warrior, armored character, three-quarter view",
+    "dataset_idx": 11,
+    "label": "Rogue Assassin",
+    "text_prompt": "pixel art sprite rogue assassin",
     "filename": "alucard_11.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_11.png"
   },
   {
     "sample_id": 12,
-    "dataset_idx": 101,
-    "label": "Sprite #12",
-    "text_prompt": "pixel art, gray, small, warrior, armored character, front view",
+    "dataset_idx": 12,
+    "label": "Shadow Ninja",
+    "text_prompt": "pixel art sprite shadow ninja",
     "filename": "alucard_12.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_12.png"
   },
   {
     "sample_id": 13,
-    "dataset_idx": 102,
-    "label": "Sprite #13",
-    "text_prompt": "pixel art, colorful, small, warrior, armored character, three-quarter view",
+    "dataset_idx": 13,
+    "label": "Blood Berserker",
+    "text_prompt": "pixel art sprite blood berserker",
     "filename": "alucard_13.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_13.png"
   },
   {
     "sample_id": 14,
-    "dataset_idx": 103,
-    "label": "Sprite #14",
-    "text_prompt": "pixel art, brown, medium-sized, wizard, mage, spellcaster, front view",
+    "dataset_idx": 14,
+    "label": "Forest Elf",
+    "text_prompt": "pixel art sprite forest elf",
     "filename": "alucard_14.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_14.png"
   },
   {
     "sample_id": 15,
-    "dataset_idx": 104,
-    "label": "Sprite #15",
-    "text_prompt": "pixel art, colorful, small, key, tool, utility item, back view",
+    "dataset_idx": 15,
+    "label": "Dwarf Defender",
+    "text_prompt": "pixel art sprite dwarf defender",
     "filename": "alucard_15.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_15.png"
   },
   {
     "sample_id": 16,
-    "dataset_idx": 105,
-    "label": "Sprite #16",
-    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, three-quarter view",
+    "dataset_idx": 16,
+    "label": "Adventurer Hero",
+    "text_prompt": "pixel art sprite adventurer hero",
     "filename": "alucard_16.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_16.png"
   },
   {
     "sample_id": 17,
-    "dataset_idx": 106,
-    "label": "Sprite #17",
-    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, front view",
+    "dataset_idx": 17,
+    "label": "Skeleton Warrior",
+    "text_prompt": "pixel art sprite skeleton warrior",
     "filename": "alucard_17.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_17.png"
   },
   {
     "sample_id": 18,
-    "dataset_idx": 107,
-    "label": "Sprite #18",
-    "text_prompt": "pixel art, colorful, small, character, hero, adventurer, three-quarter view",
+    "dataset_idx": 18,
+    "label": "Frost Maiden",
+    "text_prompt": "pixel art sprite frost maiden",
     "filename": "alucard_18.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_18.png"
   },
   {
     "sample_id": 19,
-    "dataset_idx": 108,
-    "label": "Sprite #19",
-    "text_prompt": "pixel art, colorful, small, staff, wand, magical weapon, back view",
+    "dataset_idx": 19,
+    "label": "Fire Elemental",
+    "text_prompt": "pixel art sprite fire elemental",
     "filename": "alucard_19.png",
     "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_19.png"
+  },
+  {
+    "sample_id": 20,
+    "dataset_idx": 20,
+    "label": "Cyber Knight",
+    "text_prompt": "pixel art sprite cyber knight",
+    "filename": "alucard_20.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_20.png"
+  },
+  {
+    "sample_id": 21,
+    "dataset_idx": 21,
+    "label": "Golden Templar",
+    "text_prompt": "pixel art sprite golden templar",
+    "filename": "alucard_21.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_21.png"
+  },
+  {
+    "sample_id": 22,
+    "dataset_idx": 22,
+    "label": "Shieldbearer",
+    "text_prompt": "pixel art sprite shieldbearer",
+    "filename": "alucard_22.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_22.png"
+  },
+  {
+    "sample_id": 23,
+    "dataset_idx": 23,
+    "label": "Battle Master",
+    "text_prompt": "pixel art sprite battle master",
+    "filename": "alucard_23.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_23.png"
+  },
+  {
+    "sample_id": 24,
+    "dataset_idx": 24,
+    "label": "Crossbow Scout",
+    "text_prompt": "pixel art sprite crossbow scout",
+    "filename": "alucard_24.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_24.png"
+  },
+  {
+    "sample_id": 25,
+    "dataset_idx": 25,
+    "label": "Goblin Raider",
+    "text_prompt": "pixel art sprite goblin raider",
+    "filename": "alucard_25.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_25.png"
+  },
+  {
+    "sample_id": 26,
+    "dataset_idx": 26,
+    "label": "Orc Chieftain",
+    "text_prompt": "pixel art sprite orc chieftain",
+    "filename": "alucard_26.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_26.png"
+  },
+  {
+    "sample_id": 27,
+    "dataset_idx": 27,
+    "label": "High Priest",
+    "text_prompt": "pixel art sprite high priest",
+    "filename": "alucard_27.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_27.png"
+  },
+  {
+    "sample_id": 28,
+    "dataset_idx": 28,
+    "label": "Phoenix Cultist",
+    "text_prompt": "pixel art sprite phoenix cultist",
+    "filename": "alucard_28.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_28.png"
+  },
+  {
+    "sample_id": 29,
+    "dataset_idx": 29,
+    "label": "Dragon Slayer",
+    "text_prompt": "pixel art sprite dragon slayer",
+    "filename": "alucard_29.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_29.png"
+  },
+  {
+    "sample_id": 30,
+    "dataset_idx": 30,
+    "label": "Cyber Sentinel",
+    "text_prompt": "pixel art sprite cyber sentinel",
+    "filename": "alucard_30.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_30.png"
+  },
+  {
+    "sample_id": 31,
+    "dataset_idx": 31,
+    "label": "Starship Commander",
+    "text_prompt": "pixel art sprite starship commander",
+    "filename": "alucard_31.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_31.png"
+  },
+  {
+    "sample_id": 32,
+    "dataset_idx": 32,
+    "label": "Alien Droid",
+    "text_prompt": "pixel art sprite alien droid",
+    "filename": "alucard_32.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_32.png"
+  },
+  {
+    "sample_id": 33,
+    "dataset_idx": 33,
+    "label": "Void Stalker",
+    "text_prompt": "pixel art sprite void stalker",
+    "filename": "alucard_33.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_33.png"
+  },
+  {
+    "sample_id": 34,
+    "dataset_idx": 34,
+    "label": "Purple Elf Mage",
+    "text_prompt": "pixel art sprite purple elf mage",
+    "filename": "alucard_34.png",
+    "image_url": "http://127.0.0.1:8000/alucard_samples/alucard_34.png"
   }
 ]
