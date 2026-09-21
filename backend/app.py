@@ -241,7 +241,9 @@ def load_all_models_background():
             else:
                 vae_status = "Error: Files not found"
 
-        if not transformer_service.is_loaded:
+        if transformer_service.is_loaded:
+            transformer_status = "Loaded"
+        else:
             try:
                 transformer_status = "Loading..."
                 transformer_service.load_model()

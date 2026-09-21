@@ -1,0 +1,13 @@
+# requirements_transformer.txt
+#
+# Dependencies for fine-tuning google/flan-t5-small (PyTorch stack).
+# Install these INSIDE the separate .venv_transformer virtual environment.
+# Do NOT install these into the same environment as your TensorFlow backend
+# unless you know you want both stacks in one env (it usually works, but a
+# dedicated venv is safer and is what the project structure assumes).
+
+torch>=2.2.0
+transformers>=4.41.0
+datasets>=2.19.0
+sentencepiece>=0.2.0
+accelerate>=0.30.0

@@ -4,5 +4,7 @@ python-multipart
 tensorflow
 Pillow
 numpy
+requests
+transformers
 google-generativeai
 python-dotenv
