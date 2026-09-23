@@ -253,8 +253,16 @@ def ensure_ae_loaded():
         load_all_models_background()
 
 def ensure_vae_loaded():
+    if transformer_service.is_loaded:
+        transformer_service.unload_model()
     if (vae_encoder is None or vae_decoder is None) and vae_status != "Loaded":
         load_all_models_background()
+
+def ensure_gallery_loaded():
+    if transformer_service.is_loaded:
+        transformer_service.unload_model()
+    if GALLERY_INDEX is None or len(GALLERY_MANIFEST) == 0:
+        load_hierarchical_gallery()
 
 @app.on_event("startup")
 def startup_event():
@@ -595,15 +603,15 @@ def load_hierarchical_gallery():
         json_path_5k = os.path.join(models_dir, "latent_gallery_manifest.json")
         
         if os.path.exists(npy_path_25k) and os.path.exists(json_path_25k):
-            GALLERY_INDEX = np.load(npy_path_25k)
+            GALLERY_INDEX = np.load(npy_path_25k, mmap_mode="r")
             with open(json_path_25k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
-            print(f"Loaded Scaled VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) in <0.02s!")
+            print(f"Loaded Scaled VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
         elif os.path.exists(npy_path_5k) and os.path.exists(json_path_5k):
-            GALLERY_INDEX = np.load(npy_path_5k)
+            GALLERY_INDEX = np.load(npy_path_5k, mmap_mode="r")
             with open(json_path_5k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
-            print(f"Loaded Pre-computed VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) in <0.02s!")
+            print(f"Loaded Pre-computed VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
         else:
             print("Pre-computed gallery files not found; fallback enabled.")
     except Exception as e:
@@ -682,6 +690,7 @@ async def vae_search_similar(
     category_filter: str = Form(None)
 ):
     ensure_vae_loaded()
+    ensure_gallery_loaded()
     if vae_encoder is None:
         raise HTTPException(status_code=503, detail="VAE Model unavailable")
     try:
@@ -748,6 +757,7 @@ async def vae_search_similar(
 @app.post("/vae/cluster_assets")
 async def vae_cluster_assets(urls: str = Form(None)):
     ensure_vae_loaded()
+    ensure_gallery_loaded()
     if vae_encoder is None:
         raise HTTPException(status_code=503, detail="VAE Model unavailable")
     try:

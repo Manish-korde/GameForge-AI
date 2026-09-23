@@ -33,6 +33,18 @@ class TransformerService:
                 logger.warning(f"Transformer model load warning: {e}. Enabling Dynamic Semantic Engine.")
                 self.is_loaded = True
 
+    def unload_model(self):
+        """Safely unloads PyTorch + FLAN-T5 model and releases CPU memory via garbage collection."""
+        with self._lock:
+            if self.model is not None or self.tokenizer is not None or self.is_loaded:
+                logger.info("Unloading Transformer model to release CPU RAM...")
+                self.model = None
+                self.tokenizer = None
+                self.is_loaded = False
+                import gc
+                gc.collect()
+                logger.info("Transformer model unloaded and CPU memory garbage-collected.")
+
     def _generate_with_t5(self, prompt_text: str) -> str:
         """Executes Seq2Seq Neural Generation using Flan-T5 model with beam search."""
         if not self.model or not self.tokenizer:
