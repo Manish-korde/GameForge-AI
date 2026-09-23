@@ -12,6 +12,7 @@ import requests
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -162,7 +163,7 @@ def preindex_alucard_samples():
                 cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}", "text": "pixel art, sprite"})
                 batch_tensors.append(tensor)
                 metadata.append({
-                    "url": f"http://127.0.0.1:8000/alucard_samples/alucard_{i}.png",
+                    "url": f"/alucard_samples/alucard_{i}.png",
                     "path": img_path,
                     "category": cat_info["category"],
                     "label": cat_info["label"],
@@ -244,14 +245,8 @@ def load_all_models_background():
         if transformer_service.is_loaded:
             transformer_status = "Loaded"
         else:
-            try:
-                transformer_status = "Loading..."
-                transformer_service.load_model()
-                transformer_status = "Loaded"
-                print("3. Transformer Semantic Planner loaded successfully.")
-            except Exception as e:
-                transformer_status = f"Error: {e}"
-                print(f"Error loading Transformer model: {e}")
+            transformer_status = "Lazy-Loaded (On Demand)"
+            print("3. Transformer Semantic Planner ready (Lazy-Loaded on demand).")
 
 def ensure_ae_loaded():
     if model is None and model_status != "Loaded":
@@ -270,10 +265,11 @@ def startup_event():
 
 @app.get("/status")
 def status():
+    ts = "Loaded" if transformer_service.is_loaded else transformer_status
     return {
         "status": f"Autoencoder: {model_status}",
         "vae_status": f"VAE: {vae_status}",
-        "transformer_status": f"Transformer: {transformer_status}"
+        "transformer_status": f"Transformer: {ts}"
     }
 
 @app.get("/alucard_samples_manifest")
@@ -285,7 +281,7 @@ def get_alucard_samples_manifest():
             "id": i,
             "label": f"Sprite #{i+1}: {cat_info['label']}",
             "category": cat_info["category"],
-            "url": f"http://127.0.0.1:8000/alucard_samples/alucard_{i}.png"
+            "url": f"/alucard_samples/alucard_{i}.png"
         })
     return result
 
@@ -631,19 +627,28 @@ def get_raw_dataset():
 
 @app.get("/alucard_dataset_image/{image_id}")
 async def get_alucard_dataset_image(image_id: int):
-    raw_ds = get_raw_dataset()
-    if raw_ds is None:
-        raise HTTPException(status_code=503, detail="HuggingFace dataset cache unavailable")
+    # Instant local sample fallback for fast rendering without network stalls
+    sample_filename = f"alucard_{image_id % 35}.png"
+    local_sample_file = os.path.join(samples_dir, sample_filename)
+    
     try:
-        row = raw_ds[image_id]
-        img = row["image"].convert("RGBA")
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        buf.seek(0)
-        from fastapi.responses import StreamingResponse
-        return StreamingResponse(buf, media_type="image/png")
+        raw_ds = get_raw_dataset()
+        if raw_ds is not None and 0 <= image_id < len(raw_ds):
+            row = raw_ds[image_id]
+            img = row["image"].convert("RGBA")
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            buf.seek(0)
+            from fastapi.responses import StreamingResponse
+            return StreamingResponse(buf, media_type="image/png")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Dataset image fetch fallback triggered ({e})")
+
+    if os.path.exists(local_sample_file):
+        from fastapi.responses import FileResponse
+        return FileResponse(local_sample_file, media_type="image/png")
+        
+    raise HTTPException(status_code=404, detail="Image unavailable")
 
 @app.get("/evaluation/metrics")
 def get_evaluation_metrics():
@@ -716,7 +721,7 @@ async def vae_search_similar(
             cosine_sim = float(np.dot(q_vec, c_vec) / (norm_q * norm_c + 1e-8))
             
             results.append({
-                "url": f"http://127.0.0.1:8000/alucard_dataset_image/{item['id']}",
+                "url": f"/alucard_dataset_image/{item['id']}",
                 "category": item["category"],
                 "latent_distance": float(round(dists[idx], 4)),
                 "cosine_similarity": float(round(cosine_sim, 4))
@@ -757,7 +762,7 @@ async def vae_cluster_assets(urls: str = Form(None)):
                 else:
                     sampled = []
                 for item in sampled:
-                    url_list.append(f"http://127.0.0.1:8000/alucard_dataset_image/{item['id']}")
+                    url_list.append(f"/alucard_dataset_image/{item['id']}")
         else:
             # Dynamically select 15 random items from GALLERY_MANIFEST on the backend!
             import random
@@ -767,7 +772,7 @@ async def vae_cluster_assets(urls: str = Form(None)):
                 sampled = GALLERY_MANIFEST
             else:
                 sampled = []
-            url_list = [f"http://127.0.0.1:8000/alucard_dataset_image/{item['id']}" for item in sampled]
+            url_list = [f"/alucard_dataset_image/{item['id']}" for item in sampled]
             
         if not url_list:
             raise HTTPException(status_code=400, detail="No URLs provided and manifest empty")
@@ -1106,3 +1111,24 @@ The JSON must perfectly match this structure:
     except Exception as e:
         print(f"Generative AI call failed/fallback triggered: {e}")
         return generate_fallback_concept(prompt)
+
+# Mount static React frontend SPA dist directory if present (Single-Container Deployment)
+dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "gui", "dist"))
+if os.path.exists(dist_dir):
+    assets_dir = os.path.join(dist_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="static_assets")
+        
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Serve static file from dist_dir if it exists
+        file_path = os.path.join(dist_dir, full_path)
+        if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # Fallback to index.html for React Router SPA deep links
+        index_file = os.path.join(dist_dir, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="File not found")
+
+

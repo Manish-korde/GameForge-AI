@@ -1,0 +1,15 @@
+.git
+.gitignore
+.vscode
+.gemini
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+backend/venv
+gui/node_modules
+gui/dist
+scratch
+*.log
+*.tmp

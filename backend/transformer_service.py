@@ -1,6 +1,7 @@
 import re
 import json
 import logging
+import threading
 from typing import Dict, Any
 
 logger = logging.getLogger("transformer_service")
@@ -11,21 +12,26 @@ class TransformerService:
         self.is_loaded = False
         self.model = None
         self.tokenizer = None
-        self.load_model()
+        self._lock = threading.Lock()
         
     def load_model(self):
-        """Asynchronously loads the Transformer model (Flan-T5-Small or pipeline)."""
-        logger.info("Initializing Transformer model for Semantic Planning...")
-        try:
-            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            model_name = "google/flan-t5-small"
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-            self.is_loaded = True
-            logger.info(f"Transformer model ({model_name}) loaded successfully.")
-        except Exception as e:
-            logger.warning(f"Transformer model load warning: {e}. Enabling Dynamic Semantic Engine.")
-            self.is_loaded = True
+        """Asynchronously/lazy-loads the Transformer model (Flan-T5-Small or pipeline). Thread-safe."""
+        if self.is_loaded and self.model is not None:
+            return
+        with self._lock:
+            if self.is_loaded and self.model is not None:
+                return
+            logger.info("Initializing Transformer model for Semantic Planning...")
+            try:
+                from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+                model_name = "google/flan-t5-small"
+                self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+                self.is_loaded = True
+                logger.info(f"Transformer model ({model_name}) loaded successfully.")
+            except Exception as e:
+                logger.warning(f"Transformer model load warning: {e}. Enabling Dynamic Semantic Engine.")
+                self.is_loaded = True
 
     def _generate_with_t5(self, prompt_text: str) -> str:
         """Executes Seq2Seq Neural Generation using Flan-T5 model with beam search."""
@@ -74,6 +80,9 @@ class TransformerService:
         is_safe, safety_msg = self.validate_prompt_safety(user_prompt)
         if not is_safe:
             raise ValueError(safety_msg)
+            
+        if not self.is_loaded:
+            self.load_model()
             
         if not user_prompt or not user_prompt.strip():
             user_prompt = "Retro pixel art fantasy RPG with a knight and dragons"
