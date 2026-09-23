@@ -602,6 +602,9 @@ def load_hierarchical_gallery():
         npy_path_5k = os.path.join(models_dir, "latent_gallery_index.npy")
         json_path_5k = os.path.join(models_dir, "latent_gallery_manifest.json")
         
+        print(f"Gallery check 25k -> npy: {npy_path_25k} (exists: {os.path.exists(npy_path_25k)}), json: {json_path_25k} (exists: {os.path.exists(json_path_25k)})")
+        print(f"Gallery check 5k -> npy: {npy_path_5k} (exists: {os.path.exists(npy_path_5k)}), json: {json_path_5k} (exists: {os.path.exists(json_path_5k)})")
+
         if os.path.exists(npy_path_25k) and os.path.exists(json_path_25k):
             GALLERY_INDEX = np.load(npy_path_25k, mmap_mode="r")
             with open(json_path_25k, "r") as f:

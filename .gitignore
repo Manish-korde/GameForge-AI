@@ -28,6 +28,7 @@ dec_*.png
 
 # Ignore files over 100MB to avoid GitHub push rejection
 *.npy
+!models/*.npy
 *.weights.h5
 Notebook/experimentaion/**/*.keras
 
