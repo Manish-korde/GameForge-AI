@@ -1,0 +1,27 @@
+{
+  "epoch": 49,
+  "global_step": 99300,
+  "best_epoch": 1,
+  "best_g_loss": 3.405912564720392,
+  "target_epochs": 50,
+  "model": "DCGAN",
+  "img_height": 64,
+  "img_width": 64,
+  "channels": 4,
+  "latent_dim": 100,
+  "g_channels": [
+    512,
+    256,
+    128,
+    64
+  ],
+  "d_channels": [
+    64,
+    128,
+    256,
+    512
+  ],
+  "seed": 42,
+  "global_batch_size": 128,
+  "saved_at": "2026-10-22T03:01:39.196618"
+}

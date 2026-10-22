@@ -1,0 +1,15 @@
+{
+  "total": 282511,
+  "train_size": 254260,
+  "val_size": 14126,
+  "test_size": 14125,
+  "seed": 42,
+  "train_ratio": 0.9,
+  "val_ratio": 0.05,
+  "img_height": 64,
+  "img_width": 64,
+  "channels": 4,
+  "pixel_norm": "tanh",
+  "manifest_source": "/kaggle/working/dcgan_280k/config/shuffled_indices.json",
+  "created_at": "2026-10-21T21:09:30.453273"
+}

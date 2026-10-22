@@ -1,0 +1,42 @@
+{
+  "model": "DCGAN",
+  "hf_dataset": "evilsocket/alucard-sprites",
+  "img_height": 64,
+  "img_width": 64,
+  "channels": 4,
+  "pixel_norm": "tanh",
+  "train_ratio": 0.9,
+  "val_ratio": 0.05,
+  "latent_dim": 100,
+  "g_channels": [
+    512,
+    256,
+    128,
+    64
+  ],
+  "d_channels": [
+    64,
+    128,
+    256,
+    512
+  ],
+  "g_init_spatial": 4,
+  "g_lr": 0.0002,
+  "d_lr": 0.0002,
+  "beta1": 0.5,
+  "beta2": 0.999,
+  "target_epochs": 50,
+  "batch_size_per_replica": 64,
+  "global_batch_size": 128,
+  "seed": 42,
+  "checkpoint_every": 1,
+  "sample_every": 5,
+  "log_every": 1,
+  "n_fixed_samples": 25,
+  "n_eval_samples": 100,
+  "resume_mode": "auto",
+  "resume_archive_path": "",
+  "base_dir": "/kaggle/working/dcgan_280k",
+  "created_at": "2026-10-21T21:09:27.106758",
+  "resumed_from_config": null
+}

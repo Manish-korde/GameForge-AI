@@ -196,6 +196,9 @@ def preindex_alucard_samples():
 
 
 from transformer_service import transformer_service
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
 
 import threading
 
@@ -270,6 +273,8 @@ def startup_event():
     load_hierarchical_gallery()
     thread = threading.Thread(target=load_all_models_background, daemon=True)
     thread.start()
+    gan_thread = threading.Thread(target=load_generator, daemon=True)
+    gan_thread.start()
 
 @app.get("/status")
 def status():
@@ -277,7 +282,29 @@ def status():
     return {
         "status": f"Autoencoder: {model_status}",
         "vae_status": f"VAE: {vae_status}",
-        "transformer_status": f"Transformer: {ts}"
+        "transformer_status": f"Transformer: {ts}",
+        "gan_status": f"GAN: {get_gan_status()}"
+    }
+
+
+@app.post("/gan/generate_texture")
+async def gan_generate_texture(
+    category: str = Form(...),
+    count: int = Form(4),
+    seed: int = Form(None)
+):
+    result = generate_textures(category=category, count=count, seed=seed)
+    if "error" in result and not result.get("textures"):
+        raise HTTPException(status_code=503, detail=result["error"])
+    return result
+
+
+@app.get("/gan/categories")
+def gan_categories():
+    return {
+        "categories": ["stone", "grass", "wood", "brick", "dirt"],
+        "gan_status": get_gan_status(),
+        "note": "Category-conditioned texture generation. Each texture has seamless wrap-and-blend applied."
     }
 
 @app.get("/alucard_samples_manifest")

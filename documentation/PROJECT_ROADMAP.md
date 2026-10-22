@@ -25,10 +25,21 @@ Welcome to the roadmap for **GameForge AI**. This document tracks our progressio
   - **Secondary**: **Latent Space Exploration, 2D Clustering, & Real-Sprite Interpolation (A → B)**.
 - **Framing**: Demonstrates continuous latent space navigation and similarity search; unconditional sampling is presented accurately as an experimental generative capability.
 
+## ⚡ Phase 4: Unconditional Novel Sprite Generation — DCGAN (✅ COMPLETED)
+- **Dataset**: Full **282,511 Unique 2D Game Asset Dataset (Alucard)**, resolution downscaled to **64×64 RGBA** for GAN training stability.
+- **Architecture**: Deep Convolutional GAN (DCGAN) — `z ∈ ℝ^{100} ~ N(0,I)` → 4× `Conv2DTranspose` → 64×64×4 RGBA sprite (Tanh).
+- **Training**: 50 epochs, 99,300 global optimizer steps, ~5.67 training hours on Kaggle P100.
+- **Adversarial Stability**: D-loss range 0.015–0.040 (stable), G-loss range 8.0–8.9 — no mode collapse detected.
+- **Why Unconditional**: Alucard category labels are noisy/unvalidated. Unconditional DCGAN learns the full sprite visual distribution directly from pixels, with zero label dependency.
+- **Artifacts**: `models/DCGAN_280K_COMPLETE/` — weights, checkpoints, logs, epoch sample grids.
+- **Evaluation Notebook**: `Notebook/DCGAN_280K_Demonstration_and_Evaluation.ipynb`.
+- **Defensible Application**: **Genuinely novel sprite synthesis** — brand-new RGBA game sprites sampled from an adversarially learned prior, distinct from AE reconstruction and VAE latent sampling.
+
 ---
 
 ## 📊 Single Unified Dataset Strategy (282,511 Unique Game Assets)
-Both AE and VAE are benchmarked on the **same RGBA sprite dataset** ($128 \times 128 \times 4$), providing a controlled evaluation of deterministic vs. probabilistic representations.
+All deep learning visual models (AE, VAE, and DCGAN) are trained on the **same Alucard RGBA sprite dataset**, providing a controlled experimental environment where model differences are due to architecture and objective — not data.
+
 - **Empirical Category Breakdown (100% Total)**: Characters (**65.19%**), Unknown / Miscellaneous (**15.84%**), Items (**6.39%**), Enemies (**5.75%**), Weapons (**4.38%**), Tiles (**1.92%**), Props (**0.35%**), Effects (**0.18%**).
 
 ---

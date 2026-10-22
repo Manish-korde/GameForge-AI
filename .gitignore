@@ -32,9 +32,22 @@ dec_*.png
 *.weights.h5
 Notebook/experimentaion/**/*.keras
 
+# VasTexture raw archives and large processed texture data (do not commit)
+gan/data/raw/
+gan/data/processed/
+
 # GameForge AI training checkpoints
 models/gameforge_t5_checkpoints/
 models/gameforge_t5_checkpoints_before_json_fix/
 
 # Previous/backup model
 models/gameforge_t5_before_json_fix/
+
+# DCGAN TF checkpoint data files (72MB each — too large for GitHub)
+models/DCGAN_280K_COMPLETE/checkpoints/*.data-*-of-*
+
+# Redundant .weights.h5 files (covered by .keras files)
+models/DCGAN_280K_COMPLETE/weights/*.weights.h5
+
+# Dataset audit HuggingFace cache (raw binary blobs, not needed in repo)
+dataset_audit/hf_cache/

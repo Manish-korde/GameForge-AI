@@ -1,0 +1,11 @@
+{
+  "total_sampled_files": 495,
+  "decoded_successfully": 495,
+  "unique_source_materials_sampled": 495,
+  "usable_after_quality_filtering": 454,
+  "usable_pass_rate": 0.9172,
+  "exact_duplicate_groups": 0,
+  "near_duplicate_groups": 2,
+  "genuinely_seamless_usable_count": 206,
+  "license": "CC0-1.0 (Public Domain)"
+}

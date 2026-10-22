@@ -1,0 +1,197 @@
+[
+  {
+    "path": "README.md",
+    "size_bytes": 666,
+    "sha256": "e42cc05d73e2e83adebdf416cdc41437637b965393867e2f32fcd781ff50e3c3"
+  },
+  {
+    "path": "weights/discriminator_latest.weights.h5",
+    "size_bytes": 11116156,
+    "sha256": "c7fea7a29f716fe1f9319d4c0c2631bb4ba8ba6dba3644794c6bd4fd2147122a"
+  },
+  {
+    "path": "weights/generator_latest.keras",
+    "size_bytes": 14376878,
+    "sha256": "f88a616ff0385bce0ed500317cfbcf5aa82c0a68ee05c8bbf440b1fc93c16d22"
+  },
+  {
+    "path": "weights/generator_latest.weights.h5",
+    "size_bytes": 14363760,
+    "sha256": "ec28cde5014f95af91c3d60a03af40b210d3864d8a01e044b1bf5ed68c3931e1"
+  },
+  {
+    "path": "weights/discriminator_best.weights.h5",
+    "size_bytes": 11116156,
+    "sha256": "c61250d988f499f6e9e2cb649150029c6e10ce09828a39624dbabc845d3ea156"
+  },
+  {
+    "path": "weights/generator_best.weights.h5",
+    "size_bytes": 14363760,
+    "sha256": "793e6b560c6004e4bd97930869b62b5f918699803d76e02bcc38004416c9011f"
+  },
+  {
+    "path": "weights/discriminator_latest.keras",
+    "size_bytes": 11127538,
+    "sha256": "5e0b7df25c0e39a27c86a4e78ebfcb2fe082eb25c6f87dbf7182af3f3271a93a"
+  },
+  {
+    "path": "samples/samples_epoch_0010.png",
+    "size_bytes": 770231,
+    "sha256": "61b70d8d20bfd1c230266c5c080d6f1d91498229d7c461f531071e70f51ee523"
+  },
+  {
+    "path": "samples/samples_epoch_0025.png",
+    "size_bytes": 706159,
+    "sha256": "c318e8878306c567c23800602d414f13d458a6425a70356c6b34fb7af341a13e"
+  },
+  {
+    "path": "samples/samples_epoch_0005.png",
+    "size_bytes": 811181,
+    "sha256": "fe9ad02faff3891d5c050af2ca9133fe970bb884944396072a537792acb35930"
+  },
+  {
+    "path": "samples/samples_epoch_0000.png",
+    "size_bytes": 212176,
+    "sha256": "2bc099a2d247b86b7fd87f6c1f3ad8af5ff091590851ad86474c243f9afb2bf7"
+  },
+  {
+    "path": "samples/samples_epoch_0015.png",
+    "size_bytes": 713482,
+    "sha256": "4e1f28e88ae88cece08f17d358de868ec0a1e12866d9bff43a721a2768482a7e"
+  },
+  {
+    "path": "samples/original_preview.png",
+    "size_bytes": 303829,
+    "sha256": "857d0d1fb45d9e1b123f9279107270c121203a823cd8c9e1331fbaa25888fd1e"
+  },
+  {
+    "path": "samples/samples_epoch_0040.png",
+    "size_bytes": 687063,
+    "sha256": "87110b5b9cdcdb291283226e42dc6a29d71eab07242900756ec4c7b0216d4912"
+  },
+  {
+    "path": "samples/samples_final.png",
+    "size_bytes": 684039,
+    "sha256": "dd128541fde2bf6fa6af721e86a1c0af0b5d6c8029adce2b3c5d5a4d1ff3f108"
+  },
+  {
+    "path": "samples/samples_epoch_0045.png",
+    "size_bytes": 678046,
+    "sha256": "90139bfc2490237954617b2f2a1bab6fb6793b44f7ad38ce92b28102c8877eeb"
+  },
+  {
+    "path": "samples/samples_epoch_0020.png",
+    "size_bytes": 872357,
+    "sha256": "765b61afe48398ad6318f12d19df30995b937fae44383228a7d8e721d718a001"
+  },
+  {
+    "path": "samples/samples_epoch_0030.png",
+    "size_bytes": 716485,
+    "sha256": "6b4129752b7633be7007c30cdd1e4f9a40087c7f688ab1e8ea6a15497c2944bc"
+  },
+  {
+    "path": "samples/samples_epoch_0035.png",
+    "size_bytes": 677745,
+    "sha256": "ce44abac1e4983f0d3b4a73b034d4cc4a02734bc3072daef923b51476f02439f"
+  },
+  {
+    "path": "samples/samples_epoch_0050.png",
+    "size_bytes": 684042,
+    "sha256": "2369b86f9b10339b62c8af85e3cdd661c1427c8258097d43eec3d677438341df"
+  },
+  {
+    "path": "logs/loss_curves.png",
+    "size_bytes": 80454,
+    "sha256": "5988e05a9438311b6d6b38770c57a1445a778c5cd7806081fa29c51079da21bb"
+  },
+  {
+    "path": "logs/training_history.csv",
+    "size_bytes": 3302,
+    "sha256": "628d5ee672d2abff8116bd0ee9845fc30a7c2abcc1a9a1de57e913bf9cb30eb8"
+  },
+  {
+    "path": "logs/training_history.json",
+    "size_bytes": 4609,
+    "sha256": "a71733e96ac6937a009693052754a854c30338dbb51dee56af61eeb1b44119e2"
+  },
+  {
+    "path": "checkpoints/ckpt-49.index",
+    "size_bytes": 5863,
+    "sha256": "32e7a7c547bd7a561f53c920c6d0d08186886ef722dcef0d7721f111b107b9d9"
+  },
+  {
+    "path": "checkpoints/checkpoint",
+    "size_bytes": 348,
+    "sha256": "633167632f7922463f3e46ca1c4a44baee034f49b75b20b9b34c6841e32e117a"
+  },
+  {
+    "path": "checkpoints/ckpt-48.index",
+    "size_bytes": 5863,
+    "sha256": "3ac4f0d772834e763c83fa1ce0eb6054d30f4c956be97c9b2b8cd0c87bf36e02"
+  },
+  {
+    "path": "checkpoints/ckpt-49.data-00000-of-00001",
+    "size_bytes": 76160792,
+    "sha256": "707f1cc1b7496cc7910af2cb5b8fbb28a824cd324574d8daa0a294ad7a82aeb5"
+  },
+  {
+    "path": "checkpoints/ckpt-47.data-00000-of-00001",
+    "size_bytes": 76160792,
+    "sha256": "8429af2f6ce51ab1c5e887bf37cf5fb9aee9074aaeb092a481db67a0c3cfc89a"
+  },
+  {
+    "path": "checkpoints/ckpt-47.index",
+    "size_bytes": 5863,
+    "sha256": "df8e4d3b16659543446ebac8d1ec28f2bb0e5166d3f955b471943a52d8e6180e"
+  },
+  {
+    "path": "checkpoints/ckpt-48.data-00000-of-00001",
+    "size_bytes": 76160792,
+    "sha256": "cc7327b96af888ffc8e291ffa0994f8b4b0ae389e455d8792961bc444b8e3fc6"
+  },
+  {
+    "path": "config/run_config.json",
+    "size_bytes": 805,
+    "sha256": "0386ebf5e30be6aeacb61b34cfaa3c6c43061e2fbb86f55568268dbac4fd1b3e"
+  },
+  {
+    "path": "config/discriminator_summary.txt",
+    "size_bytes": 5333,
+    "sha256": "3e54261f86f9be283c30b218eb90240e8648048fd289cb901b046c56340e3396"
+  },
+  {
+    "path": "config/training_state.json",
+    "size_bytes": 416,
+    "sha256": "d60c74643523a78c9cd710e87e9b8023be82e9455154ee45b0d11a0bfa5e6944"
+  },
+  {
+    "path": "config/fixed_latent_vectors.npy",
+    "size_bytes": 10128,
+    "sha256": "55080866940e1c75e48e958e260df249f3cdb1346e95f71a272190ecb99d5103"
+  },
+  {
+    "path": "config/unique_indices.json",
+    "size_bytes": 2157045,
+    "sha256": "8f03296cc586d6f4b9e03dcfa30c9d2e126ba6e813fbf6e2fab4f86f5a3912ee"
+  },
+  {
+    "path": "config/dataset_info.json",
+    "size_bytes": 320,
+    "sha256": "e05c71ffe49a7dedcc6e18be07eefd8590e5044a21e394746ef3df143d2b6ecf"
+  },
+  {
+    "path": "config/split_metadata.json",
+    "size_bytes": 351,
+    "sha256": "8b796e71a763ed5ad60371bf331e4b44f508b9b339b4a57da9d9f7efe92f9c9b"
+  },
+  {
+    "path": "config/generator_summary.txt",
+    "size_bytes": 5983,
+    "sha256": "164ff81cca12480bc39a1dcea4608e8798d3d84da4943b6f5d70354b250d9974"
+  },
+  {
+    "path": "config/shuffled_indices.json",
+    "size_bytes": 2148978,
+    "sha256": "bb494f0df8ea575dfd6ec43ef6ba496b2381a1df85e0f059d46b6ada011e865f"
+  }
+]

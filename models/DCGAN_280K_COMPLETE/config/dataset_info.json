@@ -1,0 +1,16 @@
+{
+  "source": "evilsocket/alucard-sprites",
+  "unique_images": 282511,
+  "train": 254260,
+  "val": 14126,
+  "test": 14125,
+  "img_height": 64,
+  "img_width": 64,
+  "channels": 4,
+  "pixel_norm": "tanh",
+  "seed": 42,
+  "train_ratio": 0.9,
+  "val_ratio": 0.05,
+  "global_batch_size": 128,
+  "batch_size_per_replica": 64
+}
