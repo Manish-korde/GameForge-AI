@@ -1,0 +1,46 @@
+{
+  "model_architecture": "FlowSTN",
+  "parameters": 292354,
+  "trained_epochs": 5,
+  "training_duration_sec": 6.87,
+  "final_train_l1": 0.12655,
+  "final_val_l1": 0.13295,
+  "checkpoint_path": "F:\\Project\\GameForge-AI\\models\\deformation_neural\\flow_stn_model.keras",
+  "history": {
+    "epoch": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "train_loss": [
+      0.43568,
+      0.1372,
+      0.12922,
+      0.12746,
+      0.12655
+    ],
+    "train_l1": [
+      0.13116,
+      0.13642,
+      0.1292,
+      0.12744,
+      0.12655
+    ],
+    "val_loss": [
+      0.14198,
+      0.13302,
+      0.1329,
+      0.13291,
+      0.13295
+    ],
+    "val_l1": [
+      0.1337,
+      0.13302,
+      0.1329,
+      0.13291,
+      0.13295
+    ]
+  }
+}

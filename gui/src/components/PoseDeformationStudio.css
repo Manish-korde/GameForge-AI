@@ -1,0 +1,119 @@
+/* GameForge AI — Character Pose Deformation Studio Styling */
+
+.pose-studio {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.pose-studio-header {
+  border-bottom: 1px solid var(--color-border, #252b38);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pose-canvas-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  background-color: #121620;
+  background-image: 
+    linear-gradient(45deg, #181d28 25%, transparent 25%), 
+    linear-gradient(-45deg, #181d28 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #181d28 75%), 
+    linear-gradient(-45deg, transparent 75%, #181d28 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  border: 1px solid #2b3345;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.pose-sprite-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pose-skeleton-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+.pose-bone-line {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke 0.15s ease;
+}
+
+.pose-joint-node {
+  cursor: grab;
+  transition: transform 0.1s ease, fill 0.15s ease;
+}
+
+.pose-joint-node:hover {
+  transform: scale(1.3);
+  stroke-width: 2;
+  stroke: #ffffff;
+}
+
+.pose-joint-node:active {
+  cursor: grabbing;
+}
+
+.template-card {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #252b38;
+  background: #121620;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.template-card:hover {
+  border-color: #7c5cff;
+  background: #181d28;
+}
+
+.template-card.active {
+  border-color: #7c5cff;
+  background: rgba(124, 92, 255, 0.15);
+  box-shadow: 0 0 10px rgba(124, 92, 255, 0.25);
+}
+
+.metric-pill {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+  background: #181d28;
+  border: 1px solid #252b38;
+  border-radius: 6px;
+}
+
+.metric-pill-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+}
+
+.metric-pill-value {
+  font-family: ui-monospace, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f5f7fa;
+  margin-top: 2px;
+}

@@ -467,4 +467,16 @@ export const fetchEthicalGuidelines = async () => {
   }
 };
 
+// =========================================================================
+// CHARACTER POSE DEFORMATION API METHODS (Delegated to deformationApi.js)
+// =========================================================================
+
+export {
+  fetchPoseTemplates,
+  detectCharacterSkeleton,
+  deformCharacterPose,
+  fetchAnimationPresets,
+  generateCharacterAnimation,
+  exportAnimationSpritesheet
+} from './deformationApi';
 

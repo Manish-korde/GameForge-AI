@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PoseDeformationStudio from '../components/PoseDeformationStudio';
 import { generateDesign, generateImage, runAEInference, runVAEInference, runNoisyAEInference, runVAEInterpolation, fetchRandomHumanSprite, searchSimilarAssets, clusterAssets, detectDuplicateAsset, getAnomalyScore, retrieveMoreCategoryAssets, SAMPLE_SPRITES_35, fetchSampleSpritesManifest } from '../services/api';
 
 const CreateAsset = () => {
@@ -373,6 +374,14 @@ const CreateAsset = () => {
                 </button>
                 <button className="btn btn-secondary w-full mb-2" onClick={() => setActiveView('vae')} disabled={isAELoading || isVAELoading}>
                   Create VAE Variations
+                </button>
+                <button 
+                  className={`btn ${activeView === 'deformation' ? 'btn-primary' : 'btn-secondary'} w-full mb-2 flex items-center justify-center gap-2`}
+                  onClick={() => setActiveView('deformation')} 
+                  disabled={isAELoading || isVAELoading}
+                >
+                  <span>🦴</span>
+                  <span>Pose Deformation</span>
                 </button>
               </div>
           </div>
@@ -957,6 +966,14 @@ const CreateAsset = () => {
                     <button className="btn btn-secondary px-8 py-2" onClick={() => setActiveView('original')}>Back to Original</button>
                   </div>
                 </div>
+              )}
+
+              {activeView === 'deformation' && (
+                <PoseDeformationStudio
+                  imageUrl={generatedAsset.imageUrl}
+                  assetName={generatedAsset.name}
+                  onBack={() => setActiveView('original')}
+                />
               )}
 
             </div>

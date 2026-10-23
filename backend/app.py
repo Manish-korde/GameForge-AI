@@ -11,7 +11,8 @@ import base64
 import requests
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from typing import Optional, Dict, List, Any
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -198,7 +199,30 @@ def preindex_alucard_samples():
 from transformer_service import transformer_service
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
+try:
+    from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
+except ImportError:
+    load_generator = None
+    generate_textures = None
+    def get_gan_status():
+        return "Offline (DCGAN trained separately in models/DCGAN_280K_COMPLETE)"
+
+# Character Pose Deformation & Animation Service
+from deformation import (
+    deformation_service,
+    get_pose_templates,
+    get_default_skeleton,
+    DeformationRequest,
+    DeformationResponse,
+    Skeleton2D,
+    BoundingBox,
+    animation_service,
+    get_animation_presets,
+    AnimationRequest,
+    AnimationResponse,
+    SpritesheetRequest,
+    SpritesheetResponse
+)
 
 import threading
 
@@ -273,8 +297,9 @@ def startup_event():
     load_hierarchical_gallery()
     thread = threading.Thread(target=load_all_models_background, daemon=True)
     thread.start()
-    gan_thread = threading.Thread(target=load_generator, daemon=True)
-    gan_thread.start()
+    if load_generator is not None:
+        gan_thread = threading.Thread(target=load_generator, daemon=True)
+        gan_thread.start()
 
 @app.get("/status")
 def status():
@@ -283,8 +308,119 @@ def status():
         "status": f"Autoencoder: {model_status}",
         "vae_status": f"VAE: {vae_status}",
         "transformer_status": f"Transformer: {ts}",
-        "gan_status": f"GAN: {get_gan_status()}"
+        "gan_status": f"GAN: {get_gan_status()}",
+        "deformation_status": "Deformation: Operational (Geometric & VAE-Ready)"
     }
+
+
+# =========================================================================
+# CHARACTER POSE DEFORMATION ENDPOINTS
+# =========================================================================
+
+@app.get("/deformation/templates")
+def get_deformation_templates():
+    """Returns available tested named pose templates (idle, walk, run, jump, crouch, attack)."""
+    templates = get_pose_templates()
+    return {
+        "status": "success",
+        "count": len(templates),
+        "templates": [t.model_dump() for t in templates]
+    }
+
+
+class DetectSkeletonRequest(BaseModel):
+    image_b64: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+@app.post("/deformation/detect_skeleton")
+def detect_skeleton(req: DetectSkeletonRequest):
+    """Auto-detects character non-transparent bounding box and aligns standard skeleton."""
+    try:
+        if req.image_b64:
+            img = deformation_service.decode_base64_image(req.image_b64)
+        elif req.image_url:
+            img = deformation_service.load_local_image_from_url(req.image_url)
+        else:
+            raise ValueError("Must provide 'image_b64' or a valid local 'image_url'.")
+
+        bbox = deformation_service.deformer.detect_bounding_box(img)
+        skel = deformation_service.deformer.auto_detect_skeleton(img)
+        return {
+            "status": "success",
+            "bounding_box": bbox.model_dump(),
+            "skeleton": skel.model_dump()
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        safe_msg = re.sub(r'([A-Za-z]:\\[\w\-\\]+|/[\w\-./]+)', '[REDACTED_PATH]', str(e))
+        raise HTTPException(status_code=400, detail=f"Failed to detect skeleton: {safe_msg}")
+
+
+@app.post("/deformation/pose", response_model=DeformationResponse)
+def deform_pose(req: DeformationRequest):
+    """
+    Deforms a character sprite to a target pose using 2D geometric bone skinning.
+    Supports named templates ('walk_1', 'run', 'jump', 'crouch', 'attack_slash')
+    or custom joint overrides.
+    """
+    try:
+        response = deformation_service.process_request(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        safe_msg = re.sub(r'([A-Za-z]:\\[\w\-\\]+|/[\w\-./]+)', '[REDACTED_PATH]', str(e))
+        raise HTTPException(status_code=500, detail=f"Deformation processing error: {safe_msg}")
+
+
+# =========================================================================
+# CHARACTER ANIMATION & SPRITESHEET ENDPOINTS (STAGE 2)
+# =========================================================================
+
+@app.get("/deformation/animation/presets")
+def get_deformation_animation_presets():
+    """Returns available tested character animation presets (idle, walk, run, jump, attack)."""
+    presets = get_animation_presets()
+    return {
+        "status": "success",
+        "count": len(presets),
+        "presets": [p.model_dump() for p in presets]
+    }
+
+
+@app.post("/deformation/animate", response_model=AnimationResponse)
+def generate_character_animation(req: AnimationRequest):
+    """
+    Generates an animated sequence of character frames from a sprite using
+    skeletal keyframe interpolation and geometric deformation skinning.
+    """
+    try:
+        response = animation_service.generate_animation(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        safe_msg = re.sub(r'([A-Za-z]:\\[\w\-\\]+|/[\w\-./]+)', '[REDACTED_PATH]', str(e))
+        raise HTTPException(status_code=500, detail=f"Animation generation failed: {safe_msg}")
+
+
+@app.post("/deformation/spritesheet", response_model=SpritesheetResponse)
+def export_animation_spritesheet(req: SpritesheetRequest):
+    """
+    Assembles animation frames into a transparent PNG spritesheet grid
+    with comprehensive coordinate and layout metadata.
+    """
+    try:
+        response = animation_service.assemble_spritesheet_from_request(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        safe_msg = re.sub(r'([A-Za-z]:\\[\w\-\\]+|/[\w\-./]+)', '[REDACTED_PATH]', str(e))
+        raise HTTPException(status_code=500, detail=f"Spritesheet assembly failed: {safe_msg}")
+
 
 
 @app.post("/gan/generate_texture")
@@ -293,6 +429,8 @@ async def gan_generate_texture(
     count: int = Form(4),
     seed: int = Form(None)
 ):
+    if generate_textures is None:
+        raise HTTPException(status_code=503, detail="Texture GAN is deprecated. Use DCGAN standalone sprite generator in models/DCGAN_280K_COMPLETE.")
     result = generate_textures(category=category, count=count, seed=seed)
     if "error" in result and not result.get("textures"):
         raise HTTPException(status_code=503, detail=result["error"])
@@ -341,14 +479,54 @@ class ConceptRequest(BaseModel):
     prompt: str
 
 @app.post("/generate_concept")
-def generate_concept(req: ConceptRequest):
+async def generate_concept(request: Request):
+    """
+    Authoritative concept generation endpoint supporting both JSON payload
+    {'prompt': '...'} from React SPA and legacy form-data callers.
+    Executes transformer_service semantic planner with safety guardrails.
+    """
+    content_type = request.headers.get("content-type", "").lower()
+    prompt_text = ""
+
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                prompt_text = body.get("prompt", "")
+            elif isinstance(body, str):
+                prompt_text = body
+        except Exception:
+            raise HTTPException(status_code=400, detail="Malformed JSON payload in ConceptRequest")
+    elif "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+        form = await request.form()
+        prompt_text = form.get("prompt", "")
+    else:
+        # Fallback: attempt to parse as JSON first, then Form
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                prompt_text = body.get("prompt", "")
+        except Exception:
+            try:
+                form = await request.form()
+                prompt_text = form.get("prompt", "")
+            except Exception:
+                raise HTTPException(status_code=400, detail="Unsupported content type or unparseable body.")
+
+    if not prompt_text or not str(prompt_text).strip():
+        raise HTTPException(status_code=400, detail="Field 'prompt' is required and must not be empty.")
+
+    prompt_str = str(prompt_text).strip()
+
     try:
-        spec = transformer_service.generate_concept_spec(req.prompt)
+        spec = transformer_service.generate_concept_spec(prompt_str)
         return spec
     except ValueError as ve:
+        # Ethical safety violation or invalid prompt constraint
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transformer processing error: {e}")
+        # Fallback to local heuristic generator
+        return generate_fallback_concept(prompt_str)
 
 
 class ReconstructRequest(BaseModel):
@@ -1108,49 +1286,6 @@ def generate_fallback_concept(prompt: str) -> dict:
         "visualStyle": "128x128 2D Pixel Art",
         "rawOutput": f"Theme:\n{theme}\n\nEnvironment:\n{env}\n\nCharacters:\n- {char_name}\n\nAssets:\n- {weapon_name}\n- Mystic Chest\n\nOriginal prompt: {prompt}"
     }
-
-@app.post("/generate_concept")
-async def generate_concept(prompt: str = Form(...)):
-    try:
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            return generate_fallback_concept(prompt)
-        
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        system_instructions = """You are an expert game designer. Generate a structured game concept document based on the user's prompt. 
-You MUST return ONLY a raw JSON object with no markdown formatting, no code blocks, and no extra text.
-The JSON must perfectly match this structure:
-{
-  "theme": "String (e.g., Dark Fantasy)",
-  "environment": "String (e.g., Cursed Forest Village)",
-  "characters": [
-    { "name": "String", "desc": "String" }
-  ],
-  "weapons": [
-    { "name": "String", "desc": "String" }
-  ],
-  "props": [
-    { "name": "String", "desc": "String" }
-  ],
-  "visualStyle": "String (e.g., Pixel Art)",
-  "rawOutput": "String containing a strict text breakdown exactly like this:\nTheme:\n[theme]\n\nEnvironment:\n[environment]\n\nCharacters:\n- [char1]\n- [char2]\n\nAssets:\n- [asset1]\n- [asset2]\n\nOriginal prompt: [prompt]"
-}"""
-        
-        response = model.generate_content(f"{system_instructions}\n\nUser Prompt: {prompt}")
-        raw_text = response.text.strip()
-        
-        if raw_text.startswith("```json"):
-            raw_text = raw_text.replace("```json", "", 1)
-        if raw_text.startswith("```"):
-            raw_text = raw_text.replace("```", "", 1)
-        if raw_text.endswith("```"):
-            raw_text = raw_text[:-3]
-            
-        json_data = json.loads(raw_text.strip())
-        return json_data
-    except Exception as e:
-        print(f"Generative AI call failed/fallback triggered: {e}")
-        return generate_fallback_concept(prompt)
 
 # Mount static React frontend SPA dist directory if present (Single-Container Deployment)
 dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "gui", "dist"))

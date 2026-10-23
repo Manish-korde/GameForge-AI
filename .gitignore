@@ -2,16 +2,29 @@
 gui/node_modules/
 gui/dist/
 gui/build/
-.env
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
+# Environment secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Python virtual environments
+backend/venv/
+backend/gpu-venv/
+.venv_transformer/
 venv/
 env/
 .venv/
-backend/venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archives and export packages
+*.zip
+*.tar.gz
 
 # Notebooks
 .ipynb_checkpoints/
