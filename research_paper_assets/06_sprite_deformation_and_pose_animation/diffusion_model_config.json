@@ -1,0 +1,7 @@
+{
+  "architecture": "ConditionalDiffusionUNet (Pixel-T2I Paradigm)",
+  "dataset_scale": "625 characters (~10000 pairs)",
+  "epochs": 50,
+  "best_loss": 0.03301862087578346,
+  "num_gpus": 2
+}

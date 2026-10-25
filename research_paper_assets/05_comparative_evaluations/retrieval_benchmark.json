@@ -1,0 +1,33 @@
+{
+  "num_query_evaluations": 100,
+  "candidate_pool_size": 1500,
+  "retrieval_benchmark": {
+    "ae": {
+      "precision_at_1": 0.65,
+      "precision_at_5": 0.618
+    },
+    "vae": {
+      "precision_at_1": 0.64,
+      "precision_at_5": 0.6
+    },
+    "retrieval_winner": "Autoencoder (AE)"
+  },
+  "clustering_benchmark": {
+    "ae": {
+      "silhouette_score": 0.1165,
+      "ari_score": 0.1019,
+      "nmi_score": 0.1579
+    },
+    "vae": {
+      "silhouette_score": 0.1112,
+      "ari_score": 0.031,
+      "nmi_score": 0.1534
+    }
+  },
+  "empirical_anomaly_calibration": {
+    "p50_median_mse": 0.000284,
+    "p90_mse": 0.00089,
+    "p95_outlier_threshold": 0.001397,
+    "p99_severe_threshold": 0.006179
+  }
+}

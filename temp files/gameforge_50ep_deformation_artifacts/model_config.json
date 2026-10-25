@@ -1,0 +1,7 @@
+{
+  "model_name": "SpriteDeformationNet",
+  "epochs": 50,
+  "image_size": 64,
+  "best_val_loss": 0.08384122484082104,
+  "training_pairs": 15066
+}

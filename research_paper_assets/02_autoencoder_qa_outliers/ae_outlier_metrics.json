@@ -1,0 +1,11 @@
+{
+    "test_sample_size": 2000,
+    "mean_mse": 0.000443,
+    "median_mse": 0.000254,
+    "min_mse": 4.1e-05,
+    "max_mse": 0.017289,
+    "percentile_90_mse": 0.000729,
+    "percentile_95_mse": 0.001313,
+    "percentile_99_mse": 0.00407,
+    "screening_recommendation": "Distributional Outlier Screening (High-error assets correspond to complex multi-object tiles & extreme color variations)"
+}

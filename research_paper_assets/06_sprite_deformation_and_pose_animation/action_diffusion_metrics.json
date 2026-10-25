@@ -1,0 +1,11 @@
+{
+  "Dataset Pairs": 10000,
+  "Epochs Evaluated": 50,
+  "Initial Loss (MSE)": 0.6096,
+  "Final Loss (MSE)": 0.03302,
+  "Relative Loss Drop (%)": 94.58,
+  "Average PSNR (dB)": 27.84,
+  "Structural Similarity (SSIM)": 0.862,
+  "Palette Fidelity (%)": 91.4,
+  "Inference Latency (per frame)": "18.4 ms (Dual GPU) / 42.1 ms (CPU)"
+}

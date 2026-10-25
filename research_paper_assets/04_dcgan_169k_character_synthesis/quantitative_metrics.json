@@ -1,0 +1,11 @@
+{
+  "Model": "DCGAN All-Characters 169K (LSGAN)",
+  "Curated Sprites Count": "169,094",
+  "Final Generator Loss": "0.5212",
+  "Final Discriminator Loss": "0.0091",
+  "Diversity Score (Pairwise L1)": "12.15",
+  "Sharpness (Laplacian Var)": "64.37",
+  "Alpha Bimodal Purity (%)": "94.80%",
+  "Pure Transparent Canvas (%)": "65.83%",
+  "Pure Foreground Silhouette (%)": "28.97%"
+}

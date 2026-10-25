@@ -1,0 +1,55 @@
+{
+    "dataset_name": "evilsocket/alucard-sprites",
+    "raw_row_count": 312550,
+    "exact_duplicates_removed": 30039,
+    "unique_image_count": 282511,
+    "sample_analyzed": 50000,
+    "image_format": "128x128 RGBA",
+    "category_distribution": [
+        {
+            "Category": "Character",
+            "Count": 32596,
+            "Percentage": 65.19
+        },
+        {
+            "Category": "Unknown / Miscellaneous",
+            "Count": 7919,
+            "Percentage": 15.84
+        },
+        {
+            "Category": "Item / Consumable",
+            "Count": 3194,
+            "Percentage": 6.39
+        },
+        {
+            "Category": "Enemy / Monster",
+            "Count": 2877,
+            "Percentage": 5.75
+        },
+        {
+            "Category": "Weapon",
+            "Count": 2188,
+            "Percentage": 4.38
+        },
+        {
+            "Category": "Tile / Environment",
+            "Count": 959,
+            "Percentage": 1.92
+        },
+        {
+            "Category": "Prop / Decor",
+            "Count": 177,
+            "Percentage": 0.35
+        },
+        {
+            "Category": "Effect / Spell",
+            "Count": 90,
+            "Percentage": 0.18
+        }
+    ],
+    "image_statistics": {
+        "mean_occupied_bounding_box_pct": 65.54,
+        "mean_non_transparent_alpha_pct": 53.25,
+        "mean_content_aspect_ratio": 0.74
+    }
+}
