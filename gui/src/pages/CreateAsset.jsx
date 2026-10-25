@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateDesign, generateImage, runAEInference, runVAEInference, runNoisyAEInference, runVAEInterpolation, fetchRandomHumanSprite, searchSimilarAssets, clusterAssets, detectDuplicateAsset, getAnomalyScore, retrieveMoreCategoryAssets, SAMPLE_SPRITES_35, fetchSampleSpritesManifest } from '../services/api';
+import { generateDesign, generateImage, runAEInference, runVAEInference, runNoisyAEInference, runVAEInterpolation, fetchRandomHumanSprite, searchSimilarAssets, clusterAssets, detectDuplicateAsset, getAnomalyScore, retrieveMoreCategoryAssets, SAMPLE_SPRITES_35, fetchSampleSpritesManifest, BACKEND_URL } from '../services/api';
 
 const CreateAsset = () => {
   const [prompt, setPrompt] = useState('');
@@ -46,8 +46,16 @@ const CreateAsset = () => {
   const [anomalyResult, setAnomalyResult] = useState(null);
   const [isCheckingAnomaly, setIsCheckingAnomaly] = useState(false);
 
-  
   const [activeView, setActiveView] = useState('original'); // 'original', 'ae', 'vae'
+
+  const resolveSpriteUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${BACKEND_URL}${cleanPath}`;
+  };
 
   const handleGenerateDesign = async () => {
     if (!prompt) return;
@@ -385,7 +393,7 @@ const CreateAsset = () => {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <img src={generatedAsset.imageUrl} alt="Generated" className="generated-preview mb-4 object-contain max-h-[300px]" />
+                  <img src={resolveSpriteUrl(generatedAsset.imageUrl)} alt="Generated" className="generated-preview mb-4 object-contain max-h-[300px]" />
                   <div className="flex gap-md mb-2">
                     <button className="btn btn-primary">Save to Library</button>
                   </div>
@@ -673,7 +681,7 @@ const CreateAsset = () => {
                         <div className="flex gap-4 overflow-x-auto pb-2">
                           {searchResults.matches.map((item, idx) => (
                             <div key={idx} className="flex flex-col items-center bg-[#101014] p-3 rounded-lg border border-[#2a2a35] min-w-[140px]">
-                              <img src={item.url} alt="Match" className="w-16 h-16 object-contain mb-2" style={{ imageRendering: 'pixelated' }} />
+                              <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-16 h-16 object-contain mb-2" style={{ imageRendering: 'pixelated' }} />
                               <span className="text-[11px] text-green-400 font-semibold mb-0.5">High Visual Match</span>
                               <span className="text-[9px] text-gray-400 font-mono">Sim Score: {item.cosine_similarity}</span>
                             </div>
@@ -706,7 +714,7 @@ const CreateAsset = () => {
                                 <div className="flex flex-wrap gap-2">
                                   {clusterItems.map((item, idx) => (
                                     <div key={idx} className="relative group bg-[#18181f] p-1.5 rounded border border-[#2a2a35] hover:border-primary/50 transition">
-                                      <img src={item.url} alt="Sprite" className="w-12 h-12 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                      <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-12 h-12 object-contain" style={{ imageRendering: 'pixelated' }} />
                                     </div>
                                   ))}
                                 </div>
@@ -837,7 +845,7 @@ const CreateAsset = () => {
                       <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg max-w-xs w-full">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Character A</span>
                         <img 
-                          src={characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url} 
+                          src={resolveSpriteUrl(characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url)} 
                           alt="Sprite A" 
                           className="rounded shadow-sm mb-3 bg-[#101014]" 
                           style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 
@@ -880,7 +888,7 @@ const CreateAsset = () => {
                       <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg max-w-xs w-full">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Character B</span>
                         <img 
-                          src={characterBUrl || spriteList[34]?.url || spriteList[0]?.url} 
+                          src={resolveSpriteUrl(characterBUrl || spriteList[34]?.url || spriteList[0]?.url)} 
                           alt="Sprite B" 
                           className="rounded shadow-sm mb-3 bg-[#101014]" 
                           style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 

@@ -1,0 +1,14 @@
+{
+  "Model Name": "DCGAN Characters 20K Curated (Least-Squares Formulation)",
+  "Final Generator Loss": "0.4071",
+  "Final Discriminator Loss": "0.0839",
+  "Academic Target": "G_loss < 4.0 (ACHIEVED: 0.4071)",
+  "Training Epochs": 50,
+  "Runtime (Minutes)": "29.40",
+  "Time per Epoch (Seconds)": "35.3",
+  "Diversity Score (Pairwise L1)": "12.54",
+  "Foreground Sharpness (Laplacian Var)": "61.82",
+  "Alpha Transparency Purity (%)": "95.07%",
+  "Pure Transparent Area (%)": "65.25%",
+  "Pure Foreground Area (%)": "29.82%"
+}

@@ -12,9 +12,11 @@ const Sidebar = () => {
         
         <div className="nav-section">Create & Explore</div>
         <NavLink to="/concept" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🎯 Game Concept (T5)</NavLink>
+        <NavLink to="/dcgan" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>⚔️ DCGAN Characters (169K)</NavLink>
         <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🎨 Asset Studio & VAE</NavLink>
 
         <div className="nav-section">AI Pipeline</div>
+        <NavLink to="/dcgan" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>👾 50-Epoch DCGAN Model</NavLink>
         <NavLink to="/concept" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>⚡ Transformer Planner</NavLink>
         <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🧬 VAE Latent Engine</NavLink>
         <NavLink to="/create" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>🔍 Autoencoder Outliers</NavLink>

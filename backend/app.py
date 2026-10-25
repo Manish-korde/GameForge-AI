@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from typing import Optional, List
 import tensorflow as tf
 try:
     import google.generativeai as genai
@@ -24,6 +25,8 @@ try:
         genai.configure(api_key=api_key)
 except Exception as e:
     print(f"Gemini init warning: {e}")
+
+from diffusion_service import diffusion_service
 
 @tf.keras.utils.register_keras_serializable()
 class Sampling(tf.keras.layers.Layer):
@@ -104,41 +107,41 @@ def image_to_base64(image: Image.Image) -> str:
 ALUCARD_INDEX = []
 
 SAMPLE_CATEGORIES = {
-    0: {"category": "Character", "label": "Arcane Mage", "text": "pixel art, wizard, mage, spellcaster character"},
-    1: {"category": "Character", "label": "Knight Paladin", "text": "pixel art, armored paladin, knight warrior"},
-    2: {"category": "Character", "label": "Flame Sorcerer", "text": "pixel art, flame sorcerer, fire mage character"},
-    3: {"category": "Character", "label": "Armored Guardian", "text": "pixel art, armored warrior, heavy guardian character"},
-    4: {"category": "Character", "label": "Royal Knight", "text": "pixel art, royal knight warrior character"},
-    5: {"category": "Character", "label": "Shadow Warrior", "text": "pixel art, shadow warrior character"},
-    6: {"category": "Enemy / Monster", "label": "Demon Specter", "text": "pixel art, demon creature enemy monster"},
-    7: {"category": "Character", "label": "Forest Ranger", "text": "pixel art, forest ranger scout character"},
-    8: {"category": "Enemy / Monster", "label": "Slime Beast", "text": "pixel art, green slime blob creature enemy"},
-    9: {"category": "Character", "label": "Elven Archer", "text": "pixel art, elven archer bow character"},
-    10: {"category": "Character", "label": "Dark Necromancer", "text": "pixel art, dark necromancer caster character"},
-    11: {"category": "Character", "label": "Rogue Assassin", "text": "pixel art, stealth rogue assassin character"},
-    12: {"category": "Character", "label": "Shadow Ninja", "text": "pixel art, shadow ninja warrior character"},
-    13: {"category": "Character", "label": "Blood Berserker", "text": "pixel art, blood berserker warrior character"},
-    14: {"category": "Character", "label": "Forest Elf", "text": "pixel art, forest elf mage character"},
-    15: {"category": "Character", "label": "Dwarf Defender", "text": "pixel art, dwarf warrior defender character"},
-    16: {"category": "Character", "label": "Adventurer Hero", "text": "pixel art, blonde adventurer hero boy character"},
-    17: {"category": "Enemy / Monster", "label": "Skeleton Warrior", "text": "pixel art, skeleton undead warrior enemy"},
-    18: {"category": "Character", "label": "Frost Maiden", "text": "pixel art, frost maiden sorceress character"},
-    19: {"category": "Enemy / Monster", "label": "Fire Elemental", "text": "pixel art, fire elemental creature monster"},
-    20: {"category": "Character", "label": "Cyber Knight", "text": "pixel art, cyber knight sci-fi hero character"},
-    21: {"category": "Character", "label": "Golden Templar", "text": "pixel art, golden paladin warrior character"},
-    22: {"category": "Character", "label": "Shieldbearer", "text": "pixel art, shieldbearer defender warrior character"},
-    23: {"category": "Character", "label": "Battle Master", "text": "pixel art, battle master warrior character"},
-    24: {"category": "Character", "label": "Crossbow Scout", "text": "pixel art, crossbow scout ranger character"},
-    25: {"category": "Enemy / Monster", "label": "Goblin Raider", "text": "pixel art, goblin raider monster enemy"},
-    26: {"category": "Enemy / Monster", "label": "Orc Chieftain", "text": "pixel art, orc chieftain boss enemy"},
-    27: {"category": "Character", "label": "High Priest", "text": "pixel art, holy high priest cleric character"},
-    28: {"category": "Character", "label": "Phoenix Cultist", "text": "pixel art, phoenix cultist spellcaster character"},
-    29: {"category": "Character", "label": "Dragon Slayer", "text": "pixel art, dragon slayer hero warrior character"},
-    30: {"category": "Character", "label": "Cyber Sentinel", "text": "pixel art, cyber sentinel futuristic warrior"},
-    31: {"category": "Character", "label": "Starship Commander", "text": "pixel art, starship commander sci-fi character"},
-    32: {"category": "Enemy / Monster", "label": "Alien Droid", "text": "pixel art, alien droid robot enemy"},
-    33: {"category": "Character", "label": "Void Stalker", "text": "pixel art, void stalker character"},
-    34: {"category": "Character", "label": "Purple Elf Mage", "text": "pixel art, purple female elf mage holding staff spear"}
+    0: {"category": "Character", "label": "Gray Robe Mage (Back View)", "text": "pixel art, gray, small, wizard, mage, spellcaster, back view"},
+    1: {"category": "Character", "label": "Ironclad Adventurer", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
+    2: {"category": "Character", "label": "Novice Hero (Side Walk)", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
+    3: {"category": "Character", "label": "Dungeon Explorer", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
+    4: {"category": "Character", "label": "Brown Robed Sorcerer", "text": "pixel art, brown, small, wizard, mage, spellcaster, front view"},
+    5: {"category": "Character", "label": "Heavy Armored Warrior", "text": "pixel art, colorful, medium-sized, warrior, armored character, back view"},
+    6: {"category": "Character", "label": "Green Tunic Scout", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
+    7: {"category": "Character", "label": "Brave Vanguard Hero", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
+    8: {"category": "Character", "label": "Traveler in Brown Cape", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
+    9: {"category": "Equipment", "label": "Bronze Warrior Helm", "text": "pixel art, brown, medium-sized, helmet, hat, headwear, front view"},
+    10: {"category": "Equipment", "label": "Knight Visor Helm", "text": "pixel art, colorful, small, helmet, hat, headwear, side view"},
+    11: {"category": "Equipment", "label": "Steel Barbute Helmet", "text": "pixel art, colorful, small, helmet, hat, headwear, three-quarter view"},
+    12: {"category": "Character", "label": "Mystic Hooded Caster", "text": "pixel art, colorful, small, wizard, mage, spellcaster, three-quarter view"},
+    13: {"category": "Equipment", "label": "Ornate Golden Coif", "text": "pixel art, colorful, small, helmet, hat, headwear, three-quarter view"},
+    14: {"category": "Character", "label": "Blue Cloak Wanderer", "text": "pixel art, colorful, small, wizard, mage, spellcaster, three-quarter view"},
+    15: {"category": "Weapon", "label": "Ancient Oak Staff", "text": "pixel art, brown, large, staff, wand, magical weapon, three-quarter view"},
+    16: {"category": "Enemy / Monster", "label": "Dungeon Crawler Beast", "text": "pixel art, gray, small, monster, enemy creature, back view"},
+    17: {"category": "Item / Consumable", "label": "Crimson Health Elixir", "text": "pixel art, colorful, medium-sized, potion, bottle, consumable, back view"},
+    18: {"category": "Character", "label": "Lightfoot Rogue", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
+    19: {"category": "Character", "label": "Red Bandana Swordsman", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
+    20: {"category": "Character", "label": "Royal Guard Squire", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
+    21: {"category": "Item / Consumable", "label": "Azure Mana Flask", "text": "pixel art, colorful, small, potion, bottle, consumable, back view"},
+    22: {"category": "Character", "label": "Purple Tunic Duelist", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
+    23: {"category": "Character", "label": "Steel Guardian Paladin", "text": "pixel art, gray, medium-sized, warrior, armored character, front view"},
+    24: {"category": "Character", "label": "Graybeard Warlock", "text": "pixel art, gray, medium-sized, wizard, mage, spellcaster, three-quarter view"},
+    25: {"category": "Item / Consumable", "label": "Stamina Brew Bottle", "text": "pixel art, brown, small, potion, bottle, consumable, three-quarter view"},
+    26: {"category": "Enemy / Monster", "label": "Toxic Green Slime", "text": "pixel art, brown, small, slime, blob creature, three-quarter view"},
+    27: {"category": "Character", "label": "Cloaked Scout (Rear View)", "text": "pixel art, gray, small, character, hero, adventurer, back view"},
+    28: {"category": "Character", "label": "Shield-Bearer Vanguard", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
+    29: {"category": "Character", "label": "Frontline Champion", "text": "pixel art, gray, small, character, hero, adventurer, front view"},
+    30: {"category": "Character", "label": "Dungeon Raider", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
+    31: {"category": "Prop / Container", "label": "Reinforced Treasure Chest", "text": "pixel art, brown, large, chest, container, three-quarter view"},
+    32: {"category": "Weapon", "label": "Dark Yew Recurve Bow", "text": "pixel art, dark, large, bow, ranged weapon, back view"},
+    33: {"category": "Weapon", "label": "Iron Battle Staff", "text": "pixel art, gray, large, staff, wand, magical weapon, back view"},
+    34: {"category": "Weapon", "label": "Crystal-Tipped Wand", "text": "pixel art, gray, small, staff, wand, magical weapon, three-quarter view"}
 }
 
 
@@ -197,8 +200,19 @@ def preindex_alucard_samples():
 
 from transformer_service import transformer_service
 import sys
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
+
+# DCGAN 169K Character Generator Service
+from dcgan_service import load_dcgan_generator, generate_character_sprites, get_status as get_dcgan_status, CLASS_PRESETS as DCGAN_CLASSES
+
+try:
+    from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
+except ImportError:
+    def load_generator(): pass
+    def generate_textures(category="stone", count=4, seed=None):
+        return {"error": "Texture GAN module not configured. Use /dcgan/generate_character for 50-epoch characters.", "textures": []}
+    def get_gan_status(): return "Texture GAN Offline"
 
 import threading
 
@@ -275,6 +289,8 @@ def startup_event():
     thread.start()
     gan_thread = threading.Thread(target=load_generator, daemon=True)
     gan_thread.start()
+    dcgan_thread = threading.Thread(target=load_dcgan_generator, daemon=True)
+    dcgan_thread.start()
 
 @app.get("/status")
 def status():
@@ -283,7 +299,134 @@ def status():
         "status": f"Autoencoder: {model_status}",
         "vae_status": f"VAE: {vae_status}",
         "transformer_status": f"Transformer: {ts}",
-        "gan_status": f"GAN: {get_gan_status()}"
+        "gan_status": f"GAN: {get_gan_status()}",
+        "dcgan_status": f"DCGAN 169K: {get_dcgan_status()}"
+    }
+
+
+@app.post("/dcgan/generate_character")
+async def dcgan_generate_character_endpoint(
+    role: str = Form("Hero (Knight)"),
+    count: int = Form(4),
+    seed: int = Form(None),
+    pixel_art_mode: bool = Form(True)
+):
+    """Endpoint for generating 64x64 transparent character sprites using the 50-epoch DCGAN model."""
+    result = generate_character_sprites(
+        role=role,
+        count=count,
+        seed=seed,
+        pixel_art_mode=pixel_art_mode
+    )
+    if "error" in result and not result.get("sprites"):
+        raise HTTPException(status_code=503, detail=result["error"])
+    return result
+
+
+class PromptToSpriteRequest(BaseModel):
+    prompt: str
+    count: Optional[int] = 4
+    seed: Optional[int] = None
+
+@app.post("/api/prompt_to_sprite")
+async def prompt_to_sprite_endpoint(
+    req: PromptToSpriteRequest
+):
+    prompt = req.prompt
+    count = req.count or 4
+    seed = req.seed
+    """
+    End-to-end pipeline:
+    1. Transformer parses natural language game concept into structured Game Spec.
+    2. Maps character role & attributes to generator latent synthesis.
+    3. Produces clean, transparent 64x64 RGBA sprites with discrete 20-color quantization.
+    """
+    try:
+        spec = transformer_service.generate_concept_spec(prompt)
+    except Exception as e:
+        spec = {
+            "main_character": {"role": "Hero (Knight)", "attributes": ["Sword", "Armor"]},
+            "genre": "Pixel RPG",
+            "art_style": "16-bit Retro Pixel Art",
+            "status": f"Fallback: {e}"
+        }
+
+    char_info = spec.get("main_character", {})
+    role_extracted = char_info.get("role", "Hero (Knight)")
+    
+    # Semantic mapping to trained archetypes
+    role_lower = (role_extracted + " " + prompt).lower()
+    mapped_role = "Hero (Knight)"
+    if any(w in role_lower for w in ["mage", "wizard", "sorcerer", "spell", "magic"]):
+        mapped_role = "Mage (Sorcerer)"
+    elif any(w in role_lower for w in ["rogue", "thief", "assassin", "ninja", "stealth"]):
+        mapped_role = "Rogue (Thief)"
+    elif any(w in role_lower for w in ["paladin", "guardian", "holy"]):
+        mapped_role = "Paladin (Guardian)"
+    elif any(w in role_lower for w in ["archer", "ranger", "hunter", "bow"]):
+        mapped_role = "Archer (Ranger)"
+    elif any(w in role_lower for w in ["warrior", "barbarian", "heavy", "berserk"]):
+        mapped_role = "Warrior (Barbarian)"
+    elif any(w in role_lower for w in ["cleric", "healer", "priest", "monk"]):
+        mapped_role = "Cleric (Healer)"
+    elif any(w in role_lower for w in ["necro", "dark", "warlock", "shadow"]):
+        mapped_role = "Necromancer (Dark Mage)"
+    elif any(w in role_lower for w in ["goblin", "scout", "orc"]):
+        mapped_role = "Goblin (Scout)"
+    elif any(w in role_lower for w in ["skeleton", "undead"]):
+        mapped_role = "Skeleton (Fighter)"
+    elif any(w in role_lower for w in ["slime", "creature", "beast"]):
+        mapped_role = "Slime (Creature)"
+    else:
+        mapped_role = "Hero (Knight)"
+
+    gen_result = generate_character_sprites(
+        role=mapped_role,
+        count=count,
+        seed=seed,
+        pixel_art_mode=True
+    )
+    
+    return {
+        "status": "success",
+        "prompt": prompt,
+        "spec": spec,
+        "role_extracted": role_extracted,
+        "mapped_archetype": mapped_role,
+        "sprites": gen_result.get("sprites", [])
+    }
+
+
+class DiffusionRequest(BaseModel):
+    prompt: str
+    style: Optional[str] = "16-bit Retro RPG"
+    steps: Optional[int] = 25
+    guidance_scale: Optional[float] = 7.5
+    seed: Optional[int] = None
+
+@app.post("/api/diffusion/generate")
+async def diffusion_generate_endpoint(req: DiffusionRequest):
+    try:
+        result = diffusion_service.generate_diffusion_sprite(
+            prompt=req.prompt,
+            style=req.style or "16-bit Retro RPG",
+            steps=req.steps or 25,
+            guidance_scale=req.guidance_scale or 7.5,
+            seed=req.seed
+        )
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Diffusion error: {e}")
+
+
+@app.get("/dcgan/classes")
+def dcgan_classes_endpoint():
+    return {
+        "classes": list(DCGAN_CLASSES.keys()),
+        "dcgan_status": get_dcgan_status(),
+        "model": "DCGAN 169K Characters (50 Epochs)"
     }
 
 
@@ -307,16 +450,18 @@ def gan_categories():
         "note": "Category-conditioned texture generation. Each texture has seamless wrap-and-blend applied."
     }
 
+
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
     result = []
+    base_prefix = "http://127.0.0.1:8000"
     for i in range(35):
         cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}"})
         result.append({
             "id": i,
             "label": f"Sprite #{i+1}: {cat_info['label']}",
             "category": cat_info["category"],
-            "url": f"/alucard_samples/alucard_{i}.png"
+            "url": f"{base_prefix}/alucard_samples/alucard_{i}.png"
         })
     return result
 

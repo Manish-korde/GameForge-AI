@@ -1,0 +1,10 @@
+{
+  "Model": "DCGAN Characters 20K (LSGAN)",
+  "Final Generator Loss": "0.4071",
+  "Final Discriminator Loss": "0.0839",
+  "Diversity Score (Pairwise L1)": "12.08",
+  "Sharpness (Laplacian Var)": "58.00",
+  "Alpha Bimodal Purity (%)": "95.00%",
+  "Pure Transparent Area (%)": "65.66%",
+  "Pure Foreground Area (%)": "29.34%"
+}

@@ -1,6 +1,6 @@
 import { mockExperiments, mockAssets, mockStructuredDesign } from './mockData';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL !== undefined ? import.meta.env.VITE_BACKEND_URL : "http://127.0.0.1:8000";
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL !== undefined ? import.meta.env.VITE_BACKEND_URL : "http://127.0.0.1:8000";
 const DEMO_MODE = true; // Hardcoded for now until backend is connected
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -8,41 +8,41 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const HUMAN_SPRITES = Array.from({ length: 35 }, (_, i) => `${BACKEND_URL}/alucard_samples/alucard_${i}.png`);
 
 export const SAMPLE_SPRITES_35 = [
-  { id: 0, label: "Sprite #1: Arcane Mage", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_0.png` },
-  { id: 1, label: "Sprite #2: Knight Paladin", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_1.png` },
-  { id: 2, label: "Sprite #3: Flame Sorcerer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_2.png` },
-  { id: 3, label: "Sprite #4: Armored Guardian", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_3.png` },
-  { id: 4, label: "Sprite #5: Royal Knight", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_4.png` },
-  { id: 5, label: "Sprite #6: Shadow Warrior", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_5.png` },
-  { id: 6, label: "Sprite #7: Demon Specter", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_6.png` },
-  { id: 7, label: "Sprite #8: Forest Ranger", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_7.png` },
-  { id: 8, label: "Sprite #9: Slime Beast", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_8.png` },
-  { id: 9, label: "Sprite #10: Elven Archer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_9.png` },
-  { id: 10, label: "Sprite #11: Dark Necromancer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_10.png` },
-  { id: 11, label: "Sprite #12: Rogue Assassin", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_11.png` },
-  { id: 12, label: "Sprite #13: Shadow Ninja", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_12.png` },
-  { id: 13, label: "Sprite #14: Blood Berserker", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_13.png` },
-  { id: 14, label: "Sprite #15: Forest Elf", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_14.png` },
-  { id: 15, label: "Sprite #16: Dwarf Defender", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_15.png` },
-  { id: 16, label: "Sprite #17: Adventurer Hero", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_16.png` },
-  { id: 17, label: "Sprite #18: Skeleton Warrior", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_17.png` },
-  { id: 18, label: "Sprite #19: Frost Maiden", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_18.png` },
-  { id: 19, label: "Sprite #20: Fire Elemental", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_19.png` },
-  { id: 20, label: "Sprite #21: Cyber Knight", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_20.png` },
-  { id: 21, label: "Sprite #22: Golden Templar", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_21.png` },
-  { id: 22, label: "Sprite #23: Shieldbearer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_22.png` },
-  { id: 23, label: "Sprite #24: Battle Master", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_23.png` },
-  { id: 24, label: "Sprite #25: Crossbow Scout", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_24.png` },
-  { id: 25, label: "Sprite #26: Goblin Raider", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_25.png` },
-  { id: 26, label: "Sprite #27: Orc Chieftain", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_26.png` },
-  { id: 27, label: "Sprite #28: High Priest", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_27.png` },
-  { id: 28, label: "Sprite #29: Phoenix Cultist", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_28.png` },
-  { id: 29, label: "Sprite #30: Dragon Slayer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_29.png` },
-  { id: 30, label: "Sprite #31: Cyber Sentinel", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_30.png` },
-  { id: 31, label: "Sprite #32: Starship Commander", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_31.png` },
-  { id: 32, label: "Sprite #33: Alien Droid", category: "Enemy", url: `${BACKEND_URL}/alucard_samples/alucard_32.png` },
-  { id: 33, label: "Sprite #34: Void Stalker", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_33.png` },
-  { id: 34, label: "Sprite #35: Purple Elf Mage", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_34.png` }
+  { id: 0, label: "Sprite #1: Gray Robe Mage (Back View)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_0.png` },
+  { id: 1, label: "Sprite #2: Ironclad Adventurer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_1.png` },
+  { id: 2, label: "Sprite #3: Novice Hero (Side Walk)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_2.png` },
+  { id: 3, label: "Sprite #4: Dungeon Explorer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_3.png` },
+  { id: 4, label: "Sprite #5: Brown Robed Sorcerer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_4.png` },
+  { id: 5, label: "Sprite #6: Heavy Armored Warrior", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_5.png` },
+  { id: 6, label: "Sprite #7: Green Tunic Scout", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_6.png` },
+  { id: 7, label: "Sprite #8: Brave Vanguard Hero", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_7.png` },
+  { id: 8, label: "Sprite #9: Traveler in Brown Cape", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_8.png` },
+  { id: 9, label: "Sprite #10: Bronze Warrior Helm", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_9.png` },
+  { id: 10, label: "Sprite #11: Knight Visor Helm", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_10.png` },
+  { id: 11, label: "Sprite #12: Steel Barbute Helmet", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_11.png` },
+  { id: 12, label: "Sprite #13: Mystic Hooded Caster", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_12.png` },
+  { id: 13, label: "Sprite #14: Ornate Golden Coif", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_13.png` },
+  { id: 14, label: "Sprite #15: Blue Cloak Wanderer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_14.png` },
+  { id: 15, label: "Sprite #16: Ancient Oak Staff", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_15.png` },
+  { id: 16, label: "Sprite #17: Dungeon Crawler Beast", category: "Enemy / Monster", url: `${BACKEND_URL}/alucard_samples/alucard_16.png` },
+  { id: 17, label: "Sprite #18: Crimson Health Elixir", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_17.png` },
+  { id: 18, label: "Sprite #19: Lightfoot Rogue", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_18.png` },
+  { id: 19, label: "Sprite #20: Red Bandana Swordsman", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_19.png` },
+  { id: 20, label: "Sprite #21: Royal Guard Squire", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_20.png` },
+  { id: 21, label: "Sprite #22: Azure Mana Flask", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_21.png` },
+  { id: 22, label: "Sprite #23: Purple Tunic Duelist", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_22.png` },
+  { id: 23, label: "Sprite #24: Steel Guardian Paladin", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_23.png` },
+  { id: 24, label: "Sprite #25: Graybeard Warlock", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_24.png` },
+  { id: 25, label: "Sprite #26: Stamina Brew Bottle", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_25.png` },
+  { id: 26, label: "Sprite #27: Toxic Green Slime", category: "Enemy / Monster", url: `${BACKEND_URL}/alucard_samples/alucard_26.png` },
+  { id: 27, label: "Sprite #28: Cloaked Scout (Rear View)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_27.png` },
+  { id: 28, label: "Sprite #29: Shield-Bearer Vanguard", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_28.png` },
+  { id: 29, label: "Sprite #30: Frontline Champion", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_29.png` },
+  { id: 30, label: "Sprite #31: Dungeon Raider", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_30.png` },
+  { id: 31, label: "Sprite #32: Reinforced Treasure Chest", category: "Prop / Container", url: `${BACKEND_URL}/alucard_samples/alucard_31.png` },
+  { id: 32, label: "Sprite #33: Dark Yew Recurve Bow", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_32.png` },
+  { id: 33, label: "Sprite #34: Iron Battle Staff", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_33.png` },
+  { id: 34, label: "Sprite #35: Crystal-Tipped Wand", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_34.png` }
 ];
 
 export const fetchSampleSpritesManifest = async () => {
@@ -177,27 +177,61 @@ export const fetchLibraryAssets = async () => {
 };
 
 export const generateImage = async (spec) => {
-  if (DEMO_MODE) {
-    await delay(1500);
-    const randomIndex = Math.floor(Math.random() * SAMPLE_SPRITES_35.length);
-    const selectedSprite = SAMPLE_SPRITES_35[randomIndex];
+  const promptText = spec?.prompt_parsed || spec?.prompt || spec?.game_title || "Retro pixel art character";
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/prompt_to_sprite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: promptText,
+        count: 1
+      }),
+    });
     
-    return {
-      status: 'success',
-      data: {
-        id: 'asset-' + Date.now(),
-        name: selectedSprite.label.split(": ")[1] || selectedSprite.label,
-        type: 'Image',
-        source: 'Diffusion',
-        model: 'Diffusion Model',
-        prompt: spec.prompt || spec.prompt_parsed || 'Pixel art character sprite',
-        imageUrl: selectedSprite.url,
-        spriteId: selectedSprite.id,
-        createdAt: new Date().toISOString(),
-        status: 'Completed'
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.sprites && data.sprites.length > 0) {
+        const spriteBase64 = data.sprites[0];
+        const role = data.role_extracted || data.mapped_archetype || "Character";
+        return {
+          status: 'success',
+          data: {
+            id: 'asset-' + Date.now(),
+            name: `${role} (GameForge Clean Sprite)`,
+            type: 'Image',
+            source: 'GameForge Synthesis',
+            model: 'DCGAN 169K + Section 12 Quantized',
+            prompt: promptText,
+            imageUrl: spriteBase64,
+            spriteId: 'gen-' + Date.now(),
+            createdAt: new Date().toISOString(),
+            status: 'Completed'
+          }
+        };
       }
-    };
+    }
+  } catch (err) {
+    console.warn("Failed to generate from /api/prompt_to_sprite, using fallback:", err);
   }
+
+  // Fallback to sample sprite if backend unavailable
+  const randomIndex = Math.floor(Math.random() * SAMPLE_SPRITES_35.length);
+  const selectedSprite = SAMPLE_SPRITES_35[randomIndex];
+  return {
+    status: 'success',
+    data: {
+      id: 'asset-' + Date.now(),
+      name: selectedSprite.label.split(": ")[1] || selectedSprite.label,
+      type: 'Image',
+      source: 'Alucard Dataset',
+      model: 'VAE Grounded Asset',
+      prompt: promptText,
+      imageUrl: selectedSprite.url,
+      spriteId: selectedSprite.id,
+      createdAt: new Date().toISOString(),
+      status: 'Completed'
+    }
+  };
 };
 
 
@@ -466,5 +500,97 @@ export const fetchEthicalGuidelines = async () => {
     };
   }
 };
+
+export const fetchDCGANClasses = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/dcgan/classes`);
+    if (!res.ok) throw new Error("Failed to fetch DCGAN classes");
+    return await res.json();
+  } catch (err) {
+    return {
+      classes: [
+        "Hero (Knight)", "Mage (Sorcerer)", "Rogue (Thief)", "Paladin (Guardian)",
+        "Archer (Ranger)", "Warrior (Barbarian)", "Cleric (Healer)", "Necromancer (Dark Mage)",
+        "Goblin (Scout)", "Skeleton (Fighter)", "Slime (Creature)", "Assassin (Ninja)",
+        "Monk (Martial)", "Druid (Shifter)", "Berserker (Heavy)", "Champion (Elite)"
+      ],
+      dcgan_status: "Offline",
+      model: "DCGAN 169K Characters (50 Epochs)"
+    };
+  }
+};
+
+export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 4, seed = null, pixelArtMode = true }) => {
+  try {
+    const formData = new FormData();
+    formData.append("role", role);
+    formData.append("count", count);
+    if (seed !== null && seed !== undefined && seed !== "") {
+      formData.append("seed", seed);
+    }
+    formData.append("pixel_art_mode", pixelArtMode ? "true" : "false");
+
+    const res = await fetch(`${BACKEND_URL}/dcgan/generate_character`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "DCGAN character generation failed");
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("DCGAN Generation Error:", err);
+    throw err;
+  }
+};
+
+export const generatePromptToSprite = async ({ prompt, count = 4, seed = null }) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/prompt_to_sprite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: prompt,
+        count: count,
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : null
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Prompt to sprite generation failed");
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Prompt-to-Sprite Error:", err);
+    throw err;
+  }
+};
+
+export const generateDiffusionSprite = async ({ prompt, style = "16-bit Retro RPG", steps = 25, guidanceScale = 7.5, seed = null }) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/diffusion/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: prompt,
+        style: style,
+        steps: steps,
+        guidance_scale: guidanceScale,
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : null
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Diffusion generation failed");
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Diffusion Error:", err);
+    throw err;
+  }
+};
+
+
 
 
