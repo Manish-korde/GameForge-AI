@@ -50,10 +50,15 @@ const CreateAsset = () => {
 
   const resolveSpriteUrl = (url) => {
     if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
+    if (url.startsWith('data:')) return url;
+    // Strip any localhost or 127.0.0.1 prefix to avoid mixed content in production
+    let cleanPath = url.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, '');
+    if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+      return cleanPath;
     }
-    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    if (!cleanPath.startsWith('/')) {
+      cleanPath = `/${cleanPath}`;
+    }
     return `${BACKEND_URL}${cleanPath}`;
   };
 
@@ -231,9 +236,9 @@ const CreateAsset = () => {
       return;
     }
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const base64Url = event.target.result;
-      setGeneratedAsset({
+      const newAsset = {
         id: 'custom-' + Date.now(),
         name: file.name,
         type: 'Image',
@@ -243,14 +248,30 @@ const CreateAsset = () => {
         imageUrl: base64Url,
         createdAt: new Date().toISOString(),
         status: 'Completed'
-      });
-      setAeResult(null);
+      };
+      setGeneratedAsset(newAsset);
+      setCharacterAUrl(base64Url);
       setNoisyAeResult(null);
       setVaeResult(null);
       setCharacterBUrl(spriteList[5]?.url || spriteList[0]?.url);
       setInterpolatedResult(null);
-      setActiveView('original');
       setStep(3);
+
+      if (activeView === 'ae') {
+        setIsAELoading(true);
+        try {
+          const res = await runAEInference(base64Url);
+          setAeResult(res);
+        } catch (err) {
+          console.error(err);
+          setActiveView('original');
+        } finally {
+          setIsAELoading(false);
+        }
+      } else {
+        setAeResult(null);
+        setActiveView('original');
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -376,6 +397,23 @@ const CreateAsset = () => {
                   </select>
                 </div>
 
+                {/* Dedicated Upload Button for Autoencoder Module */}
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-indigo-300 mb-1.5 flex justify-between items-center">
+                    <span>📤 Upload Custom Image</span>
+                    <span className="text-[10px] text-gray-400">PNG / JPG</span>
+                  </label>
+                  <label className="flex items-center justify-center gap-2 w-full py-2 px-3 bg-[#1e1e28] hover:bg-[#282838] border border-dashed border-[#44445a] hover:border-primary rounded-lg text-xs font-semibold text-white cursor-pointer transition shadow-sm">
+                    <span>📁 Choose File to Test in AE</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleFileChange} 
+                    />
+                  </label>
+                </div>
+
                 <button className="btn btn-secondary w-full mb-2" onClick={handleRunAE} disabled={isAELoading || isVAELoading}>
                   {isAELoading ? 'Running AE...' : 'Run through AE'}
                 </button>
@@ -425,7 +463,7 @@ const CreateAsset = () => {
                     </p>
                   </div>
 
-                  <div className="flex gap-lg justify-center mb-6">
+                  <div className="flex gap-lg justify-center mb-4">
                     <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
                       <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Original (Scaled)</span>
                       <img src={aeResult.original_processed} alt="Original processed" className="rounded shadow-sm" style={{ width: '256px', height: '256px', imageRendering: 'pixelated', border: '1px solid #333' }} />
@@ -434,6 +472,26 @@ const CreateAsset = () => {
                       <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Reconstructed</span>
                       <img src={aeResult.reconstructed} alt="Reconstructed" className="rounded shadow-sm" style={{ width: '256px', height: '256px', imageRendering: 'pixelated', border: '1px solid #333' }} />
                     </div>
+                  </div>
+
+                  {/* Actions & Upload Button inside AE Module */}
+                  <div className="flex justify-center gap-3 mb-6">
+                    <label className="btn btn-secondary text-xs py-1.5 px-4 cursor-pointer flex items-center gap-2">
+                      <span>📤 Upload Another Image to AE</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0]);
+                          }
+                        }} 
+                      />
+                    </label>
+                    <button className="btn btn-primary text-xs py-1.5 px-4" onClick={handleRunAE} disabled={isAELoading}>
+                      {isAELoading ? 'Re-running AE...' : 'Re-run Autoencoder'}
+                    </button>
                   </div>
 
                   {aeResult.metrics && (
@@ -946,7 +1004,7 @@ const CreateAsset = () => {
                     <div className="flex gap-lg justify-center mb-8">
                       <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Original</span>
-                        <img src={generatedAsset.imageUrl} alt="Original" className="rounded shadow-sm" style={{ width: '256px', height: '256px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} />
+                        <img src={resolveSpriteUrl(generatedAsset.imageUrl)} alt="Original" className="rounded shadow-sm" style={{ width: '256px', height: '256px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} />
                       </div>
                       <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Variant</span>

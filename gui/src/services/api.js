@@ -1,54 +1,64 @@
 import { mockExperiments, mockAssets, mockStructuredDesign } from './mockData';
 
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL !== undefined ? import.meta.env.VITE_BACKEND_URL : "http://127.0.0.1:8000";
+export const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL !== undefined && import.meta.env.VITE_BACKEND_URL !== null && import.meta.env.VITE_BACKEND_URL !== "")
+  ? import.meta.env.VITE_BACKEND_URL
+  : (typeof window !== 'undefined' && window.location.port === '5173'
+      ? 'http://127.0.0.1:8000'
+      : '');
 const DEMO_MODE = true; // Hardcoded for now until backend is connected
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const HUMAN_SPRITES = Array.from({ length: 35 }, (_, i) => `${BACKEND_URL}/alucard_samples/alucard_${i}.png`);
+const HUMAN_SPRITES = Array.from({ length: 35 }, (_, i) => `/alucard_samples/alucard_${i}.png`);
 
 export const SAMPLE_SPRITES_35 = [
-  { id: 0, label: "Sprite #1: Gray Robe Mage (Back View)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_0.png` },
-  { id: 1, label: "Sprite #2: Ironclad Adventurer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_1.png` },
-  { id: 2, label: "Sprite #3: Novice Hero (Side Walk)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_2.png` },
-  { id: 3, label: "Sprite #4: Dungeon Explorer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_3.png` },
-  { id: 4, label: "Sprite #5: Brown Robed Sorcerer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_4.png` },
-  { id: 5, label: "Sprite #6: Heavy Armored Warrior", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_5.png` },
-  { id: 6, label: "Sprite #7: Green Tunic Scout", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_6.png` },
-  { id: 7, label: "Sprite #8: Brave Vanguard Hero", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_7.png` },
-  { id: 8, label: "Sprite #9: Traveler in Brown Cape", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_8.png` },
-  { id: 9, label: "Sprite #10: Bronze Warrior Helm", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_9.png` },
-  { id: 10, label: "Sprite #11: Knight Visor Helm", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_10.png` },
-  { id: 11, label: "Sprite #12: Steel Barbute Helmet", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_11.png` },
-  { id: 12, label: "Sprite #13: Mystic Hooded Caster", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_12.png` },
-  { id: 13, label: "Sprite #14: Ornate Golden Coif", category: "Equipment", url: `${BACKEND_URL}/alucard_samples/alucard_13.png` },
-  { id: 14, label: "Sprite #15: Blue Cloak Wanderer", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_14.png` },
-  { id: 15, label: "Sprite #16: Ancient Oak Staff", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_15.png` },
-  { id: 16, label: "Sprite #17: Dungeon Crawler Beast", category: "Enemy / Monster", url: `${BACKEND_URL}/alucard_samples/alucard_16.png` },
-  { id: 17, label: "Sprite #18: Crimson Health Elixir", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_17.png` },
-  { id: 18, label: "Sprite #19: Lightfoot Rogue", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_18.png` },
-  { id: 19, label: "Sprite #20: Red Bandana Swordsman", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_19.png` },
-  { id: 20, label: "Sprite #21: Royal Guard Squire", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_20.png` },
-  { id: 21, label: "Sprite #22: Azure Mana Flask", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_21.png` },
-  { id: 22, label: "Sprite #23: Purple Tunic Duelist", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_22.png` },
-  { id: 23, label: "Sprite #24: Steel Guardian Paladin", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_23.png` },
-  { id: 24, label: "Sprite #25: Graybeard Warlock", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_24.png` },
-  { id: 25, label: "Sprite #26: Stamina Brew Bottle", category: "Item / Consumable", url: `${BACKEND_URL}/alucard_samples/alucard_25.png` },
-  { id: 26, label: "Sprite #27: Toxic Green Slime", category: "Enemy / Monster", url: `${BACKEND_URL}/alucard_samples/alucard_26.png` },
-  { id: 27, label: "Sprite #28: Cloaked Scout (Rear View)", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_27.png` },
-  { id: 28, label: "Sprite #29: Shield-Bearer Vanguard", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_28.png` },
-  { id: 29, label: "Sprite #30: Frontline Champion", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_29.png` },
-  { id: 30, label: "Sprite #31: Dungeon Raider", category: "Character", url: `${BACKEND_URL}/alucard_samples/alucard_30.png` },
-  { id: 31, label: "Sprite #32: Reinforced Treasure Chest", category: "Prop / Container", url: `${BACKEND_URL}/alucard_samples/alucard_31.png` },
-  { id: 32, label: "Sprite #33: Dark Yew Recurve Bow", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_32.png` },
-  { id: 33, label: "Sprite #34: Iron Battle Staff", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_33.png` },
-  { id: 34, label: "Sprite #35: Crystal-Tipped Wand", category: "Weapon", url: `${BACKEND_URL}/alucard_samples/alucard_34.png` }
+  { id: 0, label: "Sprite #1: Gray Robe Mage (Back View)", category: "Character", url: "/alucard_samples/alucard_0.png" },
+  { id: 1, label: "Sprite #2: Ironclad Adventurer", category: "Character", url: "/alucard_samples/alucard_1.png" },
+  { id: 2, label: "Sprite #3: Novice Hero (Side Walk)", category: "Character", url: "/alucard_samples/alucard_2.png" },
+  { id: 3, label: "Sprite #4: Dungeon Explorer", category: "Character", url: "/alucard_samples/alucard_3.png" },
+  { id: 4, label: "Sprite #5: Brown Robed Sorcerer", category: "Character", url: "/alucard_samples/alucard_4.png" },
+  { id: 5, label: "Sprite #6: Heavy Armored Warrior", category: "Character", url: "/alucard_samples/alucard_5.png" },
+  { id: 6, label: "Sprite #7: Green Tunic Scout", category: "Character", url: "/alucard_samples/alucard_6.png" },
+  { id: 7, label: "Sprite #8: Brave Vanguard Hero", category: "Character", url: "/alucard_samples/alucard_7.png" },
+  { id: 8, label: "Sprite #9: Traveler in Brown Cape", category: "Character", url: "/alucard_samples/alucard_8.png" },
+  { id: 9, label: "Sprite #10: Bronze Warrior Helm", category: "Equipment", url: "/alucard_samples/alucard_9.png" },
+  { id: 10, label: "Sprite #11: Knight Visor Helm", category: "Equipment", url: "/alucard_samples/alucard_10.png" },
+  { id: 11, label: "Sprite #12: Steel Barbute Helmet", category: "Equipment", url: "/alucard_samples/alucard_11.png" },
+  { id: 12, label: "Sprite #13: Mystic Hooded Caster", category: "Character", url: "/alucard_samples/alucard_12.png" },
+  { id: 13, label: "Sprite #14: Ornate Golden Coif", category: "Equipment", url: "/alucard_samples/alucard_13.png" },
+  { id: 14, label: "Sprite #15: Blue Cloak Wanderer", category: "Character", url: "/alucard_samples/alucard_14.png" },
+  { id: 15, label: "Sprite #16: Ancient Oak Staff", category: "Weapon", url: "/alucard_samples/alucard_15.png" },
+  { id: 16, label: "Sprite #17: Dungeon Crawler Beast", category: "Enemy / Monster", url: "/alucard_samples/alucard_16.png" },
+  { id: 17, label: "Sprite #18: Crimson Health Elixir", category: "Item / Consumable", url: "/alucard_samples/alucard_17.png" },
+  { id: 18, label: "Sprite #19: Lightfoot Rogue", category: "Character", url: "/alucard_samples/alucard_18.png" },
+  { id: 19, label: "Sprite #20: Red Bandana Swordsman", category: "Character", url: "/alucard_samples/alucard_19.png" },
+  { id: 20, label: "Sprite #21: Royal Guard Squire", category: "Character", url: "/alucard_samples/alucard_20.png" },
+  { id: 21, label: "Sprite #22: Azure Mana Flask", category: "Item / Consumable", url: "/alucard_samples/alucard_21.png" },
+  { id: 22, label: "Sprite #23: Purple Tunic Duelist", category: "Character", url: "/alucard_samples/alucard_22.png" },
+  { id: 23, label: "Sprite #24: Steel Guardian Paladin", category: "Character", url: "/alucard_samples/alucard_23.png" },
+  { id: 24, label: "Sprite #25: Graybeard Warlock", category: "Character", url: "/alucard_samples/alucard_24.png" },
+  { id: 25, label: "Sprite #26: Stamina Brew Bottle", category: "Item / Consumable", url: "/alucard_samples/alucard_25.png" },
+  { id: 26, label: "Sprite #27: Toxic Green Slime", category: "Enemy / Monster", url: "/alucard_samples/alucard_26.png" },
+  { id: 27, label: "Sprite #28: Cloaked Scout (Rear View)", category: "Character", url: "/alucard_samples/alucard_27.png" },
+  { id: 28, label: "Sprite #29: Shield-Bearer Vanguard", category: "Character", url: "/alucard_samples/alucard_28.png" },
+  { id: 29, label: "Sprite #30: Frontline Champion", category: "Character", url: "/alucard_samples/alucard_29.png" },
+  { id: 30, label: "Sprite #31: Dungeon Raider", category: "Character", url: "/alucard_samples/alucard_30.png" },
+  { id: 31, label: "Sprite #32: Reinforced Treasure Chest", category: "Prop / Container", url: "/alucard_samples/alucard_31.png" },
+  { id: 32, label: "Sprite #33: Dark Yew Recurve Bow", category: "Weapon", url: "/alucard_samples/alucard_32.png" },
+  { id: 33, label: "Sprite #34: Iron Battle Staff", category: "Weapon", url: "/alucard_samples/alucard_33.png" },
+  { id: 34, label: "Sprite #35: Crystal-Tipped Wand", category: "Weapon", url: "/alucard_samples/alucard_34.png" }
 ];
 
 export const fetchSampleSpritesManifest = async () => {
   try {
     const res = await fetch(`${BACKEND_URL}/alucard_samples_manifest`);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      return data.map(item => ({
+        ...item,
+        url: item.url.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, '')
+      }));
+    }
   } catch (e) {}
   return SAMPLE_SPRITES_35;
 };
@@ -247,10 +257,16 @@ export const checkAEStatus = async () => {
 };
 
 
-export const runAEInference = async (imageUrl) => {
+export const runAEInference = async (imageInput) => {
   try {
     const formData = new FormData();
-    formData.append("image_url", imageUrl);
+    if (typeof imageInput === "string") {
+      formData.append("image_url", imageInput);
+    } else if (imageInput instanceof File || imageInput instanceof Blob) {
+      formData.append("file", imageInput);
+    } else {
+      formData.append("image_url", String(imageInput));
+    }
     
     const res = await fetch(`${BACKEND_URL}/reconstruct`, {
       method: "POST",
@@ -262,8 +278,8 @@ export const runAEInference = async (imageUrl) => {
   } catch (err) {
     console.warn("AE Error, using fallback:", err);
     return {
-      original_processed: imageUrl,
-      reconstructed: imageUrl,
+      original_processed: typeof imageInput === "string" ? imageInput : "",
+      reconstructed: typeof imageInput === "string" ? imageInput : "",
       metrics: {
         mse: 0.001666,
         mae: 0.012450,

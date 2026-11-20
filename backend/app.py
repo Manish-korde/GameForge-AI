@@ -297,6 +297,8 @@ def startup_event():
     dcgan_thread.start()
 
 @app.get("/status")
+@app.get("/api/status")
+@app.get("/vae/status")
 def status():
     ts = "Loaded" if transformer_service.is_loaded else transformer_status
     return {
@@ -608,14 +610,13 @@ def gan_categories():
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
     result = []
-    base_prefix = "http://127.0.0.1:8000"
     for i in range(35):
         cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}"})
         result.append({
             "id": i,
             "label": f"Sprite #{i+1}: {cat_info['label']}",
             "category": cat_info["category"],
-            "url": f"{base_prefix}/alucard_samples/alucard_{i}.png"
+            "url": f"/alucard_samples/alucard_{i}.png"
         })
     return result
 
@@ -1230,6 +1231,43 @@ async def vae_cluster_assets(urls: str = Form(None)):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/vae/retrieve_more")
+async def vae_retrieve_more(category: str = Form("Characters"), top_k: int = Form(8)):
+    ensure_vae_loaded()
+    ensure_gallery_loaded()
+    try:
+        results = []
+        if GALLERY_MANIFEST:
+            for item in GALLERY_MANIFEST:
+                if category.lower() == "all" or category.lower() in item.get("category", "").lower():
+                    results.append({
+                        "id": item["id"],
+                        "url": f"/alucard_dataset_image/{item['id']}",
+                        "category": item.get("category", category),
+                        "label": item.get("label", f"Sprite {item['id']}")
+                    })
+                    if len(results) >= top_k:
+                        break
+        if not results:
+            for i in range(min(top_k, 35)):
+                cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}"})
+                if category.lower() == "all" or category.lower() in cat_info["category"].lower():
+                    results.append({
+                        "id": i,
+                        "url": f"/alucard_samples/alucard_{i}.png",
+                        "category": cat_info["category"],
+                        "label": f"Sprite #{i+1}: {cat_info['label']}"
+                    })
+                    if len(results) >= top_k:
+                        break
+        return {
+            "status": "Success",
+            "category": category,
+            "assets": results
+        }
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/vae/anomaly_score")
