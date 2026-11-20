@@ -1,0 +1,17 @@
+{
+  "checkpoint_file": "research_paper_assets/06_sprite_deformation_and_pose_animation\\rung2_ddpm_overfit_best.pt",
+  "file_size_bytes": 7963727,
+  "file_type": "PyTorch OrderedDict (model.state_dict())",
+  "stored_keys_count": 60,
+  "training_loss_definition": "Foreground-Weighted Noise MSE: L = mean( (pred_eps - eps)^2 * (1.0 + 2.0 * fg_mask) )",
+  "csv_history_summary": {
+    "total_epochs": 150,
+    "minimum_loss_epoch": 122,
+    "minimum_loss_value": 0.1267720162868499,
+    "final_loss_epoch": 150,
+    "final_loss_value": 0.217891663312912
+  },
+  "reconciliation_explanation": "In run_rung2_ddpm_overfit.py, torch.save(model.state_dict(), MODEL_SAVE_PATH) was called exactly once at the conclusion of the 150th epoch. The file 'rung2_ddpm_overfit_best.pt' holds the FINAL EPOCH 150 weights (loss 0.217892). The historical minimum loss occurred at Epoch 122 (loss 0.126772), but was not saved separately because no mid-training best-loss checkpoint callback existed in the script. The earlier mention of 'Epoch 145 / Loss 0.1314' was from an intermediate execution log that was overwritten by the full 150-epoch run.",
+  "active_weights_epoch": 150,
+  "active_weights_loss": 0.217891663312912
+}

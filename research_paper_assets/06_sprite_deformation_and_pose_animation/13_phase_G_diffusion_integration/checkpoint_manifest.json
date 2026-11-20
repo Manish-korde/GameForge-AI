@@ -1,0 +1,72 @@
+{
+  "manifest_version": "1.0.0",
+  "phase": "Phase G: Diffusion Model Integration & Deployment Validation",
+  "generated_at": "2026-11-02T11:15:52+05:30",
+  "production_checkpoint": "Phase_F2_evaluation",
+  "checkpoints": {
+    "C2_velocity_best": {
+      "path": "corrective_experiment_C/C2_velocity/checkpoint_best.pt",
+      "sha256": "2c17d0eae2a984315e1d757560310a7e16098910a3ad9ca3fa9c3e46398bb0b5",
+      "file_size_bytes": 7962884,
+      "parameter_count": 1986020,
+      "tensor_count": 61,
+      "architecture": "ActionConditionedUNet_C2 (Velocity Prediction, 2 Actions)",
+      "status": "Archived (Experiment C Baseline)"
+    },
+    "C2_velocity_final": {
+      "path": "corrective_experiment_C/C2_velocity/checkpoint_final.pt",
+      "sha256": "d1a7c11ad449bfeb8c9fb7633537071ea7557ee5ae8bf6664f86b6fb9aa70ea7",
+      "file_size_bytes": 7962951,
+      "parameter_count": 1986020,
+      "tensor_count": 61,
+      "architecture": "ActionConditionedUNet_C2 (Velocity Prediction, 2 Actions)",
+      "status": "Archived (Experiment C Final)"
+    },
+    "Refined_C2_best": {
+      "path": "corrective_experiment_D/refined_C2/checkpoint_best.pt",
+      "sha256": "64f1a4cf1f859d66978a22119c23eac677da1f8990f480568d1b5345808d0f9e",
+      "file_size_bytes": 7964484,
+      "parameter_count": 1986020,
+      "tensor_count": 61,
+      "architecture": "ActionConditionedUNet_C2 (Refined Cosine Velocity Prediction)",
+      "status": "Accepted Diffusion Baseline (Transfer Source for E1)"
+    },
+    "Refined_C2_final": {
+      "path": "corrective_experiment_D/refined_C2/checkpoint_final.pt",
+      "sha256": "42ef57d267e38e94719203ae16ba09eca8e3ec992a7411d54b0ce57db2f07774",
+      "file_size_bytes": 7964551,
+      "parameter_count": 1986020,
+      "tensor_count": 61,
+      "architecture": "ActionConditionedUNet_C2 (Refined Cosine Velocity Prediction)",
+      "status": "Archived (Phase D Final)"
+    },
+    "Phase_F_E1_best": {
+      "path": "phase_F_experiment_E1/checkpoint_best.pt",
+      "sha256": "10d33c5b2e7ad4d6f173f92fee2ee47101597bfadb1a677f6ee59d8bb7a1bc25",
+      "file_size_bytes": 7968905,
+      "parameter_count": 1987044,
+      "tensor_count": 62,
+      "architecture": "ActionAndPoseConditionedUNet (8 Poses + 2 Actions, Velocity Prediction)",
+      "status": "Validated Phase F Checkpoint"
+    },
+    "Phase_F_E1_final": {
+      "path": "phase_F_experiment_E1/checkpoint_final.pt",
+      "sha256": "8a7d506b56346b578d36d76d5d13a3d9748c3cc638be55a56e019a65ca25ff5b",
+      "file_size_bytes": 7968973,
+      "parameter_count": 1987044,
+      "tensor_count": 62,
+      "architecture": "ActionAndPoseConditionedUNet (8 Poses + 2 Actions, Velocity Prediction)",
+      "status": "Archived (Phase F Final)"
+    },
+    "Phase_F2_evaluation": {
+      "path": "phase_F_experiment_E1/checkpoint_best.pt",
+      "sha256": "10d33c5b2e7ad4d6f173f92fee2ee47101597bfadb1a677f6ee59d8bb7a1bc25",
+      "file_size_bytes": 7968905,
+      "parameter_count": 1987044,
+      "tensor_count": 62,
+      "architecture": "ActionAndPoseConditionedUNet (8 Poses + 2 Actions, Velocity Prediction)",
+      "status": "PRODUCTION CANDIDATE FOR PHASE G INTEGRATION"
+    }
+  }
+}
+

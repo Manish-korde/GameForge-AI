@@ -1,0 +1,11 @@
+test_id,endpoint,method,payload_summary,expected_status,actual_status,result,notes
+API_01,/generate/diffusion/status,GET,None,200,200,PASS,Health and status check verified
+API_02,/generate/diffusion,POST,idle/pose 0,200,200,PASS,Valid Idle pose generated
+API_03,/generate/diffusion,POST,walk/pose 2,200,200,PASS,Valid Walk F3 (Left Apex) generated
+API_04,/generate/diffusion,POST,missing reference,400,400,PASS,Rejected missing reference cleanly
+API_05,/generate/diffusion,POST,invalid action 'attack',400,400,PASS,Unsupported action rejected with 400 (no fallback)
+API_06,/generate/diffusion,POST,invalid action 'run',400,400,PASS,Unsupported action rejected with 400
+API_07,/generate/diffusion,POST,pose_id 8 for walk,400,400,PASS,Out-of-range pose rejected with 400
+API_08,/generate/diffusion,POST,pose_id 1 for idle,400,400,PASS,Non-zero pose for idle rejected with 400
+API_09,/generate/diffusion/walk-cycle,POST,full 8-frame walk cycle,200,200,PASS,"Returned 8 frames, GIF base64, sprite sheet"
+API_10,/api/action_diffusion/status,GET,None,200,200,PASS,Legacy endpoint maintained

@@ -1,0 +1,13 @@
+test_type,action,pose_index,pose_name,ddim_steps,latency_ms,throughput_fps
+Step Variation,walk,2,Walk F3 (Left Apex),25,1427.75,0.7
+Step Variation,walk,2,Walk F3 (Left Apex),50,3390.71,0.295
+Step Variation,walk,2,Walk F3 (Left Apex),100,5954.89,0.168
+Pose Variation,idle,0,Idle Neutral,50,3074.44,0.325
+Pose Variation,walk,0,Walk F1 (Contact),50,2555.13,0.391
+Pose Variation,walk,1,Walk F2 (Passing),50,2809.59,0.356
+Pose Variation,walk,2,Walk F3 (Left Apex),50,2271.6,0.44
+Pose Variation,walk,3,Walk F4 (Decay),50,2361.2,0.424
+Pose Variation,walk,4,Walk F5 (Contact),50,2389.31,0.419
+Pose Variation,walk,5,Walk F6 (Passing),50,2290.2,0.437
+Pose Variation,walk,6,Walk F7 (Right Apex),50,2380.88,0.42
+Pose Variation,walk,7,Walk F8 (Decay),50,2815.85,0.355

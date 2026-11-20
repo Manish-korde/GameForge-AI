@@ -23,9 +23,9 @@ This document serves as the definitive architectural knowledge base for **GameFo
            ┌───────────────┼────────────────┐
            │               │                │
            ▼               ▼                ▼
-       DCGAN         Visual Generation   Asset Library
-    Novel Sprite           │
-    Generation             ▼
+     DISCRETE DCGAN   Visual Generation   Asset Library
+    Novel Pixel Art        │
+       Synthesis           ▼
                       Generated Asset
                            │
                      ┌─────┴─────┐
@@ -42,21 +42,21 @@ This document serves as the definitive architectural knowledge base for **GameFo
 
 ### The Four Model Components:
 1. **Transformer Model**: Semantic planning layer. Translates natural language game descriptions into structured game specification sheets (JSON) detailing themes, character types, environment features, weapon properties, and NPC specs.
-2. **DCGAN**: Unconditional Deep Convolutional GAN trained on 282,511 Alucard RGBA sprites. Generates brand-new 64×64 RGBA pixel-art sprites from random noise `z ~ N(0, I)`. 50 epochs, 99,300 global steps completed. Label-free — avoids noisy Alucard annotation issues.
-3. **Autoencoder (AE)**: Deterministic model trained on **280,000 sprites**. Used for high-precision deterministic reconstruction (`MSE: 0.000782`, `PSNR: 28.52 dB`, `SSIM: 0.9248`) and outlier sprite screening (flagging the highest-error 5% of assets exceeding P95 MSE threshold `0.001313`).
+2. **Discrete DCGAN**: Unconditional Deep Convolutional GAN with a discrete 32-color palette classification head (Notebook 02, 50 Epochs). Trained on 42,000 Alucard front-facing RGBA sprites. Generates brand-new 64×64 RGBA pixel-art sprites from random noise `z ~ N(0, I)`. Output has 48.8%–58.2% spatial coherence (vs real 53.0%) and ~26 unique colors, completely eliminating continuous RGB blur.
+3. **Autoencoder (AE)**: Deterministic model trained on **280,000 sprites**. Used for high-precision deterministic reconstruction (`MSE: 0.000456`, `PSNR: 35.36 dB`, `SSIM: 0.961`) and outlier sprite screening (flagging the highest-error 5% of assets exceeding P95 MSE threshold `0.001313`).
 4. **Variational Autoencoder (VAE)**: Probabilistic model trained on **280,000 sprites** ($\beta$-VAE with $\beta=0.001$). Learns a continuous probabilistic latent space for 2D asset clustering, fast vector similarity search, and smooth real-sprite-to-real-sprite interpolation (A → B). Evaluated on a 5,000-sprite candidate pool, achieving **84.40% KNN category accuracy** (**+19.21% lift** over the **65.19% majority baseline**).
 
 ---
 
 ## 📊 2. Single Unified Dataset Strategy (280K Game Assets)
 
-All visual models (AE, VAE, and DCGAN) are trained on **one single dataset** to enable controlled benchmarking:
-- **Dataset**: Alucard 2D Pixel-Art Game Asset Dataset
-- **Volume**: **282,511 unique images** (after deduplication)
+All visual models (AE, VAE, and DCGAN) are trained on the Alucard 2D Pixel-Art Game Asset Dataset:
+- **Dataset**: Alucard 2D Pixel-Art Game Asset Dataset (`evilsocket/alucard-sprites`)
+- **Volume**: **282,511 unique images** (deduplicated corpus); DCGAN trained on clean front-facing subset of **42,000 character sprites**.
 - **Dimensions for AE/VAE**: $128 \times 128 \times 4$ (RGBA format with transparency alpha masks)
 - **Dimensions for DCGAN**: $64 \times 64 \times 4$ (RGBA, downscaled for GAN training stability)
-- **Preprocessing**: Normalized to $[0.0, 1.0]$ for AE/VAE; $[-1, 1]$ (Tanh) for DCGAN
-- **Splits**: 90% Train / 5% Val / 5% Test (consistent across all three visual models)
+- **Preprocessing**: Normalized to $[0.0, 1.0]$ for AE/VAE; Discrete 32-color palette classification for DCGAN
+- **Splits**: Consistent splits across models.
 
 ---
 
@@ -72,22 +72,25 @@ FastAPI backend (`backend/app.py`) serves model inference and latent space opera
    - All 25,000 Alucard sprites are pre-indexed into 256-dimensional VAE latent space.
    - `/find_similar_vae` executes vector dot-product matching against `ALUCARD_INDEX` in **0.001 seconds (1ms)**.
 
-3. **Status Polling Integration**:
-   - `gui/src/components/TopBar.jsx` polls `/status` every 3s via `checkAEStatus()` in `api.js`.
-   - UI status badge dynamically displays model load status for AE, VAE, Transformer, and DCGAN.
+3. **Discrete DCGAN Production Service (`backend/dcgan_service.py`)**:
+   - Loads 50-epoch discrete generator (`generator_weights_final.weights.h5`) + empirical 32-color palette (`global_palette_32.npy`).
+   - Executes truncation ($\sigma=0.85$), weapon-safe LCC floater filtering, and Best-of-8 candidate rejection sampling ($0.15 \le \text{FG} \le 0.55$).
+   - Returns crisp 8× nearest-neighbor upscaled pixel art ($512\times 512$) for instant GUI display.
 
 ---
 
 ## 📁 4. Key Artifact Locations
 
-| Model | Key Files |
+| Model | Canonical Production Directory & Key Files |
 |---|---|
-| **Transformer** | `models/gameforge_t5/` |
-| **DCGAN** | `models/DCGAN_280K_COMPLETE/weights/generator_latest.keras` |
-| **AE** | `models/280k dataset model/AE_280K_best.keras` |
-| **VAE** | `models/280k model VAE (VAE v2)/VAE_280K_Outputs/` |
+| **1: AE** | `models/1_AE_280k_v1/AE_280K_best.keras` |
+| **2: VAE** | `models/2_VAE_280k_v2/VAE_280K_Outputs/encoder_280k_final.keras` |
+| **3: DCGAN** | `models/3_DCGAN_42k_v1/game_ready_assets/generator_weights_final.weights.h5` |
+| **4: Transformer** | `models/4_Transformer_2k_v1/model.safetensors` |
+| **5: Diffusion** | `models/5_Diffusion_LPC_v1/checkpoint_best.pt` |
 | **VAE Index (25K)** | `models/latent_gallery_index_25k.npy` + `latent_gallery_manifest_25k.json` |
-| **DCGAN Evaluation** | `Notebook/DCGAN_280K_Demonstration_and_Evaluation.ipynb` |
+| **DCGAN Training Archive** | `C:\Users\manis\Downloads\dcgan_frontfacing_results` |
+| **DCGAN Evaluation Sheets** | `phase_dcgan_improvement/controlled_variant_comparison_master.png` |
 
 ---
 

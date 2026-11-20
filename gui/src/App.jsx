@@ -7,6 +7,7 @@ import AssetLibrary from './pages/AssetLibrary';
 import Experiments from './pages/Experiments';
 import About from './pages/About';
 import DCGANStudio from './pages/DCGANStudio';
+import ActionStudio from './pages/ActionStudio';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="concept" element={<ConceptPlanner />} />
         <Route path="create" element={<CreateAsset />} />
         <Route path="dcgan" element={<DCGANStudio />} />
+        <Route path="actions" element={<ActionStudio />} />
         <Route path="library" element={<AssetLibrary />} />
         <Route path="experiments" element={<Experiments />} />
         <Route path="about" element={<About />} />

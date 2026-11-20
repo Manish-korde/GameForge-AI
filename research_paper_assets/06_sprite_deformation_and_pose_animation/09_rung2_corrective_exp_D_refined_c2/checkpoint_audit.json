@@ -1,0 +1,12 @@
+{
+  "checkpoint_best.pt": {
+    "size_bytes": 7962884,
+    "sha256": "2c17d0eae2a984315e1d757560310a7e16098910a3ad9ca3fa9c3e46398bb0b5",
+    "path": "corrective_experiment_C/C2_velocity\\checkpoint_best.pt"
+  },
+  "checkpoint_final.pt": {
+    "size_bytes": 7962951,
+    "sha256": "d1a7c11ad449bfeb8c9fb7633537071ea7557ee5ae8bf6664f86b6fb9aa70ea7",
+    "path": "corrective_experiment_C/C2_velocity\\checkpoint_final.pt"
+  }
+}

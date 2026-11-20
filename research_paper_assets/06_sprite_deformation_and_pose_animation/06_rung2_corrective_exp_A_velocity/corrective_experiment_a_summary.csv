@@ -1,0 +1,4 @@
+Experiment,PSNR vs Target,SSIM vs Target,PSNR vs Ref,FG MSE vs Target,Sil IoU vs Target,Left Leg dx (GT=+0.40),Visual Outcome
+1. Baseline (Gaussian from t=999),6.52 dB,0.0945,6.54 dB,0.4723,0.2483,-1.02,Failed TV static noise
+2. Target-Matched Control (Target @ t=500),18.67 dB,0.8809,15.63 dB,0.0900,0.8681,+0.05,Perfect target walk reconstruction
+"3. Ref-Grounded Warm-Start (Ref @ t=500, Mean)",15.74 dB,0.8027,18.21 dB,0.2166,0.8109,-0.27,Evaluated below

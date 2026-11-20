@@ -6,5 +6,7 @@ Pillow
 numpy
 requests
 transformers
+torch
+scipy
 google-generativeai
 python-dotenv

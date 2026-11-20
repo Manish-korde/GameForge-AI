@@ -1,0 +1,21 @@
+{
+  "model_name": "Experiment_E1_MultiPose_Velocity_Diffusion",
+  "transferred_from": "corrective_experiment_D/refined_C2/checkpoint_best.pt",
+  "transferred_params": 1986020,
+  "new_params": 1024,
+  "total_params": 1987044,
+  "train_characters": 160,
+  "val_characters": 40,
+  "train_samples": 1440,
+  "val_samples": 360,
+  "optimizer": "AdamW",
+  "learning_rate": 0.0003,
+  "batch_size": 16,
+  "max_steps": 2000,
+  "eval_interval_steps": 250,
+  "loss_weighting": "Spatially & Semantically Weighted Velocity Loss",
+  "fg_weight_bonus": 3.0,
+  "leg_weight_bonus": 2.0,
+  "alpha_weight_bonus": 2.0,
+  "diffusion_schedule": "Cosine 1000 steps"
+}

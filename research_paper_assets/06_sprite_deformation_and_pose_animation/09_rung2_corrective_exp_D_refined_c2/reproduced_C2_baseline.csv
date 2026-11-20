@@ -1,0 +1,16 @@
+Metric,Experiment_C_Reported,Phase_D_Reproduced
+Training PSNR (dB),20.08,22.11
+Held-out PSNR (dB),18.23,21.15
+Overall PSNR (dB),19.71,21.92
+Training SSIM,0.895,0.878
+Held-out SSIM,0.884,0.892
+Overall SSIM,0.893,0.881
+Training Silhouette IoU,0.958,0.983
+Held-out Silhouette IoU,0.947,0.975
+Overall Silhouette IoU,0.956,0.981
+Foreground MSE,0.052,0.0609
+Background MSE,0.021,0.0179
+Walk Left Leg Kinematic Error (px),N/A (Discrepancy),0.06
+Walk Right Leg Kinematic Error (px),N/A (Discrepancy),0.07
+Idle Kinematic Stance Error (px),N/A,0.0
+Inference Time (ms/sprite),1180.0,1015.6

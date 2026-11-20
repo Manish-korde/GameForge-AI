@@ -1,0 +1,126 @@
+Total yellow items: 31
+
+=== ITEM #1 (p.6) under [Document Start] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]']
+FULL TEXT: [INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]
+
+=== ITEM #2 (p.22) under [FrontHeading: CERTIFICATE] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]']
+FULL TEXT: [INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]
+
+=== ITEM #3 (p.238) under [Heading2: 1.2 Project Idea] ===
+HIGHLIGHTS: ['[VERIFY: the architecture diagram in the earlier report draft showed z ∈ R^256 for the DCGAN, a “20-col MC” pixel-art restorer, a 1.97M-parameter 50-epoch DDPM, four actions (Idle, Walk, Strike, Slash) and a FastAPI + React box. These do not match the research paper (z ∈ R^128, discrete palette head, Refined Velocity Diffusion E1, two actions). Figure 1.1 above has been redrawn from the paper’s documented design; replace it with your own diagram if preferred.]']
+FULL TEXT: [VERIFY: the architecture diagram in the earlier report draft showed z ∈ R^256 for the DCGAN, a “20-col MC” pixel-art restorer, a 1.97M-parameter 50-epoch DDPM, four actions (Idle, Walk, Strike, Slash) and a FastAPI + React box. These do not match the research paper (z ∈ R^128, discrete palette head, Refined Velocity Diffusion E1, two actions). Figure 1.1 above has been redrawn from the paper’s documented design; replace it with your own diagram if preferred.]
+
+=== ITEM #4 (p.343) under [Heading2: 3.5 Hardware and Software Requirements] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED]']
+FULL TEXT: Dual NVIDIA T4 GPUs (discrete DCGAN training, about 270 s per epoch). Hardware for the remaining models: [INFORMATION REQUIRED]
+
+=== ITEM #5 (p.351) under [Heading2: 3.5 Hardware and Software Requirements] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: Python, TensorFlow/Keras and library versions]']
+FULL TEXT: [INFORMATION REQUIRED: Python, TensorFlow/Keras and library versions]
+
+=== ITEM #6 (p.353) under [Heading2: 3.5 Hardware and Software Requirements] ===
+HIGHLIGHTS: ['[VERIFY: stated in the earlier report draft but not in the research paper]']
+FULL TEXT: FastAPI back end with a React front end. [VERIFY: stated in the earlier report draft but not in the research paper]
+
+=== ITEM #7 (p.378) under [Heading3: 4.2.2 External Interface Requirements] ===
+HIGHLIGHTS: ['[VERIFY: details of the FastAPI endpoints and the React interface are not described in the research paper; add them here if they are to be documented.]']
+FULL TEXT: The pipeline reads sprite images and datasets from the sources listed in Table 3.1 and writes model checkpoints, latent index files, a palette file and evaluation tables. Planner input is plain text and planner output is JSON. Sprite interfaces follow Table 5.4 (Chapter 5). [VERIFY: details of the FastAPI endpoints and the React interface are not described in the research paper; add them here if they are to be documented.]
+
+=== ITEM #8 (p.431) under [Heading2: 4.3 Project Planning] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: Integrate modules behind an interface [VERIFY]
+
+=== ITEM #9 (p.434) under [Heading2: 4.3 Project Planning] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: calendar timeline / Gantt chart with dates and responsibilities of each team member. The research paper does not contain a schedule. Insert the project timeline figure here as Figure 4.1.]']
+FULL TEXT: [INFORMATION REQUIRED: calendar timeline / Gantt chart with dates and responsibilities of each team member. The research paper does not contain a schedule. Insert the project timeline figure here as Figure 4.1.]
+
+=== ITEM #10 (p.504) under [Heading3: 5.2.2 Category Labels and Class Distribution] ===
+HIGHLIGHTS: ['[VERIFY: the distribution is reported for a 50,000-sprite analysis sample, but the same percentages are used as full-corpus shares in later sections. Confirm whether they are identical on the full corpus.]']
+FULL TEXT: [VERIFY: the distribution is reported for a 50,000-sprite analysis sample, but the same percentages are used as full-corpus shares in later sections. Confirm whether they are identical on the full corpus.]
+
+=== ITEM #11 (p.522) under [Heading3: 5.2.5 Planner Data] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: number of training prompts, how the prompt–specification pairs were created, and the split sizes. The research paper does not report them.]']
+FULL TEXT: The Flan-T5-small planner is fine-tuned on pairs of informal design prompts and reference JSON specifications. The target schema has six fields: theme, environment, art_style, characters, weapons and npc. It is evaluated on 200 held-out prompts. [INFORMATION REQUIRED: number of training prompts, how the prompt–specification pairs were created, and the split sizes. The research paper does not report them.]
+
+=== ITEM #12 (p.565) under [Heading2: 5.7 Latent Retrieval and Reconstruction-Based QA] ===
+HIGHLIGHTS: ['[DISCREPANCY: the paper gives τ = 0.001313 in the text, 1.31×10⁻³ in Table II and 1.27×10⁻³ as the 95th-percentile MSE in Table IV. Confirm which value is the threshold actually used.]']
+FULL TEXT: For automated QA screening, the AE reconstruction error is compared with its 95th empirical percentile (τ = 0.001313). An asset with MSE(x, x̂) > τ is flagged for inspection. Such assets typically have corrupted pixels, abnormal canvases or unusual colour palettes. [DISCREPANCY: the paper gives τ = 0.001313 in the text, 1.31×10⁻³ in Table II and 1.27×10⁻³ as the 95th-percentile MSE in Table IV. Confirm which value is the threshold actually used.]
+
+=== ITEM #13 (p.585) under [Heading3: 5.9.3 Training] ===
+HIGHLIGHTS: ['[DISCREPANCY: Table II of the paper lists the discrete model’s final losses as 1.1236 / 0.8858 and labels the objective “Discrete Minimax”, whereas the text states an LSGAN/TTUR setup. Confirm the loss used.]']
+FULL TEXT: The discrete model follows the baseline’s LSGAN/TTUR setup [22], [23]. It is trained for 50 epochs (about 270 s per epoch) on dual NVIDIA T4 GPUs on 42,000 clean front-facing characters and has 2.63 million parameters. [DISCREPANCY: Table II of the paper lists the discrete model’s final losses as 1.1236 / 0.8858 and labels the objective “Discrete Minimax”, whereas the text states an LSGAN/TTUR setup. Confirm the loss used.]
+
+=== ITEM #14 (p.597) under [Heading2: 5.10 Inference-Time Quality Pipeline] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: exact definition and weights of the composite quality score, and the target fill and target colour count values. The paper describes the score only qualitatively.]']
+FULL TEXT: [INFORMATION REQUIRED: exact definition and weights of the composite quality score, and the target fill and target colour count values. The paper describes the score only qualitatively.]
+
+=== ITEM #15 (p.600) under [Heading2: 5.11 Model 6: Action-Conditioned Refined Velocity Diffusion (E1)] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: the paper does not cite a source for the cosine schedule]']
+FULL TEXT: The forward process corrupts a clean sprite x₀ with Gaussian noise, where ᾱₜ follows a cosine schedule [INFORMATION REQUIRED: the paper does not cite a source for the cosine schedule]:
+
+=== ITEM #16 (p.647) under [Heading2: 6.2 Model Input Configuration] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED]']
+FULL TEXT: [INFORMATION REQUIRED]
+
+=== ITEM #17 (p.671) under [Heading2: 6.3 Training and Checkpoint Selection] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: optimiser and learning rate of the VAE.]']
+FULL TEXT: VAE: 50 epochs, β = 10⁻³; the reported validation total loss (209.96) is from epoch 46. [INFORMATION REQUIRED: optimiser and learning rate of the VAE.]
+
+=== ITEM #18 (p.696) under [Heading2: 6.4 Hyper-parameters] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: LSGAN + Gumbel head [VERIFY]
+
+=== ITEM #19 (p.713) under [Heading2: 6.4 Hyper-parameters] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: The paper’s model-summary table also lists “50 epochs, batch size 32” as a unified budget for all models, which conflicts with the batch sizes in the text (AE 64, planner 8). The values from the text are used in this report. [VERIFY]
+
+=== ITEM #20 (p.722) under [Heading2: 6.5 Pseudocode] ===
+HIGHLIGHTS: ['[VERIFY: the hash-based implementation and the order of the partition are not specified in the paper]']
+FULL TEXT: [VERIFY: the hash-based implementation and the order of the partition are not specified in the paper]
+
+=== ITEM #21 (p.783) under [Heading2: 6.7 System Integration and Interface] ===
+HIGHLIGHTS: ['[VERIFY: the earlier report draft states that the system is served through a FastAPI back end with a React front end. This is not described in the research paper; confirm the details (endpoints, screens, deployment) before they are documented here.]']
+FULL TEXT: The modules are integrated into an end-to-end demonstration: a text prompt is parsed by the planner, similar sprites are retrieved and screened by the AE/VAE branch, character candidates are generated by the discrete-palette DCGAN with the best-of-8 pipeline, and pose frames are produced by the diffusion module. [VERIFY: the earlier report draft states that the system is served through a FastAPI back end with a React front end. This is not described in the research paper; confirm the details (endpoints, screens, deployment) before they are documented here.]
+
+=== ITEM #22 (p.784) under [Heading2: 6.7 System Integration and Interface] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: insert actual screenshots of the application here (for example Figure 6.1: prompt/specification screen; Figure 6.2: similarity search and screening; Figure 6.3: generation and pose screen). Only genuine screenshots of the implemented interface should be inserted.]']
+FULL TEXT: [INFORMATION REQUIRED: insert actual screenshots of the application here (for example Figure 6.1: prompt/specification screen; Figure 6.2: similarity search and screening; Figure 6.3: generation and pose screen). Only genuine screenshots of the implemented interface should be inserted.]
+
+=== ITEM #23 (p.980) under [Heading2: 7.6 Negative Results] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: the paper does not state which variant the “continued training” experiment applied to. It appears in the ablation as “Continuous (51–100 epochs)”.]']
+FULL TEXT: Truncation at σ = 0.70 caused repeated archer outputs, whereas σ = 0.85 retains diversity. These findings justify stopping at epoch 50, keeping the plain convolutional design, and using σ = 0.85. [INFORMATION REQUIRED: the paper does not state which variant the “continued training” experiment applied to. It appears in the ablation as “Continuous (51–100 epochs)”.]
+
+=== ITEM #24 (p.1036) under [Heading2: 7.9 Footprint and Inference Speed] ===
+HIGHLIGHTS: ['[INFORMATION REQUIRED: generation latency of the best-of-8 pipeline and diffusion sampling time are not reported in the paper.]']
+FULL TEXT: The models are small: the AE has 3.24M parameters, the VAE 13.68M, the discrete generator 2.63M and the exploratory SpriteDeformationNet 0.85M with an inference latency of 1.2 ms. Exact brute-force top-5 retrieval over a 25,000-sprite gallery runs at a median of 1.28 ms and a 95th percentile of 1.52 ms on a dual-vCPU container, which is fast enough for interactive use. The discrete DCGAN trains at about 270 s per epoch on dual NVIDIA T4 GPUs. [INFORMATION REQUIRED: generation latency of the best-of-8 pipeline and diffusion sampling time are not reported in the paper.]
+
+=== ITEM #25 (p.1062) under [Heading2: 7.10 Cross-Model Analysis] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: [VERIFY]
+
+=== ITEM #26 (p.1156) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[DISCREPANCY]']
+FULL TEXT: The 95th-percentile reconstruction-error threshold appears as 0.001313 (text), 1.31×10⁻³ (model summary) and 1.27×10⁻³ (Table 7.1). [DISCREPANCY]
+
+=== ITEM #27 (p.1157) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[DISCREPANCY]']
+FULL TEXT: The model summary lists a unified “50 epochs, batch size 32” budget, whereas the text gives AE batch size 64, planner 10 epochs with batch size 8, and diffusion best checkpoint at step 900. The continuous baseline’s 66,050 generator steps over 50 epochs (about 1,321 steps per epoch) are consistent with a batch size of roughly 128 for 169,094 images, not 32. [DISCREPANCY]
+
+=== ITEM #28 (p.1158) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[DISCREPANCY]']
+FULL TEXT: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+
+=== ITEM #29 (p.1159) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+
+=== ITEM #30 (p.1160) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: Earlier project notes list different AE fidelity values (PSNR 28.52 dB, SSIM 0.9248, median MSE 0.000782) from an earlier evaluation; this report uses the values of the research paper (35.36 dB, 0.961, 2.56×10⁻⁴). [VERIFY]
+
+=== ITEM #31 (p.1161) under [Heading2: 7.13 Data Consistency Notes] ===
+HIGHLIGHTS: ['[VERIFY]']
+FULL TEXT: The planner parameter count (60.5M) should be checked against the checkpoint used. [VERIFY]
+

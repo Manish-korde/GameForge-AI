@@ -32,12 +32,12 @@ for layer_cls in layers_to_patch:
 
 VAE_ENCODER_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 
-    "..", "models", "280k model VAE (VAE v2)", "VAE_280K_Outputs", "encoder_280k_final.keras"
+    "..", "models", "2_VAE_280k_v2", "VAE_280K_Outputs", "encoder_280k_final.keras"
 ))
 
 VAE_DECODER_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 
-    "..", "models", "280k model VAE (VAE v2)", "VAE_280K_Outputs", "decoder_280k_final.keras"
+    "..", "models", "2_VAE_280k_v2", "VAE_280K_Outputs", "decoder_280k_final.keras"
 ))
 
 try:

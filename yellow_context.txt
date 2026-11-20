@@ -1,0 +1,217 @@
+============================== ITEM 1 (p.6) ==============================
+               [p.4]: Manish Korde (Exam Seat No. 202301040206)
+               [p.5]: Samriddhi Das (Exam Seat No. 202301040276)
+>>> TARGET >>> [p.6]: [INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]
+               [p.7]: Guided by,
+               [p.8]: Prof. Savita Mane and Prof. Sunita Barve
+
+============================== ITEM 2 (p.22) ==============================
+               [p.20]: Manish Korde (Exam Seat No. 202301040206)
+               [p.21]: Samriddhi Das (Exam Seat No. 202301040276)
+>>> TARGET >>> [p.22]: [INFORMATION REQUIRED: confirm whether Swayam Pagare (202301040221), listed as an author of the research paper, is a member of the project team and should appear here. Remove this note after confirming.]
+               [p.23]: Prof. Savita Mane
+               [p.24]: Project Advisor
+
+============================== ITEM 3 (p.238) ==============================
+               [p.236]: 
+               [p.237]: Figure 1.1: Overview of GameForge AI – planner, AE/VAE screening and retrieval, DCGAN generation, and diffusion pose synthesis.
+>>> TARGET >>> [p.238]: [VERIFY: the architecture diagram in the earlier report draft showed z ∈ R^256 for the DCGAN, a “20-col MC” pixel-art restorer, a 1.97M-parameter 50-epoch DDPM, four actions (Idle, Walk, Strike, Slash) and a FastAPI + React box. These do not match the research paper (z ∈ R^128, discrete palette head, Refined Velocity Diffusion E1, two actions). Figure 1.1 above has been redrawn from the paper’s documented design; replace it with your own diagram if preferred.]
+               [p.239]: 1.3 Motivation
+               [p.240]: The motivation for this project arises from three observations.
+
+============================== ITEM 4 (p.343) ==============================
+               [p.341]: Description
+               [p.342]: Training hardware
+>>> TARGET >>> [p.343]: Dual NVIDIA T4 GPUs (discrete DCGAN training, about 270 s per epoch). Hardware for the remaining models: [INFORMATION REQUIRED]
+               [p.344]: Retrieval measurement
+               [p.345]: Dual-vCPU container (top-5 brute-force search over a 25,000-sprite gallery)
+
+============================== ITEM 5 (p.351) ==============================
+               [p.349]: Flan-T5-small [3], [4], fine-tuned for 10 epochs (batch size 8)
+               [p.350]: Programming language and framework versions
+>>> TARGET >>> [p.351]: [INFORMATION REQUIRED: Python, TensorFlow/Keras and library versions]
+               [p.352]: Serving and interface
+               [p.353]: FastAPI back end with a React front end. [VERIFY: stated in the earlier report draft but not in the research paper]
+
+============================== ITEM 6 (p.353) ==============================
+               [p.351]: [INFORMATION REQUIRED: Python, TensorFlow/Keras and library versions]
+               [p.352]: Serving and interface
+>>> TARGET >>> [p.353]: FastAPI back end with a React front end. [VERIFY: stated in the earlier report draft but not in the research paper]
+               [p.354]: Datasets
+               [p.355]: evilsocket/alucard-sprites [38]; carlosuperb/lpc-action-pixel-art-diffusion [39]; carlosuperb/lpc-4view-pixel-art-diffusion [40]
+
+============================== ITEM 7 (p.378) ==============================
+               [p.376]: A researcher should be able to reproduce every reported metric from the documented splits and configurations. A developer should be able to describe a game concept, receive a structured specification, search for similar existing sprites, generate candidate character sprites and view posed frames, and obtain assets in a format that a game engine can import.
+               [p.377]: 4.2.2 External Interface Requirements
+>>> TARGET >>> [p.378]: The pipeline reads sprite images and datasets from the sources listed in Table 3.1 and writes model checkpoints, latent index files, a palette file and evaluation tables. Planner input is plain text and planner output is JSON. Sprite interfaces follow Table 5.4 (Chapter 5). [VERIFY: details of the FastAPI endpoints and the React interface are not described in the research paper; add them here if they are to be documented.]
+               [p.379]: 4.2.3 Functional Requirements
+               [p.380]: The following functional requirements are derived from the documented design of the system.
+
+============================== ITEM 8 (p.431) ==============================
+               [p.429]: Result tables
+               [p.430]: 10
+>>> TARGET >>> [p.431]: Integrate modules behind an interface [VERIFY]
+               [p.432]: End-to-end demonstration
+               [p.433]: 
+
+============================== ITEM 9 (p.434) ==============================
+               [p.432]: End-to-end demonstration
+               [p.433]: 
+>>> TARGET >>> [p.434]: [INFORMATION REQUIRED: calendar timeline / Gantt chart with dates and responsibilities of each team member. The research paper does not contain a schedule. Insert the project timeline figure here as Figure 4.1.]
+               [p.435]: Chapter 5: Methodology
+               [p.436]: 5.1 System Architecture
+
+============================== ITEM 10 (p.504) ==============================
+               [p.502]: Effects
+               [p.503]: 0.18%
+>>> TARGET >>> [p.504]: [VERIFY: the distribution is reported for a 50,000-sprite analysis sample, but the same percentages are used as full-corpus shares in later sections. Confirm whether they are identical on the full corpus.]
+               [p.505]: 
+               [p.506]: Figure 5.1: Caption-derived categorical distribution of the Alucard corpus (50,000-sprite analysis sample).
+
+============================== ITEM 11 (p.522) ==============================
+               [p.520]: Figure 5.3: Intra-sheet slicing on canonical Liberated Pixel Cup (LPC) 9×16 character grids, showing reference idle-front frames and extracted combat poses.
+               [p.521]: 5.2.5 Planner Data
+>>> TARGET >>> [p.522]: The Flan-T5-small planner is fine-tuned on pairs of informal design prompts and reference JSON specifications. The target schema has six fields: theme, environment, art_style, characters, weapons and npc. It is evaluated on 200 held-out prompts. [INFORMATION REQUIRED: number of training prompts, how the prompt–specification pairs were created, and the split sizes. The research paper does not report them.]
+               [p.523]: 5.2.6 Licensing of Datasets
+               [p.524]: The Alucard corpus is released under CC-BY-NC-SA 4.0, and the LPC assets are CC-BY-SA or GPL. Derived models and assets are therefore restricted to non-commercial use unless the licences are cleared. This constraint is carried through to the ethics discussion in Section 7.12.
+
+============================== ITEM 12 (p.565) ==============================
+               [p.563]: sᵢ = qᵀ gᵢ(5.6)
+               [p.564]: On a 25,000-sprite gallery, exact brute-force top-5 search has a median runtime of 1.28 ms and a 95th percentile of 1.52 ms in a dual-vCPU container, so no approximate index is required at this scale.
+>>> TARGET >>> [p.565]: For automated QA screening, the AE reconstruction error is compared with its 95th empirical percentile (τ = 0.001313). An asset with MSE(x, x̂) > τ is flagged for inspection. Such assets typically have corrupted pixels, abnormal canvases or unusual colour palettes. [DISCREPANCY: the paper gives τ = 0.001313 in the text, 1.31×10⁻³ in Table II and 1.27×10⁻³ as the 95th-percentile MSE in Table IV. Confirm which value is the threshold actually used.]
+               [p.566]: 5.8 Model 4: Continuous-RGB DCGAN Baseline
+               [p.567]: The baseline follows the DCGAN design [20], [21]. The generator has 2,633,732 parameters and the discriminator 2,769,345 (5,403,077 in total). It is trained for 50 epochs with LSGAN loss [22], TTUR learning rates lr_G = 1×10⁻⁴ and lr_D = 4×10⁻⁴ [23], and 169,094 alpha-curated RGBA characters. The LSGAN objectives are
+
+============================== ITEM 13 (p.585) ==============================
+               [p.583]: A continuous generator minimising a distance to real colours converges to the mean of competing modes: if a pixel is red in half the training images and blue in the other half, the regression optimum is purple. A classifier instead places probability mass on red and on blue and picks one, so no purple is produced. Casting colour prediction as per-pixel classification over a fixed palette removes interpolation entirely, and the hard arg-max at inference guarantees indexed colours and binary alpha.
+               [p.584]: 5.9.3 Training
+>>> TARGET >>> [p.585]: The discrete model follows the baseline’s LSGAN/TTUR setup [22], [23]. It is trained for 50 epochs (about 270 s per epoch) on dual NVIDIA T4 GPUs on 42,000 clean front-facing characters and has 2.63 million parameters. [DISCREPANCY: Table II of the paper lists the discrete model’s final losses as 1.1236 / 0.8858 and labels the objective “Discrete Minimax”, whereas the text states an LSGAN/TTUR setup. Confirm the loss used.]
+               [p.586]: 
+               [p.587]: Figure 5.8: Adversarial losses over 50 epochs for the continuous-baseline production run (final generator loss 0.5212, discriminator loss 0.0091, 66,050 gradient steps).
+
+============================== ITEM 14 (p.597) ==============================
+               [p.595]: Composite quality score. The score qᵢ penalises orphan pixels and deviation from a target foreground fill and a target colour count. The candidate with the lowest score among N = 8 is returned and upscaled 8× by nearest neighbour.
+               [p.596]: zᵢ = clip(σ · εᵢ, −2, 2),   εᵢ ~ N(0, I),   σ = 0.85(5.11)
+>>> TARGET >>> [p.597]: [INFORMATION REQUIRED: exact definition and weights of the composite quality score, and the target fill and target colour count values. The paper describes the score only qualitatively.]
+               [p.598]: 5.11 Model 6: Action-Conditioned Refined Velocity Diffusion (E1)
+               [p.599]: The action module synthesises combat and locomotion poses from a static reference sprite x_ref and an action label c_act. The final Refined Velocity Diffusion model (Experiment E1) is a conditional U-Net [33] with Group Normalisation, a learned action embedding, and the reference sprite concatenated channel-wise with the noisy target. It follows the diffusion framework of [32] with DDIM sampling [34].
+
+============================== ITEM 15 (p.600) ==============================
+               [p.598]: 5.11 Model 6: Action-Conditioned Refined Velocity Diffusion (E1)
+               [p.599]: The action module synthesises combat and locomotion poses from a static reference sprite x_ref and an action label c_act. The final Refined Velocity Diffusion model (Experiment E1) is a conditional U-Net [33] with Group Normalisation, a learned action embedding, and the reference sprite concatenated channel-wise with the noisy target. It follows the diffusion framework of [32] with DDIM sampling [34].
+>>> TARGET >>> [p.600]: The forward process corrupts a clean sprite x₀ with Gaussian noise, where ᾱₜ follows a cosine schedule [INFORMATION REQUIRED: the paper does not cite a source for the cosine schedule]:
+               [p.601]: xₜ = √ᾱₜ x₀ + √(1 − ᾱₜ) ε(5.12)
+               [p.602]: Instead of predicting the noise ε, the network predicts the orthogonal velocity target, conditioned on the noisy target xₜ, the reference sprite x_ref and the action embedding c_act:
+
+============================== ITEM 16 (p.647) ==============================
+               [p.645]: Planner
+               [p.646]: Prompt–JSON pairs
+>>> TARGET >>> [p.647]: [INFORMATION REQUIRED]
+               [p.648]: 
+               [p.649]: Table 6.2: Tensor configuration of each model.
+
+============================== ITEM 17 (p.671) ==============================
+               [p.669]: 6.3 Training and Checkpoint Selection
+               [p.670]: AE: 50 epochs, Adam (10⁻³), batch size 64, MSE loss with early stopping; the best checkpoint is AE_280K_best.keras.
+>>> TARGET >>> [p.671]: VAE: 50 epochs, β = 10⁻³; the reported validation total loss (209.96) is from epoch 46. [INFORMATION REQUIRED: optimiser and learning rate of the VAE.]
+               [p.672]: Continuous DCGAN: 50 epochs, LSGAN loss, lr_G = 1×10⁻⁴ and lr_D = 4×10⁻⁴; 66,050 generator steps in total. Continuing to 100 epochs caused discriminator dominance, so the 50-epoch checkpoint is retained.
+               [p.673]: Discrete DCGAN: 50 epochs (about 270 s per epoch) on dual NVIDIA T4 GPUs. The epoch-10 checkpoint attains a coherence (58.2%) above real data (53.0%), indicating over-smooth sprites; epoch 50 (48.8%) is selected because it is closer to real data.
+
+============================== ITEM 18 (p.696) ==============================
+               [p.694]: MSE
+               [p.695]: MSE + β·KL (β = 10⁻³)
+>>> TARGET >>> [p.696]: LSGAN + Gumbel head [VERIFY]
+               [p.697]: Weighted v-loss
+               [p.698]: Optimiser / rate
+
+============================== ITEM 19 (p.713) ==============================
+               [p.711]: 2.63M
+               [p.712]: not reported
+>>> TARGET >>> [p.713]: The paper’s model-summary table also lists “50 epochs, batch size 32” as a unified budget for all models, which conflicts with the batch sizes in the text (AE 64, planner 8). The values from the text are used in this report. [VERIFY]
+               [p.714]: 6.5 Pseudocode
+               [p.715]: Pseudocode 1: Data de-duplication and split
+
+============================== ITEM 20 (p.722) ==============================
+               [p.720]: 3  resize every image to 128x128x4, scale to [0, 1]
+               [p.721]: OUTPUT: disjoint train / val / test sets
+>>> TARGET >>> [p.722]: [VERIFY: the hash-based implementation and the order of the partition are not specified in the paper]
+               [p.723]: Pseudocode 2: Reconstruction-based QA screening
+               [p.724]: INPUT: sprite set X, trained AE, threshold tau (95th percentile of error)
+
+============================== ITEM 21 (p.783) ==============================
+               [p.781]: For the continuous baseline, post-processing applies a 16-colour median-cut quantiser and a thresholded alpha mask. The discrete generator needs neither step because its outputs are palette-exact with binary alpha by construction; quantisation is retained only for the continuous baseline.
+               [p.782]: 6.7 System Integration and Interface
+>>> TARGET >>> [p.783]: The modules are integrated into an end-to-end demonstration: a text prompt is parsed by the planner, similar sprites are retrieved and screened by the AE/VAE branch, character candidates are generated by the discrete-palette DCGAN with the best-of-8 pipeline, and pose frames are produced by the diffusion module. [VERIFY: the earlier report draft states that the system is served through a FastAPI back end with a React front end. This is not described in the research paper; confirm the details (endpoints, screens, deployment) before they are documented here.]
+               [p.784]: [INFORMATION REQUIRED: insert actual screenshots of the application here (for example Figure 6.1: prompt/specification screen; Figure 6.2: similarity search and screening; Figure 6.3: generation and pose screen). Only genuine screenshots of the implemented interface should be inserted.]
+               [p.785]: 6.8 Standard Practices
+
+============================== ITEM 22 (p.784) ==============================
+               [p.782]: 6.7 System Integration and Interface
+               [p.783]: The modules are integrated into an end-to-end demonstration: a text prompt is parsed by the planner, similar sprites are retrieved and screened by the AE/VAE branch, character candidates are generated by the discrete-palette DCGAN with the best-of-8 pipeline, and pose frames are produced by the diffusion module. [VERIFY: the earlier report draft states that the system is served through a FastAPI back end with a React front end. This is not described in the research paper; confirm the details (endpoints, screens, deployment) before they are documented here.]
+>>> TARGET >>> [p.784]: [INFORMATION REQUIRED: insert actual screenshots of the application here (for example Figure 6.1: prompt/specification screen; Figure 6.2: similarity search and screening; Figure 6.3: generation and pose screen). Only genuine screenshots of the implemented interface should be inserted.]
+               [p.785]: 6.8 Standard Practices
+               [p.786]: Reproducibility: deterministic seeded split (seed 42) and disjoint train, validation and test sets.
+
+============================== ITEM 23 (p.980) ==============================
+               [p.978]: Training-continuation collapse. Continuing training to 100 epochs led to discriminator dominance (loss ≈ 0.42) and alpha collapse into shrouded blobs.
+               [p.979]: Self-attention failure. Adding self-attention (SAGAN-style) to the discrete model caused alpha saturation and tiled frames.
+>>> TARGET >>> [p.980]: Truncation at σ = 0.70 caused repeated archer outputs, whereas σ = 0.85 retains diversity. These findings justify stopping at epoch 50, keeping the plain convolutional design, and using σ = 0.85. [INFORMATION REQUIRED: the paper does not state which variant the “continued training” experiment applied to. It appears in the ablation as “Continuous (51–100 epochs)”.]
+               [p.981]: 7.7 Semantic Planner (RQ4)
+               [p.982]: On 200 held-out prompts, the planner achieved 100.0% valid JSON syntax and 100.0% schema compliance (Table 7.6). Field accuracy was 97.5% for theme, 64.0% for environment and 52.5% for art style. Exact match, which requires all fields to be string-identical to the reference, was only 11.0%.
+
+============================== ITEM 24 (p.1036) ==============================
+               [p.1034]: Figure 7.4: Conditioned multi-pose action generation.
+               [p.1035]: 7.9 Footprint and Inference Speed
+>>> TARGET >>> [p.1036]: The models are small: the AE has 3.24M parameters, the VAE 13.68M, the discrete generator 2.63M and the exploratory SpriteDeformationNet 0.85M with an inference latency of 1.2 ms. Exact brute-force top-5 retrieval over a 25,000-sprite gallery runs at a median of 1.28 ms and a 95th percentile of 1.52 ms on a dual-vCPU container, which is fast enough for interactive use. The discrete DCGAN trains at about 270 s per epoch on dual NVIDIA T4 GPUs. [INFORMATION REQUIRED: generation latency of the best-of-8 pipeline and diffusion sampling time are not reported in the paper.]
+               [p.1037]: 7.10 Cross-Model Analysis
+               [p.1038]: Table 7.8: Model summary.
+
+============================== ITEM 25 (p.1062) ==============================
+               [p.1060]: 10
+               [p.1061]: 100% valid JSON; 100% schema; theme 97.5%; exact 11.0%
+>>> TARGET >>> [p.1062]: [VERIFY]
+               [p.1063]: Refined Velocity Diffusion (E1)
+               [p.1064]: best at step 900
+
+============================== ITEM 26 (p.1156) ==============================
+               [p.1154]: 7.13 Data Consistency Notes
+               [p.1155]: The following inconsistencies between the research paper and the earlier report draft were identified while preparing this report. They are listed so that the authors can confirm the correct values before submission.
+>>> TARGET >>> [p.1156]: The 95th-percentile reconstruction-error threshold appears as 0.001313 (text), 1.31×10⁻³ (model summary) and 1.27×10⁻³ (Table 7.1). [DISCREPANCY]
+               [p.1157]: The model summary lists a unified “50 epochs, batch size 32” budget, whereas the text gives AE batch size 64, planner 10 epochs with batch size 8, and diffusion best checkpoint at step 900. The continuous baseline’s 66,050 generator steps over 50 epochs (about 1,321 steps per epoch) are consistent with a batch size of roughly 128 for 169,094 images, not 32. [DISCREPANCY]
+               [p.1158]: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+
+============================== ITEM 27 (p.1157) ==============================
+               [p.1155]: The following inconsistencies between the research paper and the earlier report draft were identified while preparing this report. They are listed so that the authors can confirm the correct values before submission.
+               [p.1156]: The 95th-percentile reconstruction-error threshold appears as 0.001313 (text), 1.31×10⁻³ (model summary) and 1.27×10⁻³ (Table 7.1). [DISCREPANCY]
+>>> TARGET >>> [p.1157]: The model summary lists a unified “50 epochs, batch size 32” budget, whereas the text gives AE batch size 64, planner 10 epochs with batch size 8, and diffusion best checkpoint at step 900. The continuous baseline’s 66,050 generator steps over 50 epochs (about 1,321 steps per epoch) are consistent with a batch size of roughly 128 for 169,094 images, not 32. [DISCREPANCY]
+               [p.1158]: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+               [p.1159]: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+
+============================== ITEM 28 (p.1158) ==============================
+               [p.1156]: The 95th-percentile reconstruction-error threshold appears as 0.001313 (text), 1.31×10⁻³ (model summary) and 1.27×10⁻³ (Table 7.1). [DISCREPANCY]
+               [p.1157]: The model summary lists a unified “50 epochs, batch size 32” budget, whereas the text gives AE batch size 64, planner 10 epochs with batch size 8, and diffusion best checkpoint at step 900. The continuous baseline’s 66,050 generator steps over 50 epochs (about 1,321 steps per epoch) are consistent with a batch size of roughly 128 for 169,094 images, not 32. [DISCREPANCY]
+>>> TARGET >>> [p.1158]: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+               [p.1159]: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+               [p.1160]: Earlier project notes list different AE fidelity values (PSNR 28.52 dB, SSIM 0.9248, median MSE 0.000782) from an earlier evaluation; this report uses the values of the research paper (35.36 dB, 0.961, 2.56×10⁻⁴). [VERIFY]
+
+============================== ITEM 29 (p.1159) ==============================
+               [p.1157]: The model summary lists a unified “50 epochs, batch size 32” budget, whereas the text gives AE batch size 64, planner 10 epochs with batch size 8, and diffusion best checkpoint at step 900. The continuous baseline’s 66,050 generator steps over 50 epochs (about 1,321 steps per epoch) are consistent with a batch size of roughly 128 for 169,094 images, not 32. [DISCREPANCY]
+               [p.1158]: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+>>> TARGET >>> [p.1159]: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+               [p.1160]: Earlier project notes list different AE fidelity values (PSNR 28.52 dB, SSIM 0.9248, median MSE 0.000782) from an earlier evaluation; this report uses the values of the research paper (35.36 dB, 0.961, 2.56×10⁻⁴). [VERIFY]
+               [p.1161]: The planner parameter count (60.5M) should be checked against the checkpoint used. [VERIFY]
+
+============================== ITEM 30 (p.1160) ==============================
+               [p.1158]: The discrete DCGAN is described as using an LSGAN/TTUR setup, but its final losses are labelled “Discrete Minimax”. [DISCREPANCY]
+               [p.1159]: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+>>> TARGET >>> [p.1160]: Earlier project notes list different AE fidelity values (PSNR 28.52 dB, SSIM 0.9248, median MSE 0.000782) from an earlier evaluation; this report uses the values of the research paper (35.36 dB, 0.961, 2.56×10⁻⁴). [VERIFY]
+               [p.1161]: The planner parameter count (60.5M) should be checked against the checkpoint used. [VERIFY]
+               [p.1162]: Chapter 8: Conclusion and Future Scope
+
+============================== ITEM 31 (p.1161) ==============================
+               [p.1159]: The category percentages are reported for a 50,000-sprite sample but used as full-corpus shares. [VERIFY]
+               [p.1160]: Earlier project notes list different AE fidelity values (PSNR 28.52 dB, SSIM 0.9248, median MSE 0.000782) from an earlier evaluation; this report uses the values of the research paper (35.36 dB, 0.961, 2.56×10⁻⁴). [VERIFY]
+>>> TARGET >>> [p.1161]: The planner parameter count (60.5M) should be checked against the checkpoint used. [VERIFY]
+               [p.1162]: Chapter 8: Conclusion and Future Scope
+               [p.1163]: 8.1 Conclusion
+

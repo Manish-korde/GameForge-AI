@@ -1,0 +1,13 @@
+row_idx,action_category,direction,action_name,frames_per_sequence,unique_characters,total_available_frames,expected_total_frames,coverage_completeness_pct,mean_fg_coverage_pct,mean_pose_diff_vs_idle,duplicate_frame_count,distinct_pose_ratio_pct
+0,walk,north,Walk North,9,200,1800,1800,100.0,21.14,27.63,0,100.0
+1,walk,west,Walk West,9,200,1800,1800,100.0,21.11,27.85,0,100.0
+2,walk,south,Walk South (Front),9,200,1800,1800,100.0,25.72,11.31,2,99.9
+3,walk,east,Walk East,9,200,1800,1800,100.0,25.24,19.11,30,98.3
+4,slash_attack,north,Slash Attack North,8,200,1600,1600,100.0,21.81,28.88,0,100.0
+5,slash_attack,west,Slash Attack West,8,200,1600,1600,100.0,21.75,29.06,0,100.0
+6,slash_attack,south,Slash Attack South (Front),8,200,1600,1600,100.0,21.84,24.51,0,100.0
+7,slash_attack,east,Slash Attack East,8,200,1600,1600,100.0,22.08,28.53,185,88.4
+8,spellcast_thrust,north,Spellcast North,6,200,1200,1200,100.0,22.4,27.25,0,100.0
+9,spellcast_thrust,west,Spellcast West,6,200,1200,1200,100.0,22.36,27.26,0,100.0
+10,spellcast_thrust,south,Spellcast South (Front),6,200,1200,1200,100.0,24.35,18.9,0,100.0
+11,spellcast_thrust,east,Spellcast East,6,200,1200,1200,100.0,24.66,21.2,0,100.0

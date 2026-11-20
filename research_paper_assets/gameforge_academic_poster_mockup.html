@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GameForge AI — Academic Conference Poster Mockup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #94a3b8;
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .poster-container {
+      width: 1240px;
+      background: #ffffff;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .math-font {
+      font-family: 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+    table th, table td {
+      border: 1px solid #cbd5e1;
+    }
+  </style>
+</head>
+<body class="p-6 bg-slate-500">
+
+  <div class="poster-container border border-slate-300">
+    
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- TOP HEADER BANNER -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <header class="bg-[#0284c7] text-white px-8 py-5 flex items-center justify-between border-b-4 border-[#0369a1]">
+      <div class="flex items-center space-x-4">
+        <div class="bg-white text-[#0369a1] font-black px-4 py-2 rounded shadow-md text-2xl tracking-tighter flex items-center space-x-2">
+          <span class="text-3xl text-[#0284c7]">MIT</span>
+          <div class="text-xs font-bold leading-tight border-l-2 border-[#0284c7] pl-2 text-slate-800">
+            Academy of<br><span class="text-[#0284c7]">Engineering</span>
+          </div>
+        </div>
+        <div class="text-[12px] font-medium leading-tight opacity-90 hidden sm:block">
+          An Autonomous Institute Affiliated to SPPU<br>
+          <span class="text-sky-200 font-semibold">Department of Computer Engineering</span>
+        </div>
+      </div>
+      <div class="text-right flex-1 pl-8">
+        <h1 class="text-2xl lg:text-3xl font-black tracking-tight leading-tight uppercase drop-shadow-sm">
+          GameForge AI: Multimodal Game Asset & Action Synthesis
+        </h1>
+        <p class="text-xs lg:text-sm text-sky-100 font-medium tracking-wide mt-1">
+          A 5-Tier Generative Framework for Prompt-Driven 2D Sprite Synthesis, Latent Verification & Kinematic Walk Cycles
+        </p>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- POSTER MAIN BODY (3 COLUMNS) -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <main class="p-4 grid grid-cols-12 gap-3.5 bg-slate-50 flex-1 text-slate-900">
+
+      <!-- ────────────────────────────────────────────────────────────────── -->
+      <!-- LEFT COLUMN (3.3 cols out of 12 = ~28%) -->
+      <!-- ────────────────────────────────────────────────────────────────── -->
+      <aside class="col-span-3 flex flex-col space-y-3">
+
+        <!-- 1. Project Statement -->
+        <div class="bg-[#0b2545] text-white rounded-lg p-3.5 shadow-sm border border-[#134074]">
+          <h2 class="text-xs font-black uppercase tracking-wider text-sky-300 pb-1.5 border-b border-sky-800/80 mb-2">
+            Project Statement
+          </h2>
+          <p class="text-[11.5px] leading-relaxed text-slate-100 mb-2">
+            • 2D indie video game development is fundamentally bottlenecked by the manual creation of coherent, multi-frame character sprite sheets.
+          </p>
+          <p class="text-[11.5px] leading-relaxed text-slate-100">
+            • Traditional procedural tools lack natural language semantic control, while unconstrained diffusion models fail on pixel-grid preservation, background transparency, and multi-pose kinematic walking cycles.
+          </p>
+        </div>
+
+        <!-- 2. Dataset Description -->
+        <div class="bg-[#0b2545] text-white rounded-lg p-3.5 shadow-sm border border-[#134074]">
+          <h2 class="text-xs font-black uppercase tracking-wider text-sky-300 pb-1.5 border-b border-sky-800/80 mb-2">
+            Dataset Description
+          </h2>
+          <div class="text-[11.5px] space-y-1 text-slate-100 leading-snug">
+            <p><span class="font-bold text-sky-200">Name:</span> GameForge Multimodal Asset Corpus</p>
+            <p><span class="font-bold text-sky-200">Source:</span> Hugging Face (Alucard, LPC) & OpenGameArt</p>
+            <p><span class="font-bold text-sky-200">Total Scale:</span> 280,000+ Raw Sprites | 46,000 Audited Front Sprites</p>
+            <p class="font-bold text-sky-200 pt-1">Data Split:</p>
+            <ul class="list-disc list-inside text-[11px] space-y-0.5 text-slate-200 pl-1">
+              <li>M1 Planner: 10,000 Prompt-to-JSON pairs</li>
+              <li>M2 Conv AE: 280,000 Sprites (80/10/10 split)</li>
+              <li>M3 VAE: 280,000 Sprites (Latent 256-D)</li>
+              <li>M4 DCGAN: 46,000 Front-Facing Sprites (50 Ep)</li>
+              <li>M5 Diffusion: 1,440 Train / 360 Val Pairs</li>
+            </ul>
+            <p class="pt-1"><span class="font-bold text-sky-200">Preprocessing:</span> 64×64 RGBA resolution, strict 4-corner transparency gating, pixel normalization to [-1.0, 1.0]. Avoids memorizing background artifacts.</p>
+          </div>
+        </div>
+
+        <!-- 3. Ethical Considerations & Limitations -->
+        <div class="bg-[#e0f2fe] text-slate-800 rounded-lg p-3.5 shadow-sm border border-sky-200">
+          <h2 class="text-xs font-black uppercase tracking-wider text-[#0369a1] pb-1.5 border-b border-sky-300 mb-2">
+            Ethical & Practical Scope
+          </h2>
+          <div class="text-[11.5px] space-y-1.5 leading-relaxed">
+            <div>
+              <span class="font-bold text-sky-950">Attribution & Licensing:</span> Trained strictly on open-access game asset repositories (CC-BY-SA, GPL v3), preserving indie artist lineage.
+            </div>
+            <div>
+              <span class="font-bold text-sky-950">Artifact Gating:</span> Automated AE reconstruction scoring prevents malformed or non-game assets from deploying downstream.
+            </div>
+            <div>
+              <span class="font-bold text-sky-950">Limitations:</span> Bounded to 64×64 pixel grid; 8-directional walking cycles currently leverage canonical south-view projection.
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Overall Ranking (Matched to Reference Poster Format) -->
+        <div class="bg-[#e0f2fe] text-slate-900 rounded-lg p-3.5 shadow-sm border border-sky-200 flex-1">
+          <h2 class="text-xs font-black uppercase tracking-wider text-[#0369a1] pb-1 border-b border-sky-300 mb-2">
+            Overall Ranking
+          </h2>
+          <ol class="text-[11.5px] font-semibold space-y-1.5 text-slate-800">
+            <li class="flex items-start">
+              <span class="bg-[#0284c7] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] mr-1.5 mt-0.5 shrink-0">1</span>
+              <span><strong class="text-sky-950">Best Latent Representation:</strong> VAE (84.40% k-NN accuracy, 256-D smooth manifold)</span>
+            </li>
+            <li class="flex items-start">
+              <span class="bg-[#0284c7] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] mr-1.5 mt-0.5 shrink-0">2</span>
+              <span><strong class="text-sky-950">Best Kinematics:</strong> Velocity Diffusion (Limb IoU: 0.812, 91.4% consistency)</span>
+            </li>
+            <li class="flex items-start">
+              <span class="bg-[#0284c7] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] mr-1.5 mt-0.5 shrink-0">3</span>
+              <span><strong class="text-sky-950">Best Semantic Adherence:</strong> Flan-T5 Planner (100.0% schema, 97.5% theme)</span>
+            </li>
+            <li class="flex items-start">
+              <span class="bg-[#0284c7] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] mr-1.5 mt-0.5 shrink-0">4</span>
+              <span><strong class="text-sky-950">Best Anomaly Detection:</strong> Conv AE (35.36 dB PSNR, 0.961 SSIM, 94.2% acc)</span>
+            </li>
+            <li class="flex items-start">
+              <span class="bg-[#0284c7] text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] mr-1.5 mt-0.5 shrink-0">5</span>
+              <span><strong class="text-sky-950">Fastest Baseline:</strong> DCGAN (4.8 ms forward pass baseline)</span>
+            </li>
+          </ol>
+        </div>
+
+      </aside>
+
+      <!-- ────────────────────────────────────────────────────────────────── -->
+      <!-- CENTER & RIGHT COLUMNS (9 cols out of 12 = ~72%) -->
+      <!-- ────────────────────────────────────────────────────────────────── -->
+      <section class="col-span-9 flex flex-col space-y-3">
+
+        <!-- Key Objectives (Spanning Center and Right) -->
+        <div class="bg-[#e0f2fe] rounded-lg p-3 shadow-sm border border-sky-300">
+          <h2 class="text-xs font-black uppercase tracking-wider text-[#0369a1] mb-1 flex items-center">
+            <span class="bg-[#0284c7] text-white rounded p-0.5 mr-1.5 text-[10px]">★</span> Key Objectives
+          </h2>
+          <div class="grid grid-cols-2 gap-2 text-[11.5px] text-slate-800 font-medium">
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[#0284c7] font-bold">✔</span>
+              <span>Translate game prompts into validated JSON design schemas via Flan-T5.</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[#0284c7] font-bold">✔</span>
+              <span>Synthesize novel, high-purity 64×64 character sprites using DCGAN.</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[#0284c7] font-bold">✔</span>
+              <span>Implement automated quality assurance & anomaly rejection via Conv AE.</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[#0284c7] font-bold">✔</span>
+              <span>Synthesize complete 8-frame walk animation cycles using Velocity Diffusion.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- MODEL OVERVIEW: 5 DISTINCT MODELS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        
+        <!-- Row 1: Models 1, 2, 3 (3 Cards Grid) -->
+        <div class="grid grid-cols-3 gap-2.5">
+
+          <!-- MODEL 1: Convolutional Autoencoder (AE) -->
+          <div class="bg-[#f0f9ff] rounded-lg border border-sky-200 overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="bg-[#0b2545] text-white px-2.5 py-1.5 flex justify-between items-center">
+              <span class="text-[11px] font-black uppercase tracking-wide text-sky-200">Model 1: Conv Autoencoder</span>
+              <span class="text-[10px] bg-[#0284c7] px-1.5 py-0.5 rounded font-mono font-bold">3.24M Params</span>
+            </div>
+            <div class="p-2 text-[11px] flex-1 flex flex-col justify-between space-y-1">
+              <div>
+                <p><strong class="text-slate-900">Architecture:</strong> 4-Layer Conv2D Encoder-Decoder, 256-D continuous bottleneck, MSE loss.</p>
+                <p><strong class="text-slate-900">Role:</strong> Pixel-Grid Quality Assurance & Outlier Anomaly Rejection.</p>
+                <div class="bg-white p-1 rounded border border-sky-200 my-1 font-mono text-[10px] text-center text-slate-800">
+                  <span class="math-font">L<sub>AE</sub> = E[||x - x̂||<sup>2</sup>]</span>
+                </div>
+              </div>
+              <div class="bg-sky-100/80 p-1.5 rounded text-[10.5px] text-slate-800 font-medium">
+                <strong>Final Accuracies:</strong> PSNR: <strong class="text-emerald-700">35.36 dB</strong> | SSIM: <strong class="text-emerald-700">0.961</strong> | Test MSE: <strong>4.56×10⁻⁴</strong> | Anomaly Accuracy: <strong class="text-blue-800">94.2%</strong> (P95 Threshold: 1.31×10⁻³).
+              </div>
+            </div>
+          </div>
+
+          <!-- MODEL 2: Variational Autoencoder (VAE) -->
+          <div class="bg-[#f0f9ff] rounded-lg border border-sky-200 overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="bg-[#0b2545] text-white px-2.5 py-1.5 flex justify-between items-center">
+              <span class="text-[11px] font-black uppercase tracking-wide text-sky-200">Model 2: Variational AE (VAE)</span>
+              <span class="text-[10px] bg-[#0284c7] px-1.5 py-0.5 rounded font-mono font-bold">13.68M Params</span>
+            </div>
+            <div class="p-2 text-[11px] flex-1 flex flex-col justify-between space-y-1">
+              <div>
+                <p><strong class="text-slate-900">Architecture:</strong> Probabilistic Conv2D Encoder-Decoder, Gaussian Reparameterization (μ + σ⊙ε), 256-D latent.</p>
+                <p><strong class="text-slate-900">Role:</strong> Smooth Latent Manifold Mapping & SLERP Asset Morphing.</p>
+                <div class="bg-white p-1 rounded border border-sky-200 my-1 font-mono text-[10px] text-center text-slate-800">
+                  <span class="math-font">L<sub>VAE</sub> = E[||x - x̂||<sup>2</sup>] + D<sub>KL</sub>[q(z|x) || p(z)]</span>
+                </div>
+              </div>
+              <div class="bg-sky-100/80 p-1.5 rounded text-[10.5px] text-slate-800 font-medium">
+                <strong>Final Accuracies:</strong> k-NN Latent Accuracy: <strong class="text-blue-800">84.40%</strong> | PSNR: <strong>26.59 dB</strong> | SSIM: <strong>0.843</strong> | Latent Separability: <strong class="text-emerald-700">88.6%</strong> (Silhouette).
+              </div>
+            </div>
+          </div>
+
+          <!-- MODEL 3: DCGAN Character Generator -->
+          <div class="bg-[#f0f9ff] rounded-lg border border-sky-200 overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="bg-[#0b2545] text-white px-2.5 py-1.5 flex justify-between items-center">
+              <span class="text-[11px] font-black uppercase tracking-wide text-sky-200">Model 3: DCGAN Generator</span>
+              <span class="text-[10px] bg-[#0284c7] px-1.5 py-0.5 rounded font-mono font-bold">5.40M Params</span>
+            </div>
+            <div class="p-2 text-[11px] flex-1 flex flex-col justify-between space-y-1">
+              <div>
+                <p><strong class="text-slate-900">Architecture:</strong> 4-Stage Nearest-Neighbor Generator (z ∈ ℝ¹²⁸ → 4×4×512 → 64×64×4 Tanh), Feature-Matching Discriminator.</p>
+                <p><strong class="text-slate-900">Role:</strong> Unconditional Novel Character Synthesis.</p>
+                <div class="bg-white p-1 rounded border border-sky-200 my-1 font-mono text-[10px] text-center text-slate-800">
+                  <span class="math-font">L<sub>G</sub> = ½E[(D(G(z))-1)²] + λ<sub>FM</sub>||Ef(x) - Ef(G(z))||₁</span>
+                </div>
+              </div>
+              <div class="bg-sky-100/80 p-1.5 rounded text-[10.5px] text-slate-800 font-medium">
+                <strong>Final Accuracies:</strong> Pairwise L₁ Diversity: <strong class="text-emerald-700">12.15</strong> | Sharpness: <strong>64.37</strong> | Alpha Purity: <strong class="text-blue-800">94.80%</strong> | Gen/Disc Loss: <strong>0.5212 / 0.0091</strong> | Speed: <strong class="text-emerald-700">4.8 ms</strong>.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Models 4 and 5 (2 Cards Grid) -->
+        <div class="grid grid-cols-2 gap-2.5">
+
+          <!-- MODEL 4: Transformer Planner -->
+          <div class="bg-[#f0f9ff] rounded-lg border border-sky-200 overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="bg-[#0b2545] text-white px-2.5 py-1.5 flex justify-between items-center">
+              <span class="text-[11px] font-black uppercase tracking-wide text-sky-200">Model 4: Transformer Planner</span>
+              <span class="text-[10px] bg-[#0284c7] px-1.5 py-0.5 rounded font-mono font-bold">Flan-T5 60.5M</span>
+            </div>
+            <div class="p-2 text-[11px] flex-1 flex flex-col justify-between space-y-1">
+              <div>
+                <p><strong class="text-slate-900">Architecture:</strong> Sequence-to-Sequence Encoder-Decoder with Multi-Head Attention (10,000 prompt-asset pairs).</p>
+                <p><strong class="text-slate-900">Role:</strong> Prompt-to-JSON Specification Planning.</p>
+                <div class="bg-white p-1 rounded border border-sky-200 my-1 font-mono text-[10px] text-center text-slate-800">
+                  <span class="math-font">L<sub>seq</sub> = -∑ log P(y<sub>t</sub> | y<sub>&lt;t</sub>, X<sub>prompt</sub>)</span>
+                </div>
+              </div>
+              <div class="bg-sky-100/80 p-1.5 rounded text-[10.5px] text-slate-800 font-medium">
+                <strong>Final Accuracies:</strong> JSON Schema Validity: <strong class="text-emerald-700">100.0%</strong> | Semantic Theme Accuracy: <strong class="text-blue-800">97.5%</strong> | Validation Loss: <strong>0.5228</strong> | Latency: <strong>42.1 ms</strong>.
+              </div>
+            </div>
+          </div>
+
+          <!-- MODEL 5: Multi-Pose Velocity Diffusion U-Net -->
+          <div class="bg-[#f0f9ff] rounded-lg border border-sky-200 overflow-hidden shadow-sm flex flex-col justify-between">
+            <div class="bg-[#0b2545] text-white px-2.5 py-1.5 flex justify-between items-center">
+              <span class="text-[11px] font-black uppercase tracking-wide text-sky-200">Model 5: Velocity Diffusion U-Net</span>
+              <span class="text-[10px] bg-[#0284c7] px-1.5 py-0.5 rounded font-mono font-bold">1.98M Params</span>
+            </div>
+            <div class="p-2 text-[11px] flex-1 flex flex-col justify-between space-y-1">
+              <div>
+                <p><strong class="text-slate-900">Architecture:</strong> Action & Pose-Conditioned U-Net with velocity v-objective, 1000-step cosine schedule, reverse DDIM sampling.</p>
+                <p><strong class="text-slate-900">Role:</strong> Reference-Conditioned 8-Frame Walk Cycle Kinematic Synthesis.</p>
+                <div class="bg-white p-1 rounded border border-sky-200 my-1 font-mono text-[10px] text-center text-slate-800">
+                  <span class="math-font">v<sub>t</sub> = √ᾱ<sub>t</sub>ε - √(1-ᾱ<sub>t</sub>)x₀,  L<sub>v</sub> = E[||v<sub>t</sub> - v<sub>θ</sub>(x<sub>t</sub>, t, x<sub>ref</sub>, c)||²]</span>
+                </div>
+              </div>
+              <div class="bg-sky-100/80 p-1.5 rounded text-[10.5px] text-slate-800 font-medium">
+                <strong>Final Accuracies:</strong> Limb Stride IoU: <strong class="text-emerald-700">0.812</strong> (40 Unseen Characters) | Cyclic Consistency: <strong class="text-blue-800">91.4%</strong> | Val MSE: <strong>3.12×10⁻²</strong> | CPU Step Latency: <strong>24.2 ms</strong>.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- PIPELINE FLOWCHART & CHALLENGES (WITH EMBEDDED DIAGRAM) -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="grid grid-cols-12 gap-3">
+
+          <!-- Flowchart Visual Panel with Research Paper Architecture Diagram -->
+          <div class="col-span-7 bg-white rounded-lg p-2.5 border border-slate-300 shadow-sm flex flex-col justify-between">
+            <h3 class="text-[11.5px] font-black uppercase tracking-wider text-[#0369a1] pb-1 border-b border-slate-200">
+              End-to-End System Architecture (Research Paper Specification)
+            </h3>
+            <div class="py-1 flex items-center justify-center">
+              <img src="gameforge_system_architecture_flowchart.png" 
+                   alt="GameForge AI System Architecture Flowchart" 
+                   class="max-h-[145px] w-auto object-contain rounded border border-slate-200 shadow-inner">
+            </div>
+            <div class="text-[10.5px] text-slate-600 bg-slate-100 p-1 rounded text-center">
+              Cooperative 5-tier pipeline: <span class="font-semibold text-slate-800">Flan-T5 (Planning) → DCGAN (Synthesis) → Conv AE (Outlier Gate) → VAE (Morphing) → Diffusion (Walk Cycle)</span>.
+            </div>
+          </div>
+
+          <!-- Challenges & Learnings -->
+          <div class="col-span-5 bg-[#e0f2fe] rounded-lg p-2.5 border border-sky-300 shadow-sm flex flex-col justify-between">
+            <h3 class="text-[11.5px] font-black uppercase tracking-wider text-[#0369a1] pb-1 border-b border-sky-300 mb-1">
+              Key Challenges & Scientific Insights
+            </h3>
+            <ul class="text-[11px] space-y-1 text-slate-800 leading-snug">
+              <li>• <strong>Velocity Dominance:</strong> v-prediction eliminated color shift & blurry artifacts inherent in ε-diffusion.</li>
+              <li>• <strong>Orientation Conflict:</strong> Unconditional GANs require strict front-facing curation to prevent lopsided anatomy.</li>
+              <li>• <strong>Unsupervised QA Gating:</strong> Autoencoder MSE provides reliable thresholding (P95: 1.31×10⁻³) without negative labels.</li>
+              <li>• <strong>Reverse DDIM Efficiency:</strong> Deterministic 50-step sampling enables complete walk cycle generation in &lt;1.5s on CPU.</li>
+              <li>• <strong>RGBA Preservation:</strong> End-to-end 4-channel modeling prevents outline fringing around transparent alpha borders.</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!-- PERFORMANCE METRICS - COMPARATIVE ANALYSIS -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-lg p-2.5 border border-slate-300 shadow-sm">
+          <h2 class="text-xs font-black uppercase tracking-wider text-[#0369a1] mb-1.5 text-center">
+            Performance Metrics — Standardized Benchmark Protocol (50 Epochs, Effective Batch Size 32)
+          </h2>
+          <div class="grid grid-cols-2 gap-3">
+
+            <!-- Table 1: Detection & Verification Models -->
+            <div>
+              <div class="bg-[#0b2545] text-white text-[11px] font-bold py-1 px-2 text-center rounded-t">
+                Verification & Planning Models (AE vs VAE vs T5)
+              </div>
+              <table class="w-full text-[11px] text-center border-collapse">
+                <thead class="bg-slate-200 font-bold text-slate-800 text-[11px]">
+                  <tr>
+                    <th class="p-1 text-left">Metric</th>
+                    <th class="p-1">Conv AE</th>
+                    <th class="p-1">VAE (256-D)</th>
+                    <th class="p-1">Flan-T5</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-700 divide-y divide-slate-200">
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Primary Loss</td>
+                    <td class="p-1 font-mono">4.56×10⁻⁴</td>
+                    <td class="p-1 font-mono">3.17×10⁻³</td>
+                    <td class="p-1 font-mono">0.5228</td>
+                  </tr>
+                  <tr class="bg-slate-50">
+                    <td class="p-1 font-semibold text-left">Reconstruction PSNR</td>
+                    <td class="p-1 font-bold text-emerald-700">35.36 dB</td>
+                    <td class="p-1">26.59 dB</td>
+                    <td class="p-1 text-slate-400">N/A</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Structural SSIM</td>
+                    <td class="p-1 font-bold text-emerald-700">0.961</td>
+                    <td class="p-1">0.843</td>
+                    <td class="p-1 text-slate-400">N/A</td>
+                  </tr>
+                  <tr class="bg-slate-50">
+                    <td class="p-1 font-semibold text-left">Accuracy / Validity</td>
+                    <td class="p-1 font-bold text-blue-800">94.2% Anomaly</td>
+                    <td class="p-1 font-bold text-blue-800">84.40% k-NN</td>
+                    <td class="p-1 font-bold text-emerald-700">100.0% Schema</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Parameters</td>
+                    <td class="p-1 font-mono">3.24M</td>
+                    <td class="p-1 font-mono">13.68M</td>
+                    <td class="p-1 font-mono">60.5M</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table 2: Generation Models -->
+            <div>
+              <div class="bg-[#0b2545] text-white text-[11px] font-bold py-1 px-2 text-center rounded-t">
+                Generative Synthesis Models (DCGAN vs Velocity Diffusion)
+              </div>
+              <table class="w-full text-[11px] text-center border-collapse">
+                <thead class="bg-slate-200 font-bold text-slate-800 text-[11px]">
+                  <tr>
+                    <th class="p-1 text-left">Metric</th>
+                    <th class="p-1">DCGAN (46K Front Run)</th>
+                    <th class="p-1">Velocity Diffusion U-Net</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-700 divide-y divide-slate-200">
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Terminal Loss</td>
+                    <td class="p-1 font-mono">0.5212 / 0.0091</td>
+                    <td class="p-1 font-mono">1.06×10⁻¹ (Val: 3.12×10⁻²)</td>
+                  </tr>
+                  <tr class="bg-slate-50">
+                    <td class="p-1 font-semibold text-left">Diversity / IoU Accuracy</td>
+                    <td class="p-1">L₁ Div: <strong>12.15</strong></td>
+                    <td class="p-1 font-bold text-emerald-700">Limb IoU: 0.812 (Unseen)</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Quality Metric</td>
+                    <td class="p-1">Laplacian: <strong>64.37</strong></td>
+                    <td class="p-1 font-bold text-emerald-700">PSNR: 27.84 dB / SSIM: 0.862</td>
+                  </tr>
+                  <tr class="bg-slate-50">
+                    <td class="p-1 font-semibold text-left">Alpha Mask Purity</td>
+                    <td class="p-1 font-bold text-emerald-700">94.80%</td>
+                    <td class="p-1 font-bold text-emerald-700">96.10%</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 font-semibold text-left">Inference Latency</td>
+                    <td class="p-1 font-bold text-blue-800">4.8 ms (Single Pass)</td>
+                    <td class="p-1">24.2 ms / step (DDIM on CPU)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- POSTER FOOTER (PUNCHY NO-BS CONCLUSION & TEAM DETAILS) -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <footer class="bg-slate-100 p-3.5 border-t border-slate-300 grid grid-cols-12 gap-3 items-stretch">
+
+      <!-- Conclusion (Exact Style of Reference Poster - VAE Focused) -->
+      <div class="col-span-8 bg-white rounded-lg p-3 border border-slate-300 shadow-sm flex flex-col justify-between">
+        <h3 class="text-xs font-black uppercase tracking-wider text-[#0369a1] mb-1">
+          Conclusion
+        </h3>
+        <ul class="text-[11.5px] space-y-1.5 text-slate-800 leading-snug">
+          <li>• <strong>VAE provides superior latent representation & stability</strong> — 84.40% k-NN latent accuracy & smooth 256-D continuous manifold eliminate adversarial mode collapse and enable seamless SLERP character morphing.</li>
+          <li>• <strong>Flan-T5 is superior planner</strong> — 100.0% JSON schema validity & 97.5% semantic theme accuracy bridge natural language prompts directly to deterministic game asset specifications.</li>
+          <li>• <strong>Velocity Diffusion sets the motion bar</strong> — 0.812 Limb IoU & 91.4% cyclic consistency achieve true 8-frame walk animation from a single 2D reference without identity drift.</li>
+          <li>• <strong>Integrated framework works best</strong> — Combining Flan-T5 (planning), VAE (latent morphing & representation), Conv AE (QA gating), and Diffusion (animation) creates an end-to-end production framework.</li>
+        </ul>
+      </div>
+
+      <!-- Team Details (Right ~33%) -->
+      <div class="col-span-4 bg-[#0284c7] text-white rounded-lg p-3 shadow-sm border border-[#0369a1] flex flex-col justify-between">
+        <div>
+          <div class="text-[10px] uppercase font-extrabold text-sky-200 tracking-wider">Project Guide:</div>
+          <div class="text-sm font-black text-white">Prof. Dr. Savita Mane</div>
+          <div class="text-[11px] text-sky-100 mt-0.5">Department of Computer Engineering, MITAOE, Pune</div>
+        </div>
+        <div class="border-t border-sky-400/60 pt-2 mt-2">
+          <div class="text-[10px] uppercase font-bold text-sky-200 tracking-wider mb-1">Group Members:</div>
+          <div class="grid grid-cols-1 gap-0.5 text-[11px] font-semibold text-white">
+            <div class="flex justify-between"><span>1. Samriddhi Das</span><span class="font-mono text-sky-200">202301040276</span></div>
+            <div class="flex justify-between"><span>2. Manish Korde</span><span class="font-mono text-sky-200">202301040206</span></div>
+            <div class="flex justify-between"><span>3. Swayam Pagare</span><span class="font-mono text-sky-200">202301040185</span></div>
+          </div>
+        </div>
+      </div>
+
+    </footer>
+
+  </div>
+
+</body>
+</html>

@@ -1,8 +1,11 @@
 # Node
 gui/node_modules/
-gui/dist/
 gui/build/
 .env
+
+# Allow production static build for zero-Node deployment
+!gui/dist/
+!gui/dist/**
 
 # Python
 __pycache__/
@@ -20,8 +23,8 @@ backend/venv/
 .DS_Store
 Thumbs.db
 
-# Keep models but ignore temp/logs if needed (User explicitly wants model pushed, so DO NOT ignore models)
-# logs/ # Let's keep logs since the PDF and history are there.
+# Keep models but ignore temp/logs if needed
+# logs/
 
 # Temp test outputs
 dec_*.png
@@ -29,10 +32,37 @@ dec_*.png
 # Ignore files over 100MB to avoid GitHub push rejection
 *.npy
 !models/*.npy
+!models/3_DCGAN_42k_v1/config/*.npy
 *.weights.h5
+!models/3_DCGAN_42k_v1/game_ready_assets/generator_weights_final.weights.h5
 Notebook/experimentaion/**/*.keras
 
-# VasTexture raw archives and large processed texture data (do not commit)
+# Intermediate/raw training checkpoints
+models/**/checkpoints/
+**/checkpoints/*.data-*-of-*
+models/2_VAE_280k_v2/VAE_280K_Outputs/checkpoints/
+models/3_DCGAN_42k_v1/checkpoints/
+Notebook/experimentaion/DCGAN_10epoch testing/
+
+# Redundant duplicate model folders
+models/dcgan_discrete_50ep_results/
+models/dcgan_frontfacing_clean_50ep_results/
+models/DCGAN_20k_character/
+models/dcgan_all_characters_50ep_results/
+models/diffusion_outputs/
+models/kaggle/
+
+# Heavy training datasets and intermediate research dumps
+Dataset/
+old diffsuion model stuff/
+phase_dcgan_improvement/
+gameforge dpp/
+defomantion baseline artifacts/
+legacy_root_experiment_runs/
+GameForge_AI_Phase2_audit/
+gameforge_deformation/
+
+# VasTexture raw archives and large processed texture data
 gan/data/raw/
 gan/data/processed/
 
@@ -43,19 +73,9 @@ models/gameforge_t5_checkpoints_before_json_fix/
 # Previous/backup model
 models/gameforge_t5_before_json_fix/
 
-# DCGAN TF checkpoint data files (too large for GitHub)
-models/DCGAN_280K_COMPLETE/checkpoints/*.data-*-of-*
-models/**/checkpoints/*.data-*-of-*
-**/checkpoints/*.data-*-of-*
-Notebook/experimentaion/DCGAN_10epoch testing/
-
-# Redundant .weights.h5 files (covered by .keras files)
-models/DCGAN_280K_COMPLETE/weights/*.weights.h5
-
-# Dataset audit HuggingFace cache (raw binary blobs, not needed in repo)
+# Dataset audit HuggingFace cache
 dataset_audit/hf_cache/
 
 # Archived legacy files and trash
 trash/
 temp files/
-

@@ -1,0 +1,22 @@
+{
+  "C2_original_best": {
+    "path": "corrective_experiment_C/C2_velocity/checkpoint_best.pt",
+    "size_bytes": 7962884,
+    "sha256": "2c17d0eae2a984315e1d757560310a7e16098910a3ad9ca3fa9c3e46398bb0b5"
+  },
+  "C2_original_final": {
+    "path": "corrective_experiment_C/C2_velocity/checkpoint_final.pt",
+    "size_bytes": 7962951,
+    "sha256": "d1a7c11ad449bfeb8c9fb7633537071ea7557ee5ae8bf6664f86b6fb9aa70ea7"
+  },
+  "C2_refined_best": {
+    "path": "corrective_experiment_D/refined_C2/checkpoint_best.pt",
+    "size_bytes": 7964484,
+    "sha256": "64f1a4cf1f859d66978a22119c23eac677da1f8990f480568d1b5345808d0f9e"
+  },
+  "C2_refined_final": {
+    "path": "corrective_experiment_D/refined_C2/checkpoint_final.pt",
+    "size_bytes": 7964551,
+    "sha256": "42ef57d267e38e94719203ae16ba09eca8e3ec992a7411d54b0ce57db2f07774"
+  }
+}

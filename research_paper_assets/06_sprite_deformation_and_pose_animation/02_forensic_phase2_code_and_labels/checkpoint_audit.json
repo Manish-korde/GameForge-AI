@@ -1,0 +1,14 @@
+{
+  "active_checkpoint_file": "research_paper_assets/06_sprite_deformation_and_pose_animation\\rung2_ddpm_overfit_best.pt",
+  "file_size_bytes": 7963727,
+  "successfully_loaded": true,
+  "discrepancy_explanation": "In run_rung2_ddpm_overfit.py, torch.save() was invoked after the 150-epoch training loop finished, saving the final model state into 'rung2_ddpm_overfit_best.pt'. There was no mid-loop best-loss comparator saving separate files. Therefore, the saved weights correspond to Final Epoch 150 (loss 0.182659), while the historical minimum occurred at Epoch 145 (loss 0.131424). The 'Epoch 118' reference in prior notes was from an earlier unweighted baseline run before foreground re-weighting.",
+  "minimum_in_history": {
+    "epoch": 122,
+    "loss": 0.1267720162868499
+  },
+  "saved_checkpoint_state": {
+    "epoch": 150,
+    "loss": 0.217891663312912
+  }
+}

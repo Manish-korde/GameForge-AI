@@ -591,6 +591,72 @@ export const generateDiffusionSprite = async ({ prompt, style = "16-bit Retro RP
   }
 };
 
+export const fetchActionDiffusionStatus = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/generate/diffusion/status`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn("Action diffusion status unavailable:", err);
+  }
+  return { status: "Offline", model_version: "Phase F2 Validated (Multi-Pose)" };
+};
 
+export const generateDiffusionPose = async ({ action = "walk", poseId = 0, referenceB64 = null, steps = 50, seed = null }) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/generate/diffusion`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        pose_id: parseInt(poseId) || 0,
+        reference_b64: referenceB64,
+        steps: steps ? parseInt(steps) : 50,
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : null
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Diffusion pose generation failed");
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Diffusion Pose Generation Error:", err);
+    throw err;
+  }
+};
 
+export const generateDiffusionWalkCycle = async ({ referenceB64 = null, steps = 50, seed = 42 }) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/generate/diffusion/walk-cycle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reference_b64: referenceB64,
+        steps: steps ? parseInt(steps) : 50,
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : 42
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Walk cycle generation failed");
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Walk Cycle Generation Error:", err);
+    throw err;
+  }
+};
 
+export const generateActionPose = async (params) => {
+  return generateDiffusionPose(params);
+};
+
+export const fetchActionDiffusionSamples = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/action_diffusion/samples`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn("Failed to fetch curated diffusion samples:", err);
+  }
+  return { attack_samples: [], walk_samples: [] };
+};
