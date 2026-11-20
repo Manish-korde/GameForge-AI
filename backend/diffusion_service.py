@@ -14,8 +14,12 @@ from collections import deque
 
 class DiffusionSpriteService:
     def __init__(self):
-        self.output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "diffusion_outputs"))
-        os.makedirs(self.output_dir, exist_ok=True)
+        import tempfile
+        self.output_dir = os.path.join(tempfile.gettempdir(), "diffusion_outputs")
+        try:
+            os.makedirs(self.output_dir, exist_ok=True)
+        except Exception:
+            pass
         print("DiffusionSpriteService initialized.")
 
     def construct_diffusion_prompts(self, prompt: str, style: str = "16-bit Retro RPG") -> tuple:
