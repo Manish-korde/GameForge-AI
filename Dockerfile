@@ -46,6 +46,7 @@ COPY models/ ./models/
 COPY evaluation/ ./evaluation/
 COPY config/ ./config/
 COPY documentation/ ./documentation/
+COPY demo_offline_gallery/ ./demo_offline_gallery/
 
 # Copy compiled React frontend bundle from Stage 1 into /app/gui/dist
 COPY --from=frontend-builder /app/gui/dist ./gui/dist
