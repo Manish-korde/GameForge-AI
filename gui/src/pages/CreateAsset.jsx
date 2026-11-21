@@ -365,36 +365,53 @@ const CreateAsset = () => {
                 <div className="text-sm text-secondary mb-1">Prompt</div>
                 <div className="mb-4 text-sm">{generatedAsset.prompt}</div>
 
-                {/* Dropdown with 35 Character Sprites */}
-                <div className="mb-5 text-left border-t border-b border-[#252530] py-3">
-                  <label className="block text-xs font-semibold text-indigo-300 mb-1.5 flex justify-between items-center">
-                    <span>🎭 Select Character Sprite</span>
-                    <span className="text-[10px] text-emerald-400 font-mono">35 Available</span>
-                  </label>
-                  <select 
-                    value={generatedAsset.imageUrl} 
-                    onChange={(e) => {
-                      const targetUrl = e.target.value;
-                      const foundItem = spriteList.find(s => s.url === targetUrl);
-                      const newName = foundItem ? (foundItem.label.split(": ")[1] || foundItem.label) : generatedAsset.name;
-                      setGeneratedAsset({
-                        ...generatedAsset,
-                        name: newName,
-                        imageUrl: targetUrl
-                      });
-                      setCharacterAUrl(targetUrl);
-                      setAeResult(null);
-                      setNoisyAeResult(null);
-                      setVaeResult(null);
-                    }}
-                    className="bg-[#181820] border border-[#3a3a45] text-xs text-white rounded-lg p-2.5 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
-                  >
-                    {spriteList.map((s) => (
-                      <option key={s.id} value={s.url}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
+                {/* 25 Front-Facing Character Sprites Visual Grid */}
+                <div className="mb-4 text-left border-t border-b border-[#252530] py-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-semibold text-indigo-300">🎭 25 Front-Facing Characters</span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">{spriteList.length} Available</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5 max-h-52 overflow-y-auto p-1.5 bg-[#121218] border border-[#2c2c38] rounded-xl custom-scrollbar">
+                    {spriteList.map((s) => {
+                      const isSelected = generatedAsset.imageUrl === s.url;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => {
+                            setGeneratedAsset({
+                              ...generatedAsset,
+                              name: s.label.replace(/^#\d+:\s*/, ''),
+                              imageUrl: s.url
+                            });
+                            setCharacterAUrl(s.url);
+                            setAeResult(null);
+                            setNoisyAeResult(null);
+                            setVaeResult(null);
+                          }}
+                          title={s.label}
+                          className={`flex flex-col items-center justify-center p-1 rounded-lg border transition-all ${
+                            isSelected 
+                              ? 'border-indigo-500 bg-indigo-950/70 ring-2 ring-indigo-500 shadow-md scale-105 z-10' 
+                              : 'border-[#2d2d3a] bg-[#1a1a24] hover:border-gray-500 hover:bg-[#222230]'
+                          }`}
+                        >
+                          <img 
+                            src={resolveSpriteUrl(s.url)} 
+                            alt={s.label} 
+                            className="w-9 h-9 object-contain" 
+                            style={{ imageRendering: 'pixelated' }} 
+                          />
+                          <span className="text-[8px] text-gray-300 truncate w-full text-center mt-0.5">
+                            {s.role || s.label.split(' ')[0]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1.5 text-center truncate">
+                    Active: <span className="text-indigo-300 font-semibold">{generatedAsset.name}</span>
+                  </div>
                 </div>
 
                 {/* Dedicated Upload Button for Autoencoder Module */}
@@ -908,21 +925,30 @@ const CreateAsset = () => {
                           className="rounded shadow-sm mb-3 bg-[#101014]" 
                           style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 
                         />
-                        <select 
-                          value={characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url}
-                          onChange={(e) => {
-                            setCharacterAUrl(e.target.value);
-                            setInterpolatedResult(null);
-                          }}
-                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-2 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
-                        >
-                          {!spriteList.some(s => s.url === generatedAsset?.imageUrl) && generatedAsset?.imageUrl && (
-                            <option value={generatedAsset.imageUrl}>Custom Upload ({generatedAsset.name})</option>
-                          )}
-                          {spriteList.map((s) => (
-                            <option key={s.id} value={s.url}>{s.label}</option>
-                          ))}
-                        </select>
+                        <div className="w-full">
+                          <div className="text-[10px] text-gray-400 mb-1.5 text-center font-medium">Select Character A:</div>
+                          <div className="grid grid-cols-5 gap-1 max-h-36 overflow-y-auto p-1 bg-[#101014] rounded-lg border border-[#2c2c38] custom-scrollbar">
+                            {spriteList.map((s) => {
+                              const isSel = (characterAUrl || generatedAsset?.imageUrl || spriteList[0]?.url) === s.url;
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setCharacterAUrl(s.url);
+                                    setInterpolatedResult(null);
+                                  }}
+                                  title={s.label}
+                                  className={`p-0.5 rounded border transition-all flex flex-col items-center ${
+                                    isSel ? 'border-indigo-500 bg-indigo-950/70 ring-1 ring-indigo-500 scale-105' : 'border-[#2d2d3a] bg-[#1a1a24] hover:border-gray-500'
+                                  }`}
+                                >
+                                  <img src={resolveSpriteUrl(s.url)} alt={s.label} className="w-7 h-7 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                       
                       <div className="flex flex-col items-center justify-center">
@@ -946,26 +972,35 @@ const CreateAsset = () => {
                       <div className="flex flex-col items-center bg-[#151515] rounded-xl p-4 border border-border shadow-lg max-w-xs w-full">
                         <span className="text-sm text-secondary mb-3 uppercase tracking-wider font-semibold">Character B</span>
                         <img 
-                          src={resolveSpriteUrl(characterBUrl || spriteList[34]?.url || spriteList[0]?.url)} 
+                          src={resolveSpriteUrl(characterBUrl || spriteList[5]?.url || spriteList[0]?.url)} 
                           alt="Sprite B" 
                           className="rounded shadow-sm mb-3 bg-[#101014]" 
                           style={{ width: '128px', height: '128px', imageRendering: 'pixelated', border: '1px solid #333', objectFit: 'contain' }} 
                         />
-                        <select 
-                          value={characterBUrl || spriteList[34]?.url || spriteList[0]?.url}
-                          onChange={(e) => {
-                            setCharacterBUrl(e.target.value);
-                            setInterpolatedResult(null);
-                          }}
-                          className="bg-[#202025] border border-[#3a3a45] text-xs text-white rounded p-2 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
-                        >
-                          {!spriteList.some(s => s.url === generatedAsset?.imageUrl) && generatedAsset?.imageUrl && (
-                            <option value={generatedAsset.imageUrl}>Custom Upload ({generatedAsset.name})</option>
-                          )}
-                          {spriteList.map((s) => (
-                            <option key={s.id} value={s.url}>{s.label}</option>
-                          ))}
-                        </select>
+                        <div className="w-full">
+                          <div className="text-[10px] text-gray-400 mb-1.5 text-center font-medium">Select Character B:</div>
+                          <div className="grid grid-cols-5 gap-1 max-h-36 overflow-y-auto p-1 bg-[#101014] rounded-lg border border-[#2c2c38] custom-scrollbar">
+                            {spriteList.map((s) => {
+                              const isSel = (characterBUrl || spriteList[5]?.url || spriteList[0]?.url) === s.url;
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setCharacterBUrl(s.url);
+                                    setInterpolatedResult(null);
+                                  }}
+                                  title={s.label}
+                                  className={`p-0.5 rounded border transition-all flex flex-col items-center ${
+                                    isSel ? 'border-indigo-500 bg-indigo-950/70 ring-1 ring-indigo-500 scale-105' : 'border-[#2d2d3a] bg-[#1a1a24] hover:border-gray-500'
+                                  }`}
+                                >
+                                  <img src={resolveSpriteUrl(s.url)} alt={s.label} className="w-7 h-7 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
 

@@ -62,10 +62,22 @@ for layer_cls in layers_to_patch:
 
 app = FastAPI()
 
-# Mount Alucard 280k dataset samples static route
+# Mount static routes for sprites, characters, and offline gallery
 samples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "alucard_samples"))
 if os.path.exists(samples_dir):
     app.mount("/alucard_samples", StaticFiles(directory=samples_dir), name="alucard_samples")
+
+chars_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "characters_25"))
+if not os.path.exists(chars_dir):
+    chars_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "gui", "public", "characters_25"))
+if os.path.exists(chars_dir):
+    app.mount("/characters_25", StaticFiles(directory=chars_dir), name="characters_25")
+
+gallery_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo_offline_gallery"))
+if not os.path.exists(gallery_dir):
+    gallery_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "demo_offline_gallery"))
+if os.path.exists(gallery_dir):
+    app.mount("/demo_offline_gallery", StaticFiles(directory=gallery_dir), name="demo_offline_gallery")
 
 app.add_middleware(
     CORSMiddleware,
@@ -288,9 +300,10 @@ def ensure_gallery_loaded():
 @app.on_event("startup")
 def startup_event():
     print("Backend API server started instantly. Triggering background model load...")
-    load_hierarchical_gallery()
     thread = threading.Thread(target=load_all_models_background, daemon=True)
     thread.start()
+    gallery_thread = threading.Thread(target=load_hierarchical_gallery, daemon=True)
+    gallery_thread.start()
     gan_thread = threading.Thread(target=load_generator, daemon=True)
     gan_thread.start()
     dcgan_thread = threading.Thread(target=load_dcgan_generator, daemon=True)
@@ -609,14 +622,26 @@ def gan_categories():
 
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
+    roles = [
+        ("Hero (Paladin)", "Hero"), ("Archer (Ranger)", "Archer"), ("Mage (Sorcerer)", "Mage"),
+        ("Rogue (Thief)", "Rogue"), ("Orc (Warrior)", "Orc"), ("Cleric (Priest)", "Cleric"),
+        ("Hero (Knight)", "Hero"), ("Archer (Hunter)", "Archer"), ("Mage (Wizard)", "Mage"),
+        ("Rogue (Assassin)", "Rogue"), ("Orc (Berserker)", "Orc"), ("Cleric (Healer)", "Cleric"),
+        ("Hero (Champion)", "Hero"), ("Archer (Marksman)", "Archer"), ("Mage (Elementalist)", "Mage"),
+        ("Rogue (Shadow)", "Rogue"), ("Orc (Chieftain)", "Orc"), ("Cleric (Templar)", "Cleric"),
+        ("Hero (Guardian)", "Hero"), ("Archer (Sniper)", "Archer"), ("Mage (Enchanter)", "Mage"),
+        ("Rogue (Infiltrator)", "Rogue"), ("Orc (Warlord)", "Orc"), ("Cleric (Bishop)", "Cleric"),
+        ("Hero (Crusader)", "Hero")
+    ]
     result = []
-    for i in range(35):
-        cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}"})
+    for i, (label, role) in enumerate(roles):
+        sprite_num = i + 1
         result.append({
-            "id": i,
-            "label": f"Sprite #{i+1}: {cat_info['label']}",
-            "category": cat_info["category"],
-            "url": f"/alucard_samples/alucard_{i}.png"
+            "id": sprite_num,
+            "label": f"#{sprite_num:02d}: {label}",
+            "role": role,
+            "category": "Character",
+            "url": f"/characters_25/sprite_{sprite_num:02d}_{role}.png"
         })
     return result
 
@@ -659,6 +684,12 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         content = await file.read()
         return Image.open(io.BytesIO(content)).convert("RGBA")
     if url_or_path:
+        if "characters_25" in url_or_path or "demo_offline_gallery" in url_or_path:
+            filename = os.path.basename(url_or_path)
+            for search_d in [chars_dir, gallery_dir]:
+                candidate = os.path.join(search_d, filename)
+                if os.path.exists(candidate):
+                    return Image.open(candidate).convert("RGBA")
         if "alucard_samples" in url_or_path:
             filename = url_or_path.split("alucard_samples/")[-1]
             local_file = os.path.join(samples_dir, filename)
@@ -667,11 +698,21 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         if "alucard_dataset_image" in url_or_path:
             try:
                 img_id = int(url_or_path.rstrip("/").split("/")[-1])
-                raw_ds = get_raw_dataset()
-                if raw_ds is not None and 0 <= img_id < len(raw_ds):
-                    return raw_ds[img_id]["image"].convert("RGBA")
+                sprite_num = (img_id % 25) + 1
+                if os.path.exists(chars_dir):
+                    files = [f for f in os.listdir(chars_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
+                    if files:
+                        return Image.open(os.path.join(chars_dir, files[0])).convert("RGBA")
+                if os.path.exists(gallery_dir):
+                    files = [f for f in os.listdir(gallery_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
+                    if files:
+                        return Image.open(os.path.join(gallery_dir, files[0])).convert("RGBA")
+                sample_filename = f"alucard_{img_id % 35}.png"
+                local_file = os.path.join(samples_dir, sample_filename)
+                if os.path.exists(local_file):
+                    return Image.open(local_file).convert("RGBA")
             except Exception as e:
-                print(f"Error reading dataset image directly: {e}")
+                print(f"Error reading dataset image locally: {e}")
         if url_or_path.startswith("data:image"):
             header, encoded = url_or_path.split(",", 1)
             data = base64.b64decode(encoded)
@@ -947,45 +988,23 @@ def load_hierarchical_gallery():
     except Exception as e:
         print(f"Error loading pre-computed gallery index: {e}")
 
-# Streaming endpoint for dataset sprites directly from local HF datasets cache
-RAW_DATASET = None
-
-def get_raw_dataset():
-    global RAW_DATASET
-    if RAW_DATASET is None:
-        try:
-            from datasets import load_dataset
-            print("Loading 'evilsocket/alucard-sprites' train split to cache for dynamic image serving...")
-            ds = load_dataset("evilsocket/alucard-sprites")
-            RAW_DATASET = ds["train"]
-            print("HuggingFace dataset train split cached in memory successfully!")
-        except Exception as e:
-            print(f"Error loading HuggingFace dataset cache: {e}")
-    return RAW_DATASET
-
+# Fast local serving endpoint for dataset sprites without HuggingFace or network stalls
 @app.get("/alucard_dataset_image/{image_id}")
 async def get_alucard_dataset_image(image_id: int):
-    # Instant local sample fallback for fast rendering without network stalls
+    # Fast instant local serving without network stalls or HuggingFace dependency
+    sprite_num = (image_id % 25) + 1
+    if os.path.exists(chars_dir):
+        files = [f for f in os.listdir(chars_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
+        if files:
+            return FileResponse(os.path.join(chars_dir, files[0]), media_type="image/png")
+    if os.path.exists(gallery_dir):
+        files = [f for f in os.listdir(gallery_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
+        if files:
+            return FileResponse(os.path.join(gallery_dir, files[0]), media_type="image/png")
     sample_filename = f"alucard_{image_id % 35}.png"
     local_sample_file = os.path.join(samples_dir, sample_filename)
-    
-    try:
-        raw_ds = get_raw_dataset()
-        if raw_ds is not None and 0 <= image_id < len(raw_ds):
-            row = raw_ds[image_id]
-            img = row["image"].convert("RGBA")
-            buf = io.BytesIO()
-            img.save(buf, format="PNG")
-            buf.seek(0)
-            from fastapi.responses import StreamingResponse
-            return StreamingResponse(buf, media_type="image/png")
-    except Exception as e:
-        print(f"Dataset image fetch fallback triggered ({e})")
-
     if os.path.exists(local_sample_file):
-        from fastapi.responses import FileResponse
         return FileResponse(local_sample_file, media_type="image/png")
-        
     raise HTTPException(status_code=404, detail="Image unavailable")
 
 @app.get("/evaluation/metrics")
