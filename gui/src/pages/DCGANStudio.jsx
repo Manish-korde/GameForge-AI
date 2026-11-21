@@ -3,13 +3,10 @@ import { fetchDCGANClasses, generateDCGANCharacters } from "../services/api";
 
 export default function DCGANStudio() {
   const [classes, setClasses] = useState([
-    "🎲 Random Character (Fresh Synthesis)",
-    "Hero (Knight)", "Mage (Sorcerer)", "Rogue (Thief)", "Paladin (Guardian)",
-    "Archer (Ranger)", "Warrior (Barbarian)", "Cleric (Healer)", "Necromancer (Dark Mage)",
-    "Goblin (Scout)", "Skeleton (Fighter)", "Slime (Creature)", "Assassin (Ninja)",
-    "Monk (Martial)", "Druid (Shifter)", "Berserker (Heavy)", "Champion (Elite)"
+    "🎲 Random Latent (Fresh Synthesis)",
+    ...Array.from({ length: 16 }, (_, i) => `Latent Preset #${i + 1}`)
   ]);
-  const [selectedRole, setSelectedRole] = useState("🎲 Random Character (Fresh Synthesis)");
+  const [selectedRole, setSelectedRole] = useState("🎲 Random Latent (Fresh Synthesis)");
   const [count, setCount] = useState(4);
   const [seed, setSeed] = useState("");
   const [pixelArtMode, setPixelArtMode] = useState(true);
@@ -112,7 +109,7 @@ export default function DCGANStudio() {
           {/* Role Preset */}
           <div>
             <label style={{ display: "block", fontSize: 13, marginBottom: 6, color: "#cbd5e1", fontWeight: 500 }}>
-              Character Archetype
+              Latent Synthesis Preset
             </label>
             <select
               value={selectedRole}
@@ -370,7 +367,7 @@ export default function DCGANStudio() {
               <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: "1rem", lineHeight: 1.6 }}>
                 <div><strong>Resolution:</strong> 64x64 RGBA (Transparent)</div>
                 <div><strong>Format:</strong> Clean PNG Sprite</div>
-                <div><strong>Archetype:</strong> {selectedRole}</div>
+                <div><strong>Synthesis Mode:</strong> {selectedRole}</div>
                 <div><strong>Engine Compatibility:</strong> Godot, Unity, Phaser, Unreal</div>
               </div>
 

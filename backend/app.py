@@ -368,36 +368,15 @@ async def prompt_to_sprite_endpoint(
         }
 
     char_info = spec.get("main_character", {})
-    role_extracted = char_info.get("role", "Hero (Knight)")
+    role_extracted = char_info.get("role", "Generated Sprite")
     
-    # Semantic mapping to trained archetypes
-    role_lower = (role_extracted + " " + prompt).lower()
-    mapped_role = "Hero (Knight)"
-    if any(w in role_lower for w in ["mage", "wizard", "sorcerer", "spell", "magic"]):
-        mapped_role = "Mage (Sorcerer)"
-    elif any(w in role_lower for w in ["rogue", "thief", "assassin", "ninja", "stealth"]):
-        mapped_role = "Rogue (Thief)"
-    elif any(w in role_lower for w in ["paladin", "guardian", "holy"]):
-        mapped_role = "Paladin (Guardian)"
-    elif any(w in role_lower for w in ["archer", "ranger", "hunter", "bow"]):
-        mapped_role = "Archer (Ranger)"
-    elif any(w in role_lower for w in ["warrior", "barbarian", "heavy", "berserk"]):
-        mapped_role = "Warrior (Barbarian)"
-    elif any(w in role_lower for w in ["cleric", "healer", "priest", "monk"]):
-        mapped_role = "Cleric (Healer)"
-    elif any(w in role_lower for w in ["necro", "dark", "warlock", "shadow"]):
-        mapped_role = "Necromancer (Dark Mage)"
-    elif any(w in role_lower for w in ["goblin", "scout", "orc"]):
-        mapped_role = "Goblin (Scout)"
-    elif any(w in role_lower for w in ["skeleton", "undead"]):
-        mapped_role = "Skeleton (Fighter)"
-    elif any(w in role_lower for w in ["slime", "creature", "beast"]):
-        mapped_role = "Slime (Creature)"
-    else:
-        mapped_role = "Hero (Knight)"
+    # Prompt-derived seed if not provided
+    if seed is None and prompt:
+        import hashlib
+        seed = int(hashlib.md5(prompt.encode()).hexdigest(), 16) % (2**31 - 1)
 
-    # 1. DCGAN Generation (Single entry: generate -> 512x512 RGBA PNG 8x nearest)
-    images_512 = dcgan_generate(n=count, seed=seed, role=mapped_role)
+    # 1. DCGAN Generation (Unconditional latent space synthesis without artificial class mapping)
+    images_512 = dcgan_generate(n=count, seed=seed)
     
     sprites_data = []
     qa_evaluations = []
@@ -417,8 +396,8 @@ async def prompt_to_sprite_endpoint(
         "status": "success",
         "prompt": prompt,
         "spec": spec,
-        "role_extracted": role_extracted,
-        "mapped_archetype": mapped_role,
+        "role_extracted": "Generated Sprite",
+        "mapped_archetype": "Generated Sprite",
         "sprites": sprites_data,
         "qa_evaluations": qa_evaluations,
         "pipeline": "Flan-T5 Spec -> Discrete DCGAN -> AE QA Scoring -> GUI"

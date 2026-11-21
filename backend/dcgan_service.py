@@ -24,23 +24,8 @@ G_INIT_SPATIAL = 4
 UPSAMPLE_MODE = "nearest"
 
 CLASS_PRESETS = {
-    "🎲 Random Character (Fresh Synthesis)": None,
-    "Hero (Knight)": 0,
-    "Mage (Sorcerer)": 1,
-    "Rogue (Thief)": 2,
-    "Paladin (Guardian)": 3,
-    "Archer (Ranger)": 4,
-    "Warrior (Barbarian)": 5,
-    "Cleric (Healer)": 6,
-    "Necromancer (Dark Mage)": 7,
-    "Goblin (Scout)": 8,
-    "Skeleton (Fighter)": 9,
-    "Slime (Creature)": 10,
-    "Assassin (Ninja)": 11,
-    "Monk (Martial)": 12,
-    "Druid (Shifter)": 13,
-    "Berserker (Heavy)": 14,
-    "Champion (Elite)": 15,
+    "🎲 Random Latent (Fresh Synthesis)": None,
+    **{f"Latent Preset #{i+1}": i for i in range(16)}
 }
 
 _generator = None
@@ -218,7 +203,7 @@ def score_candidate(c_img: np.ndarray, orphans: int) -> float:
     score = (orphans * 3.0) + (abs(fg_frac - 0.32) * 120.0) + color_penalty
     return score
 
-def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Character (Fresh Synthesis)") -> list:
+def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fresh Synthesis)") -> list:
     """
     SINGLE ENTRY POINT:
     generate(n, seed) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
@@ -237,13 +222,13 @@ def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Character (F
     for i in range(n):
         if preset_idx is not None and _fixed_latents is not None and preset_idx < len(_fixed_latents):
             base_latent = _fixed_latents[preset_idx].copy()
-            if i == 0 and seed is not None:
-                anchor_z = base_latent * 0.85
+            if i == 0:
+                anchor_z = base_latent
             else:
-                rand_perturb = rng.normal(0, 0.85, size=(LATENT_DIM,)).astype(np.float32)
-                anchor_z = 0.70 * (base_latent * 0.85) + 0.30 * rand_perturb
+                rand_perturb = rng.normal(0, 0.2, size=(LATENT_DIM,)).astype(np.float32)
+                anchor_z = base_latent + rand_perturb
         else:
-            anchor_z = rng.normal(0, 0.85, size=(LATENT_DIM,)).astype(np.float32)
+            anchor_z = rng.normal(0, 1.0, size=(LATENT_DIM,)).astype(np.float32)
             
         anchor_z = np.clip(anchor_z, -2.0, 2.0)
         
@@ -278,7 +263,7 @@ def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Character (F
     return output_images
 
 def generate_character_sprites(
-    role: str = "🎲 Random Character (Fresh Synthesis)",
+    role: str = "🎲 Random Latent (Fresh Synthesis)",
     count: int = 4,
     seed: int = None,
     pixel_art_mode: bool = True,

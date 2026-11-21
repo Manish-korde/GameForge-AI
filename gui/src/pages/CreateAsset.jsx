@@ -73,13 +73,34 @@ const CreateAsset = () => {
 
   const handleGenerateAsset = async () => {
     setIsLoading(true);
-    const res = await generateImage(designSpec);
-    setGeneratedAsset(res.data);
+    let spriteIndex = 0;
+    if (prompt && spriteList.length > 0) {
+      let hash = 0;
+      for (let i = 0; i < prompt.length; i++) {
+        hash = (hash << 5) - hash + prompt.charCodeAt(i);
+        hash |= 0;
+      }
+      spriteIndex = Math.abs(hash) % spriteList.length;
+    }
+    const selected = spriteList[spriteIndex] || spriteList[0];
+    const assetData = {
+      id: 'asset-' + Date.now(),
+      name: selected.label,
+      type: 'Image',
+      source: 'Alucard Dataset',
+      model: 'VAE Grounded Asset',
+      prompt: prompt || "Dataset Sprite",
+      imageUrl: selected.url,
+      spriteId: selected.id,
+      createdAt: new Date().toISOString(),
+      status: 'Completed'
+    };
+    setGeneratedAsset(assetData);
     setAeResult(null); // Reset AE result on new image
     setNoisyAeResult(null);
     setVaeResult(null);
-    setCharacterAUrl(res.data.imageUrl);
-    setCharacterBUrl(spriteList[5]?.url || spriteList[0]?.url); // Default Character B
+    setCharacterAUrl(selected.url);
+    setCharacterBUrl(spriteList[(spriteIndex + 5) % spriteList.length]?.url || spriteList[0]?.url);
     setInterpolatedResult(null);
     setActiveView('original');
     setIsLoading(false);
