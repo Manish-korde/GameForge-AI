@@ -4,10 +4,10 @@ import { generateConcept } from '../services/api';
 import './Pages.css';
 
 const SAMPLE_PROMPTS = [
-  "Retro 16-bit dark fantasy RPG about a rogue exploring a sunken temple with acid traps and giant serpent bosses",
-  "Cyberpunk action platformer featuring a neon hacker battling rogue AI drones in a rain-slicked metropolis",
-  "Chibi dungeon crawler with a wizard casting flame spells against slime monsters in crystal catacombs",
-  "8-bit retro adventure with a paladin wielding a holy broadsword against skeletal warlords"
+  "cozy farming game with a fox",
+  "space asteroid destroyer",
+  "a space farming game with a fox",
+  "dark fantasy dungeon crawler with skeleton warriors"
 ];
 
 const ConceptPlanner = () => {
@@ -15,34 +15,35 @@ const ConceptPlanner = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [conceptSpec, setConceptSpec] = useState(null);
   const [error, setError] = useState(null);
+  const [showRawOutput, setShowRawOutput] = useState(false);
   const navigate = useNavigate();
 
   const [isApproved, setIsApproved] = useState(false);
 
   const handleGenerate = async (selectedPrompt) => {
     const textToUse = selectedPrompt || prompt;
-    if (!textToUse || (!textToUse.strip?.() && !textToUse.length)) return;
+    if (!textToUse || (!textToUse.trim?.() && !textToUse.length)) return;
     
     setIsLoading(true);
     setError(null);
     setIsApproved(false);
+    setShowRawOutput(false);
     try {
-      const res = await generateConcept(textToUse);
+      const res = await generateConcept(textToUse.trim());
       if (res && res.data) {
         setConceptSpec(res.data);
       } else {
-        throw new Error("Invalid response format");
+        throw new Error("Invalid response format from server");
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to generate concept specification. Prompt safety check or backend connection issue.");
+      setError(err.message || "Failed to generate concept specification.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSearchTag = (tag) => {
-    // Navigate to Create Asset page with pre-filled tag or query parameter
     navigate('/create', { state: { searchQuery: tag } });
   };
 
@@ -50,7 +51,7 @@ const ConceptPlanner = () => {
     <div className="page-container max-w-4xl">
       <div className="page-header">
         <h1>Transformer Semantic Planner 🎯</h1>
-        <p>Parse free-form natural language prompts into structured game specifications with Responsible AI safety checks and human-in-the-loop oversight.</p>
+        <p>End-to-end neural Seq2Seq specification planning powered by our fine-tuned <strong>Flan-T5</strong> model (2,000 prompt-JSON pairs).</p>
       </div>
 
       {/* Natural Language Prompt Input */}
@@ -58,16 +59,16 @@ const ConceptPlanner = () => {
         <div className="flex justify-between items-center mb-2">
           <h3>Enter Game Concept Description</h3>
           <span className="badge badge-genre" style={{ backgroundColor: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}>
-            🛡️ Safety Audit Enabled
+            🛡️ Regex Boundary Audit Enabled
           </span>
         </div>
-        <p className="card-subtitle">Describe your game theme, character role, hazards, and art style in natural language.</p>
+        <p className="card-subtitle">Type any natural-language concept. The model generates structured game themes, environments, characters, weapons, and props.</p>
 
         <div className="prompt-input-group">
           <textarea
             className="prompt-textarea"
             rows={3}
-            placeholder="e.g. A 16-bit dark fantasy RPG with a rogue exploring a sunken temple..."
+            placeholder="e.g. cozy farming game with a fox..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
@@ -76,13 +77,13 @@ const ConceptPlanner = () => {
             onClick={() => handleGenerate()}
             disabled={isLoading || !prompt.trim()}
           >
-            {isLoading ? "Parsing & Auditing..." : "Generate Game Spec ✨"}
+            {isLoading ? "Running Flan-T5 Inference..." : "Generate Game Spec ✨"}
           </button>
         </div>
 
         {/* Sample Prompt Chips */}
         <div className="sample-chips-container">
-          <span className="chips-label">Try a sample prompt:</span>
+          <span className="chips-label">Try test prompts:</span>
           <div className="chips-grid">
             {SAMPLE_PROMPTS.map((p, idx) => (
               <button 
@@ -93,7 +94,7 @@ const ConceptPlanner = () => {
                   handleGenerate(p);
                 }}
               >
-                {p.length > 55 ? p.substring(0, 55) + "..." : p}
+                {p}
               </button>
             ))}
           </div>
@@ -104,7 +105,7 @@ const ConceptPlanner = () => {
       {isLoading && (
         <div className="card loading-card">
           <div className="spinner"></div>
-          <p>Transformer Model is parsing semantic request & conducting safety boundary check...</p>
+          <p>Running Seq2Seq Beam Search Inference on fine-tuned Flan-T5 checkpoint...</p>
         </div>
       )}
 
@@ -112,89 +113,168 @@ const ConceptPlanner = () => {
       {error && (
         <div className="card error-card" style={{ borderColor: '#ef4444', backgroundColor: '#ef444415' }}>
           <h4 style={{ color: '#ef4444', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            ⚠️ Responsible AI Safety Alert
+            ⚠️ Error / Safety Boundary Alert
           </h4>
           <p className="error-text" style={{ color: '#f87171' }}>{error}</p>
         </div>
       )}
 
+      {/* Parse Error Display if Model output invalid JSON */}
+      {conceptSpec && conceptSpec.status === "parse_error" && !isLoading && (
+        <div className="card error-card" style={{ borderColor: '#f59e0b', backgroundColor: '#f59e0b15' }}>
+          <h4 style={{ color: '#f59e0b', marginBottom: '0.5rem' }}>
+            ⚠️ JSON Parse Warning (Direct Model Output)
+          </h4>
+          <p className="error-text" style={{ color: '#fbbf24', fontSize: '0.85rem' }}>{conceptSpec.error_detail}</p>
+          <div className="mt-3 p-3 bg-black/60 rounded text-xs font-mono text-gray-300 overflow-x-auto">
+            <strong>Raw Output:</strong> {conceptSpec.raw_t5_output}
+          </div>
+        </div>
+      )}
+
       {/* Structured Game Spec Card */}
-      {conceptSpec && !isLoading && (
+      {conceptSpec && conceptSpec.status === "success" && !isLoading && (
         <div className="card spec-card animated-fade-in">
-          {/* Ethical Guardrails Banner */}
-          <div className="flex justify-between items-center p-3 mb-4 rounded" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+          {/* Ethical Guardrails & Real Telemetry Banner */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 mb-4 rounded gap-2" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '1.2rem' }}>🛡️</span>
               <div>
-                <strong style={{ color: '#10b981', fontSize: '0.85rem' }}>Passed Safety Audit</strong>
+                <strong style={{ color: '#10b981', fontSize: '0.85rem' }}>
+                  {conceptSpec.ethical_guardrails?.safety_status || "Passed Regex Boundary Audit"}
+                </strong>
                 <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>
-                  Content verified safe • License: {conceptSpec.ethical_guardrails?.license || "CC-BY-NC-SA 4.0"}
+                  Model: {conceptSpec.telemetry?.model_checkpoint} • Attribution: {conceptSpec.ethical_guardrails?.dataset_attribution}
                 </p>
               </div>
             </div>
-            <span className="badge" style={{ background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644' }}>
-              Non-Commercial Research Asset
-            </span>
+            <div className="flex gap-2">
+              <span className="badge" style={{ background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644' }}>
+                ⚡ {conceptSpec.telemetry?.inference_latency_ms} ms Latency
+              </span>
+              <span className="badge" style={{ background: '#8b5cf622', color: '#a78bfa', border: '1px solid #8b5cf644' }}>
+                🔤 {conceptSpec.telemetry?.tokens_generated} Tokens
+              </span>
+            </div>
           </div>
 
-          <div className="spec-header">
+          {/* Evaluated Schema Header */}
+          <div className="spec-header border-b border-[#2a2a35] pb-4 mb-4">
             <div className="spec-title-group">
-              <span className="badge badge-genre">{conceptSpec.genre || "Pixel Art RPG"}</span>
-              <h2>{conceptSpec.game_title || "Game Concept Spec"}</h2>
+              <span className="badge badge-genre">Theme: {conceptSpec.theme || "General"}</span>
+              <h2 className="text-xl font-bold mt-1 text-white">{conceptSpec.game_title}</h2>
             </div>
-            <span className="badge badge-style">{conceptSpec.art_style || "16-bit Pixel Art"}</span>
-          </div>
-
-          <div className="spec-body-grid">
-            {/* Main Character Box */}
-            <div className="spec-box">
-              <h4>🛡️ Main Character</h4>
-              <p className="spec-main-role">{conceptSpec.main_character?.role || "Hero"}</p>
-              <div className="tag-cloud">
-                {conceptSpec.main_character?.attributes?.map((attr, i) => (
-                  <span key={i} className="attr-tag">{attr}</span>
-                ))}
-              </div>
-            </div>
-
-            {/* Environment & Theme Box */}
-            <div className="spec-box">
-              <h4>🏰 Environment & Theme</h4>
-              <p className="spec-main-role">{conceptSpec.environment?.theme || "Dungeon"}</p>
-              <div className="tag-cloud">
-                {conceptSpec.environment?.hazards?.map((h, i) => (
-                  <span key={i} className="hazard-tag">⚠️ {h}</span>
-                ))}
-              </div>
-            </div>
-
-            {/* Enemies & Bosses */}
-            <div className="spec-box">
-              <h4>👾 Enemies & Bosses</h4>
-              <div className="tag-cloud">
-                {conceptSpec.enemies?.map((e, i) => (
-                  <span key={i} className="enemy-tag">👾 {e}</span>
-                ))}
-              </div>
+            <div className="flex gap-2">
+              <span className="badge badge-style">Environment: {conceptSpec.environment || "Unspecified"}</span>
+              <span className="badge" style={{ background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44' }}>
+                Style: {conceptSpec.visualStyle || "2D Pixel Art"}
+              </span>
             </div>
           </div>
 
-          {/* Recommended VAE Asset Tags */}
-          <div className="recommended-assets-section">
-            <h3>🎨 Recommended VAE Asset Search Tags</h3>
-            <p className="section-sub">Click any tag to search matching game assets in the VAE latent asset gallery:</p>
-            <div className="asset-tag-buttons">
+          {/* Evaluated Schema Entities Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Characters Box */}
+            <div className="spec-box bg-[#15151e] p-4 rounded-xl border border-[#2c2c3a]">
+              <h4 className="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-3">
+                🎭 Characters ({conceptSpec.characters?.length || 0})
+              </h4>
+              <div className="space-y-2">
+                {conceptSpec.characters && conceptSpec.characters.length > 0 ? (
+                  conceptSpec.characters.map((c, i) => (
+                    <div key={i} className="p-2 rounded bg-[#101016] border border-[#242430]">
+                      <div className="text-xs font-bold text-white">{c.name}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{c.desc}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-500 italic">None generated</div>
+                )}
+              </div>
+            </div>
+
+            {/* Weapons Box */}
+            <div className="spec-box bg-[#15151e] p-4 rounded-xl border border-[#2c2c3a]">
+              <h4 className="text-sm font-bold text-amber-300 uppercase tracking-wider mb-3">
+                ⚔️ Weapons ({conceptSpec.weapons?.length || 0})
+              </h4>
+              <div className="space-y-2">
+                {conceptSpec.weapons && conceptSpec.weapons.length > 0 ? (
+                  conceptSpec.weapons.map((w, i) => (
+                    <div key={i} className="p-2 rounded bg-[#101016] border border-[#242430]">
+                      <div className="text-xs font-bold text-white">{w.name}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{w.desc}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-500 italic">None generated</div>
+                )}
+              </div>
+            </div>
+
+            {/* Props Box */}
+            <div className="spec-box bg-[#15151e] p-4 rounded-xl border border-[#2c2c3a]">
+              <h4 className="text-sm font-bold text-emerald-300 uppercase tracking-wider mb-3">
+                📦 Props / Items ({conceptSpec.props?.length || 0})
+              </h4>
+              <div className="space-y-2">
+                {conceptSpec.props && conceptSpec.props.length > 0 ? (
+                  conceptSpec.props.map((p, i) => (
+                    <div key={i} className="p-2 rounded bg-[#101016] border border-[#242430]">
+                      <div className="text-xs font-bold text-white">{p.name}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{p.desc}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-500 italic">None generated (Empty list in ground truth distribution)</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Stage 2: Deterministic Asset Mapping (Rule-Based Enrichment) */}
+          <div className="bg-[#121218] p-4 rounded-xl border border-[#252535] mb-4">
+            <div className="flex justify-between items-center mb-1">
+              <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                🏷️ {conceptSpec.enrichment_layer?.pipeline_stage || "Stage 2: Deterministic Asset Search Tags"}
+              </h4>
+              <span className="text-[10px] text-gray-500 font-mono">Rule-Based Tag Extractor</span>
+            </div>
+            <p className="text-[11px] text-gray-400 mb-3">
+              {conceptSpec.enrichment_layer?.note || "Derived deterministically from Flan-T5 theme and character entities for downstream pixel art sprite discovery:"}
+            </p>
+            <div className="flex flex-wrap gap-2">
               {conceptSpec.recommended_asset_tags?.map((tag, i) => (
-                <button key={i} className="btn-asset-tag" onClick={() => handleSearchTag(tag)}>
+                <button key={i} className="btn-asset-tag text-xs" onClick={() => handleSearchTag(tag)}>
                   🔍 {tag}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Raw T5 Output Toggle Drawer */}
+          <div className="mt-4 pt-3 border-t border-[#252530]">
+            <button
+              type="button"
+              className="text-xs text-indigo-400 hover:text-indigo-300 underline font-mono flex items-center gap-1 cursor-pointer"
+              onClick={() => setShowRawOutput(!showRawOutput)}
+            >
+              <span>{showRawOutput ? "▼ Hide Raw Flan-T5 Neural Output" : "▶ Inspect Raw Flan-T5 Neural Decoded JSON (Debug Panel)"}</span>
+            </button>
+
+            {showRawOutput && (
+              <div className="mt-3 p-3 bg-black/80 rounded-lg border border-[#333] text-xs font-mono text-emerald-400 overflow-x-auto">
+                <div className="text-[10px] text-gray-500 mb-1 border-b border-[#222] pb-1">
+                  Format: Model Output ID Decode | Decoding: Beam Search (num_beams=4) | Task Prefix: "game concept: "
+                </div>
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{conceptSpec.raw_t5_output}</pre>
+              </div>
+            )}
+          </div>
+
           {/* Human-in-the-Loop Oversight Approval Section */}
-          <div className="mt-6 pt-4 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <label className="flex items-center gap-3 cursor-pointer" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="mt-6 pt-4 border-t border-[#252530] flex flex-col md:flex-row justify-between items-center gap-4">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input 
                 type="checkbox" 
                 checked={isApproved} 

@@ -40,97 +40,23 @@ export const fetchRandomHumanSprite = () => {
 };
 
 export const generateConcept = async (prompt) => {
-  try {
-    const res = await fetch(`${BACKEND_URL}/generate_concept`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt }),
-    });
-    
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Concept generation failed");
-    }
-    const data = await res.json();
-    return {
-      status: 'success',
-      data: data
-    };
-  } catch (err) {
-    if (err.message.includes("Safety Audit") || err.message.includes("restricted") || err.message.includes("prohibited")) {
-      throw err;
-    }
-    console.warn("Transformer Concept API call failed, using client fallback:", err);
-    const pLower = (prompt || "").toLowerCase();
-    
-    let genre = "16-bit Retro Game";
-    let role = "Protagonist";
-    let attrs = ["Agile Movement", "Special Ability", "Quick Dash"];
-    let theme = "Adventure World";
-    let hazards = ["Environmental Hazards", "Time Limit"];
-    let enemies = ["Rival Competitor", "Obstacle Drone"];
-    let tags = ["hero_character", "tool_item", "action_effect", "tile_ground"];
-
-    if (pLower.includes("pizza") || pLower.includes("delivery")) {
-      genre = "Delivery Simulation";
-      role = "Delivery Courier";
-      attrs = ["Order Handling", "Route Navigation", "Speed Dash"];
-      theme = "Metropolitan City Streets";
-      hazards = ["Heavy Traffic", "Slippery Road Puddles", "Strict Delivery Timer"];
-      enemies = ["Stray Street Dogs", "Traffic Drones", "Impatient Customers"];
-      tags = ["delivery_courier", "scooter_vehicle", "pizza_box_item", "city_street_tile"];
-    } else if (pLower.includes("farm") || pLower.includes("crop")) {
-      genre = "Farming Simulator";
-      role = "Master Farmer";
-      attrs = ["Crop Harvesting", "Tool Upgrades", "Seasonal Planning"];
-      theme = "Sunlit Countryside Valley";
-      hazards = ["Sudden Frost", "Drought Hazard", "Pest Infestation"];
-      enemies = ["Wild Boars", "Locust Swarms", "Crows"];
-      tags = ["farmer_character", "tractor_vehicle", "crop_item", "farm_field_tile"];
-    } else if (pLower.includes("race") || pLower.includes("car")) {
-      genre = "Arcade Street Racing";
-      role = "Street Racer";
-      attrs = ["Nitro Boost", "Drift Precision", "Engine Tuning"];
-      theme = "Neon Highway Circuit";
-      hazards = ["Oil Slicks", "Road Debris", "Sharp Hairpin Turns"];
-      enemies = ["Rival Street Racers", "Police Interceptors"];
-      tags = ["racecar_vehicle", "nitro_item", "exhaust_effect", "highway_tile"];
-    } else if (pLower.includes("space") || pLower.includes("ship")) {
-      genre = "Sci-Fi Space Exploration";
-      role = "Starship Commander";
-      attrs = ["Plasma Thrusters", "Shield Boosting", "Laser Targeting"];
-      theme = "Deep Space Orbital Station";
-      hazards = ["Asteroid Belts", "Solar Flares", "Hull Depressurization"];
-      enemies = ["Rogue AI Drones", "Alien Harvesters", "Space Pirates"];
-      tags = ["spaceship_vehicle", "laser_weapon", "plasma_effect", "space_station_tile"];
-    }
-
-    const titleWords = (prompt || "Game").split(" ").filter(w => w.length > 3).slice(0, 2);
-    const title = titleWords.length > 0 ? titleWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "GameForge Spec";
-
-    return {
-      status: 'success',
-      data: {
-        game_title: title,
-        prompt_parsed: prompt,
-        genre: genre,
-        art_style: "16-bit Retro Pixel Art",
-        main_character: {
-          role: role,
-          attributes: attrs
-        },
-        environment: {
-          theme: theme,
-          hazards: hazards
-        },
-        enemies: enemies,
-        recommended_asset_tags: tags,
-        status: "Fallback"
-      }
-    };
+  const res = await fetch(`${BACKEND_URL}/generate_concept`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt }),
+  });
+  
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || "Concept generation failed");
   }
+  const data = await res.json();
+  return {
+    status: 'success',
+    data: data
+  };
 };
 
 export const generateDesign = async (prompt) => {

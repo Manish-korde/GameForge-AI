@@ -28,7 +28,8 @@ const TopBar = () => {
           {aeStatus}
         </div>
         <div className="status-indicator">
-          <span className="dot demo"></span> Demo Mode
+          <span className="dot live" style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block', marginRight: 6 }}></span>
+          Live Neural Models
         </div>
       </div>
     </header>

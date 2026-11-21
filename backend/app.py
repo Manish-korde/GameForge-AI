@@ -590,9 +590,8 @@ def ethical_guidelines():
             "4. Non-Commercial Research & Open Source Compliance"
         ],
         "datasets": [
-            {"name": "evilsocket/alucard-sprites", "count": 282511, "license": "CC-BY-NC-SA 4.0", "role": "32-bit Sprite VAE/AE"},
-            {"name": "GEM/viggo", "count": 6900, "license": "CC-BY 4.0", "role": "Dialogue & Intent NLP"},
-            {"name": "Fraser/pico-8-games", "count": 10967, "license": "CC-BY-NC-SA 4.0", "role": "Retro Tilemaps & Carts"}
+            {"name": "evilsocket/alucard-sprites", "count": 282511, "license": "CC-BY-NC-SA 4.0", "role": "32-bit Sprite VAE/AE/DCGAN Training"},
+            {"name": "GameForge-2K-Concepts", "count": 2000, "license": "CC-BY-NC-SA 4.0", "role": "Fine-Tuned Seq2Seq Semantic Planner (Flan-T5)"}
         ]
     }
 
@@ -1341,106 +1340,7 @@ async def vae_anomaly_score(image_url: str = Form(...)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-def generate_fallback_concept(prompt: str) -> dict:
-    prompt_lower = prompt.lower()
-    
-    # Infer theme
-    if "dark" in prompt_lower or "fantasy" in prompt_lower or "knight" in prompt_lower:
-        theme = "Dark Fantasy"
-    elif "cyber" in prompt_lower or "sci-fi" in prompt_lower or "robot" in prompt_lower:
-        theme = "Cyberpunk / Sci-Fi"
-    elif "retro" in prompt_lower or "pixel" in prompt_lower or "dungeon" in prompt_lower:
-        theme = "Retro Pixel Dungeon"
-    else:
-        theme = "High Fantasy RPG"
-        
-    # Infer environment
-    if "forest" in prompt_lower:
-        env = "Cursed Forest & Mystical Grove"
-    elif "castle" in prompt_lower or "dungeon" in prompt_lower:
-        env = "Ancient Stone Castle Dungeon"
-    elif "space" in prompt_lower or "sci-fi" in prompt_lower:
-        env = "Orbital Space Station Corridor"
-    else:
-        env = "Ruined Kingdom Overworld"
-        
-    # Infer character
-    char_name = "Paladin Knight"
-    if "necromancer" in prompt_lower or "mage" in prompt_lower or "wizard" in prompt_lower:
-        char_name = "Shadow Sorcerer"
-    elif "rogue" in prompt_lower or "ninja" in prompt_lower or "assassin" in prompt_lower:
-        char_name = "Nightblade Rogue"
-    elif "robot" in prompt_lower or "cyborg" in prompt_lower:
-        char_name = "Mecha Sentinel"
 
-    # Infer weapon
-    weapon_name = "Runic Greatsword"
-    if "sword" in prompt_lower or "blade" in prompt_lower:
-        weapon_name = "Magic Enchanted Longsword"
-    elif "bow" in prompt_lower or "arrow" in prompt_lower:
-        weapon_name = "Elven Composite Longbow"
-    elif "staff" in prompt_lower or "wand" in prompt_lower:
-        weapon_name = "Crystal Archmage Staff"
-
-    return {
-        "theme": theme,
-        "environment": env,
-        "characters": [
-            { "name": char_name, "desc": f"Main hero generated from prompt: '{prompt}'" }
-        ],
-        "weapons": [
-            { "name": weapon_name, "desc": "Primary elemental combat weapon" }
-        ],
-        "props": [
-            { "name": "Mystic Chest", "desc": "Glowing treasure container" },
-            { "name": "Health Elixir", "desc": "Consumable potion sprite" }
-        ],
-        "visualStyle": "128x128 2D Pixel Art",
-        "rawOutput": f"Theme:\n{theme}\n\nEnvironment:\n{env}\n\nCharacters:\n- {char_name}\n\nAssets:\n- {weapon_name}\n- Mystic Chest\n\nOriginal prompt: {prompt}"
-    }
-
-@app.post("/generate_concept")
-async def generate_concept(prompt: str = Form(...)):
-    try:
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            return generate_fallback_concept(prompt)
-        
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        system_instructions = """You are an expert game designer. Generate a structured game concept document based on the user's prompt. 
-You MUST return ONLY a raw JSON object with no markdown formatting, no code blocks, and no extra text.
-The JSON must perfectly match this structure:
-{
-  "theme": "String (e.g., Dark Fantasy)",
-  "environment": "String (e.g., Cursed Forest Village)",
-  "characters": [
-    { "name": "String", "desc": "String" }
-  ],
-  "weapons": [
-    { "name": "String", "desc": "String" }
-  ],
-  "props": [
-    { "name": "String", "desc": "String" }
-  ],
-  "visualStyle": "String (e.g., Pixel Art)",
-  "rawOutput": "String containing a strict text breakdown exactly like this:\nTheme:\n[theme]\n\nEnvironment:\n[environment]\n\nCharacters:\n- [char1]\n- [char2]\n\nAssets:\n- [asset1]\n- [asset2]\n\nOriginal prompt: [prompt]"
-}"""
-        
-        response = model.generate_content(f"{system_instructions}\n\nUser Prompt: {prompt}")
-        raw_text = response.text.strip()
-        
-        if raw_text.startswith("```json"):
-            raw_text = raw_text.replace("```json", "", 1)
-        if raw_text.startswith("```"):
-            raw_text = raw_text.replace("```", "", 1)
-        if raw_text.endswith("```"):
-            raw_text = raw_text[:-3]
-            
-        json_data = json.loads(raw_text.strip())
-        return json_data
-    except Exception as e:
-        print(f"Generative AI call failed/fallback triggered: {e}")
-        return generate_fallback_concept(prompt)
 
 # Mount static React frontend SPA dist directory if present (Single-Container Deployment)
 dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "gui", "dist"))
