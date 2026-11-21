@@ -123,41 +123,8 @@ def image_to_base64(image: Image.Image) -> str:
 ALUCARD_INDEX = []
 
 SAMPLE_CATEGORIES = {
-    0: {"category": "Character", "label": "Gray Robe Mage (Back View)", "text": "pixel art, gray, small, wizard, mage, spellcaster, back view"},
-    1: {"category": "Character", "label": "Ironclad Adventurer", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    2: {"category": "Character", "label": "Novice Hero (Side Walk)", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    3: {"category": "Character", "label": "Dungeon Explorer", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    4: {"category": "Character", "label": "Brown Robed Sorcerer", "text": "pixel art, brown, small, wizard, mage, spellcaster, front view"},
-    5: {"category": "Character", "label": "Heavy Armored Warrior", "text": "pixel art, colorful, medium-sized, warrior, armored character, back view"},
-    6: {"category": "Character", "label": "Green Tunic Scout", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
-    7: {"category": "Character", "label": "Brave Vanguard Hero", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
-    8: {"category": "Character", "label": "Traveler in Brown Cape", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    9: {"category": "Equipment", "label": "Bronze Warrior Helm", "text": "pixel art, brown, medium-sized, helmet, hat, headwear, front view"},
-    10: {"category": "Equipment", "label": "Knight Visor Helm", "text": "pixel art, colorful, small, helmet, hat, headwear, side view"},
-    11: {"category": "Equipment", "label": "Steel Barbute Helmet", "text": "pixel art, colorful, small, helmet, hat, headwear, three-quarter view"},
-    12: {"category": "Character", "label": "Mystic Hooded Caster", "text": "pixel art, colorful, small, wizard, mage, spellcaster, three-quarter view"},
-    13: {"category": "Equipment", "label": "Ornate Golden Coif", "text": "pixel art, colorful, small, helmet, hat, headwear, three-quarter view"},
-    14: {"category": "Character", "label": "Blue Cloak Wanderer", "text": "pixel art, colorful, small, wizard, mage, spellcaster, three-quarter view"},
-    15: {"category": "Weapon", "label": "Ancient Oak Staff", "text": "pixel art, brown, large, staff, wand, magical weapon, three-quarter view"},
-    16: {"category": "Enemy / Monster", "label": "Dungeon Crawler Beast", "text": "pixel art, gray, small, monster, enemy creature, back view"},
-    17: {"category": "Item / Consumable", "label": "Crimson Health Elixir", "text": "pixel art, colorful, medium-sized, potion, bottle, consumable, back view"},
-    18: {"category": "Character", "label": "Lightfoot Rogue", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    19: {"category": "Character", "label": "Red Bandana Swordsman", "text": "pixel art, colorful, small, character, hero, adventurer, front view"},
-    20: {"category": "Character", "label": "Royal Guard Squire", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    21: {"category": "Item / Consumable", "label": "Azure Mana Flask", "text": "pixel art, colorful, small, potion, bottle, consumable, back view"},
-    22: {"category": "Character", "label": "Purple Tunic Duelist", "text": "pixel art, colorful, small, character, hero, adventurer, three-quarter view"},
-    23: {"category": "Character", "label": "Steel Guardian Paladin", "text": "pixel art, gray, medium-sized, warrior, armored character, front view"},
-    24: {"category": "Character", "label": "Graybeard Warlock", "text": "pixel art, gray, medium-sized, wizard, mage, spellcaster, three-quarter view"},
-    25: {"category": "Item / Consumable", "label": "Stamina Brew Bottle", "text": "pixel art, brown, small, potion, bottle, consumable, three-quarter view"},
-    26: {"category": "Enemy / Monster", "label": "Toxic Green Slime", "text": "pixel art, brown, small, slime, blob creature, three-quarter view"},
-    27: {"category": "Character", "label": "Cloaked Scout (Rear View)", "text": "pixel art, gray, small, character, hero, adventurer, back view"},
-    28: {"category": "Character", "label": "Shield-Bearer Vanguard", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    29: {"category": "Character", "label": "Frontline Champion", "text": "pixel art, gray, small, character, hero, adventurer, front view"},
-    30: {"category": "Character", "label": "Dungeon Raider", "text": "pixel art, gray, small, character, hero, adventurer, three-quarter view"},
-    31: {"category": "Prop / Container", "label": "Reinforced Treasure Chest", "text": "pixel art, brown, large, chest, container, three-quarter view"},
-    32: {"category": "Weapon", "label": "Dark Yew Recurve Bow", "text": "pixel art, dark, large, bow, ranged weapon, back view"},
-    33: {"category": "Weapon", "label": "Iron Battle Staff", "text": "pixel art, gray, large, staff, wand, magical weapon, back view"},
-    34: {"category": "Weapon", "label": "Crystal-Tipped Wand", "text": "pixel art, gray, small, staff, wand, magical weapon, three-quarter view"}
+    i: {"category": "Dataset Sprite", "label": f"Sprite #{i + 1}", "text": f"pixel art, sprite, dataset image #{i + 1}"}
+    for i in range(35)
 }
 
 
@@ -622,26 +589,14 @@ def gan_categories():
 
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
-    roles = [
-        ("Hero (Paladin)", "Hero"), ("Archer (Ranger)", "Archer"), ("Mage (Sorcerer)", "Mage"),
-        ("Rogue (Thief)", "Rogue"), ("Orc (Warrior)", "Orc"), ("Cleric (Priest)", "Cleric"),
-        ("Hero (Knight)", "Hero"), ("Archer (Hunter)", "Archer"), ("Mage (Wizard)", "Mage"),
-        ("Rogue (Assassin)", "Rogue"), ("Orc (Berserker)", "Orc"), ("Cleric (Healer)", "Cleric"),
-        ("Hero (Champion)", "Hero"), ("Archer (Marksman)", "Archer"), ("Mage (Elementalist)", "Mage"),
-        ("Rogue (Shadow)", "Rogue"), ("Orc (Chieftain)", "Orc"), ("Cleric (Templar)", "Cleric"),
-        ("Hero (Guardian)", "Hero"), ("Archer (Sniper)", "Archer"), ("Mage (Enchanter)", "Mage"),
-        ("Rogue (Infiltrator)", "Rogue"), ("Orc (Warlord)", "Orc"), ("Cleric (Bishop)", "Cleric"),
-        ("Hero (Crusader)", "Hero")
-    ]
     result = []
-    for i, (label, role) in enumerate(roles):
-        sprite_num = i + 1
+    for i in range(25):
         result.append({
-            "id": sprite_num,
-            "label": f"#{sprite_num:02d}: {label}",
-            "role": role,
-            "category": "Character",
-            "url": f"/characters_25/sprite_{sprite_num:02d}_{role}.png"
+            "id": i + 1,
+            "label": f"Sprite #{i + 1}",
+            "filename": f"alucard_{i}.png",
+            "category": "Dataset Sprite",
+            "url": f"/alucard_samples/alucard_{i}.png"
         })
     return result
 
@@ -1277,7 +1232,7 @@ async def vae_retrieve_more(category: str = Form("Characters"), top_k: int = For
                         "id": i,
                         "url": f"/alucard_samples/alucard_{i}.png",
                         "category": cat_info["category"],
-                        "label": f"Sprite #{i+1}: {cat_info['label']}"
+                        "label": f"Sprite #{i+1}"
                     })
                     if len(results) >= top_k:
                         break

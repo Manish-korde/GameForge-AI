@@ -9,37 +9,17 @@ const DEMO_MODE = true; // Hardcoded for now until backend is connected
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const FRONT_FACING_CHARACTERS_25 = [
-  { id: 1, label: "Hero (Paladin)", role: "Hero", category: "Character", url: "/characters_25/sprite_01_Hero.png" },
-  { id: 2, label: "Archer (Ranger)", role: "Archer", category: "Character", url: "/characters_25/sprite_02_Archer.png" },
-  { id: 3, label: "Mage (Sorcerer)", role: "Mage", category: "Character", url: "/characters_25/sprite_03_Mage.png" },
-  { id: 4, label: "Rogue (Thief)", role: "Rogue", category: "Character", url: "/characters_25/sprite_04_Rogue.png" },
-  { id: 5, label: "Orc (Warrior)", role: "Orc", category: "Character", url: "/characters_25/sprite_05_Orc.png" },
-  { id: 6, label: "Cleric (Priest)", role: "Cleric", category: "Character", url: "/characters_25/sprite_06_Cleric.png" },
-  { id: 7, label: "Hero (Knight)", role: "Hero", category: "Character", url: "/characters_25/sprite_07_Hero.png" },
-  { id: 8, label: "Archer (Hunter)", role: "Archer", category: "Character", url: "/characters_25/sprite_08_Archer.png" },
-  { id: 9, label: "Mage (Wizard)", role: "Mage", category: "Character", url: "/characters_25/sprite_09_Mage.png" },
-  { id: 10, label: "Rogue (Assassin)", role: "Rogue", category: "Character", url: "/characters_25/sprite_10_Rogue.png" },
-  { id: 11, label: "Orc (Berserker)", role: "Orc", category: "Character", url: "/characters_25/sprite_11_Orc.png" },
-  { id: 12, label: "Cleric (Healer)", role: "Cleric", category: "Character", url: "/characters_25/sprite_12_Cleric.png" },
-  { id: 13, label: "Hero (Champion)", role: "Hero", category: "Character", url: "/characters_25/sprite_13_Hero.png" },
-  { id: 14, label: "Archer (Marksman)", role: "Archer", category: "Character", url: "/characters_25/sprite_14_Archer.png" },
-  { id: 15, label: "Mage (Elementalist)", role: "Mage", category: "Character", url: "/characters_25/sprite_15_Mage.png" },
-  { id: 16, label: "Rogue (Shadow)", role: "Rogue", category: "Character", url: "/characters_25/sprite_16_Rogue.png" },
-  { id: 17, label: "Orc (Chieftain)", role: "Orc", category: "Character", url: "/characters_25/sprite_17_Orc.png" },
-  { id: 18, label: "Cleric (Templar)", role: "Cleric", category: "Character", url: "/characters_25/sprite_18_Cleric.png" },
-  { id: 19, label: "Hero (Guardian)", role: "Hero", category: "Character", url: "/characters_25/sprite_19_Hero.png" },
-  { id: 20, label: "Archer (Sniper)", role: "Archer", category: "Character", url: "/characters_25/sprite_20_Archer.png" },
-  { id: 21, label: "Mage (Enchanter)", role: "Mage", category: "Character", url: "/characters_25/sprite_21_Mage.png" },
-  { id: 22, label: "Rogue (Infiltrator)", role: "Rogue", category: "Character", url: "/characters_25/sprite_22_Rogue.png" },
-  { id: 23, label: "Orc (Warlord)", role: "Orc", category: "Character", url: "/characters_25/sprite_23_Orc.png" },
-  { id: 24, label: "Cleric (Bishop)", role: "Cleric", category: "Character", url: "/characters_25/sprite_24_Cleric.png" },
-  { id: 25, label: "Hero (Crusader)", role: "Hero", category: "Character", url: "/characters_25/sprite_25_Hero.png" }
-];
+export const ALUCARD_DATASET_SPRITES_25 = Array.from({ length: 25 }, (_, i) => ({
+  id: i + 1,
+  label: `Sprite #${i + 1}`,
+  category: "Dataset Sprite",
+  url: `/alucard_samples/alucard_${i}.png`
+}));
 
-export const SAMPLE_SPRITES_35 = FRONT_FACING_CHARACTERS_25;
+export const SAMPLE_SPRITES_35 = ALUCARD_DATASET_SPRITES_25;
+export const FRONT_FACING_CHARACTERS_25 = ALUCARD_DATASET_SPRITES_25;
 
-const HUMAN_SPRITES = FRONT_FACING_CHARACTERS_25.map(c => c.url);
+const HUMAN_SPRITES = ALUCARD_DATASET_SPRITES_25.map(c => c.url);
 
 export const fetchSampleSpritesManifest = async () => {
   try {
@@ -52,7 +32,7 @@ export const fetchSampleSpritesManifest = async () => {
       }));
     }
   } catch (e) {}
-  return FRONT_FACING_CHARACTERS_25;
+  return ALUCARD_DATASET_SPRITES_25;
 };
 
 export const fetchRandomHumanSprite = () => {
@@ -223,7 +203,7 @@ export const generateImage = async (spec) => {
     status: 'success',
     data: {
       id: 'asset-' + Date.now(),
-      name: selectedSprite.label.split(": ")[1] || selectedSprite.label,
+      name: selectedSprite.label,
       type: 'Image',
       source: 'Alucard Dataset',
       model: 'VAE Grounded Asset',
