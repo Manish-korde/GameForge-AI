@@ -255,6 +255,67 @@ const CreateAsset = () => {
       clusterAssets(['/alucard_samples/alucard_1.png']).then(res => {
         setClusterData(res);
       }).catch(console.error);
+    } else if (testMode === 'variation') {
+      const asset = {
+        id: 'var-1',
+        name: 'Knight Hero (Character - #200000)',
+        type: 'Image',
+        source: 'Alucard Dataset (Characters)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, gray, medium-sized, warrior, armor, sword, front view',
+        imageUrl: '/alucard_dataset_image/200000',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200000');
+      setCharacterBUrl('/alucard_dataset_image/200005');
+      setStep(3);
+      setActiveView('vae');
+      setVaeScale(1.0);
+      runVAEInference('/alucard_dataset_image/200000', 1.0).then(res => {
+        setVaeResult(res);
+      }).catch(console.error);
+    } else if (testMode === 'blend_0' || testMode === 'blend_05' || testMode === 'blend_1') {
+      const alphaVal = testMode === 'blend_0' ? 0.0 : (testMode === 'blend_1' ? 1.0 : 0.5);
+      const asset = {
+        id: 'blend-1',
+        name: 'Knight Hero (Character - #200000)',
+        type: 'Image',
+        source: 'Alucard Dataset (Characters)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, gray, medium-sized, warrior, armor, sword, front view',
+        imageUrl: '/alucard_dataset_image/200000',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200000');
+      setCharacterBUrl('/alucard_dataset_image/200005');
+      setInterpolationAlpha(alphaVal);
+      setStep(3);
+      setActiveView('vae');
+      runVAEInterpolation('/alucard_dataset_image/200000', '/alucard_dataset_image/200005', alphaVal).then(res => {
+        setInterpolatedResult(res);
+      }).catch(console.error);
+    } else if (testMode === 'interpolation') {
+      const asset = {
+        id: 'interp-1',
+        name: 'Knight Hero (Character - #200000)',
+        type: 'Image',
+        source: 'Alucard Dataset (Characters)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, gray, medium-sized, warrior, armor, sword, front view',
+        imageUrl: '/alucard_dataset_image/200000',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200000');
+      setCharacterBUrl('/alucard_dataset_image/200005');
+      setInterpolationAlpha(0.5);
+      setStep(3);
+      setActiveView('vae');
+      runVAEInterpolation('/alucard_dataset_image/200000', '/alucard_dataset_image/200005', 0.5).then(res => {
+        setInterpolatedResult(res);
+      }).catch(console.error);
     } else if (testMode === 'signoff') {
       const asset = {
         id: 'signoff-1',

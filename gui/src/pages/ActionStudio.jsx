@@ -46,6 +46,40 @@ export default function ActionStudio() {
     fetchActionDiffusionStatus().then(info => {
       if (info) setStatusInfo(info);
     });
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auto") === "true") {
+      fetch("/alucard_samples/alucard_0.png")
+        .then(r => r.blob())
+        .then(blob => new Promise(res => {
+          const reader = new FileReader();
+          reader.onloadend = () => res(reader.result);
+          reader.readAsDataURL(blob);
+        }))
+        .then(refB64 => {
+          return generateDiffusionPose({
+            action: "walk",
+            poseId: 2,
+            referenceB64: refB64,
+            steps: 20,
+            seed: 42
+          });
+        })
+        .then(res => {
+          if (res && res.status === "success") {
+            setResultSpriteB64(res.image_b64);
+            setResultMetadata({
+              action: res.action,
+              pose_name: res.pose_name,
+              seed: res.seed,
+              steps: res.steps,
+              latency_ms: res.latency_ms,
+              device: res.device,
+              sha256: res.checkpoint_sha256
+            });
+          }
+        })
+        .catch(console.error);
+    }
   }, []);
 
   // Walk Cycle Live Animation Ticker

@@ -22,6 +22,20 @@ export default function DCGANStudio() {
         setClasses(data.classes);
       }
       setDcganStatus(data?.dcgan_status || "Online");
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("auto") === "true") {
+        generateDCGANCharacters({
+          role: "🎲 Random Latent (Fresh Synthesis)",
+          count: 4,
+          seed: 42,
+          pixelArtMode: true,
+        }).then(res => {
+          setSprites(res.sprites || []);
+          if (res.sprites && res.sprites.length > 0) {
+            setSelectedSprite(res.sprites[0]);
+          }
+        }).catch(console.error);
+      }
     });
   }, []);
 
