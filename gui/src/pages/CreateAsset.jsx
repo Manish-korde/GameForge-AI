@@ -144,6 +144,50 @@ const CreateAsset = () => {
       clusterAssets(['/alucard_samples/alucard_0.png']).then(res => {
         setClusterData(res);
       }).catch(console.error);
+    } else if (testMode === 'sword') {
+      const asset = {
+        id: 'sword-1',
+        name: 'Sword (Weapon - #200319)',
+        type: 'Image',
+        source: 'Alucard Dataset (Weapons)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, brown, small, sword, blade weapon, side view',
+        imageUrl: '/alucard_dataset_image/200319',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200319');
+      setCharacterBUrl('/alucard_samples/alucard_0.png');
+      setStep(3);
+      setActiveView('vae');
+      searchSimilarAssets('/alucard_dataset_image/200319', 4, 'All').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_dataset_image/200319']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
+    } else if (testMode === 'potion') {
+      const asset = {
+        id: 'potion-1',
+        name: 'Health Potion (Item - #200081)',
+        type: 'Image',
+        source: 'Alucard Dataset (Items)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, colorful, medium-sized, potion, bottle, consumable, back view',
+        imageUrl: '/alucard_dataset_image/200081',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200081');
+      setCharacterBUrl('/alucard_samples/alucard_0.png');
+      setStep(3);
+      setActiveView('vae');
+      searchSimilarAssets('/alucard_dataset_image/200081', 4, 'All').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_dataset_image/200081']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
     } else if (testMode === 'signoff') {
       const asset = {
         id: 'signoff-1',
@@ -554,18 +598,34 @@ const CreateAsset = () => {
                       const targetUrl = e.target.value;
                       const found = spriteList.find(s => s.url === targetUrl);
                       const spriteNumber = found ? found.id : (spriteList.findIndex(s => s.url === targetUrl) + 1 || 1);
-                      const newLabel = `Sprite #${spriteNumber}`;
+                      let newLabel = `Sprite #${spriteNumber}`;
+                      let source = 'Alucard Test Split';
+                      let promptText = `Alucard Dataset Sprite #${spriteNumber} (Held-out Test Split)`;
+                      if (targetUrl === '/alucard_dataset_image/200319') {
+                        newLabel = 'Sword (Weapon - #200319)';
+                        source = 'Alucard Dataset (Weapons)';
+                        promptText = 'pixel art, brown, small, sword, blade weapon, side view';
+                      } else if (targetUrl === '/alucard_dataset_image/200081') {
+                        newLabel = 'Health Potion (Item - #200081)';
+                        source = 'Alucard Dataset (Items)';
+                        promptText = 'pixel art, colorful, medium-sized, potion, bottle, consumable, back view';
+                      } else if (targetUrl === '/alucard_dataset_image/200001') {
+                        newLabel = 'Monster (Enemy - #200001)';
+                        source = 'Alucard Dataset (Enemies)';
+                        promptText = 'pixel art, gray, medium-sized, monster, enemy creature, front view';
+                      }
                       setGeneratedAsset({
                         ...generatedAsset,
                         name: newLabel,
-                        source: 'Alucard Test Split',
-                        prompt: `Alucard Dataset Sprite #${spriteNumber} (Held-out Test Split)`,
+                        source: source,
+                        prompt: promptText,
                         imageUrl: targetUrl
                       });
                       setCharacterAUrl(targetUrl);
                       setAeResult(null);
                       setNoisyAeResult(null);
                       setVaeResult(null);
+                      setSearchResults(null);
                     }}
                     className="bg-[#181820] border border-[#3a3a45] text-xs text-white rounded-lg p-2.5 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
                   >
@@ -574,11 +634,18 @@ const CreateAsset = () => {
                         📁 Custom Uploaded Image: {generatedAsset.name}
                       </option>
                     )}
-                    {spriteList.map((s, index) => (
-                      <option key={s.id || index} value={s.url}>
-                        Sprite #{index + 1}
-                      </option>
-                    ))}
+                    <optgroup label="⚔️ Diverse Dataset Queries (Non-Characters)">
+                      <option value="/alucard_dataset_image/200319">⚔️ Sword (Weapon - #200319)</option>
+                      <option value="/alucard_dataset_image/200081">🧪 Health Potion (Item - #200081)</option>
+                      <option value="/alucard_dataset_image/200001">👾 Monster (Enemy - #200001)</option>
+                    </optgroup>
+                    <optgroup label="🎭 Dataset Sprites (Alucard Split)">
+                      {spriteList.map((s, index) => (
+                        <option key={s.id || index} value={s.url}>
+                          Sprite #{index + 1}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 
@@ -607,8 +674,8 @@ const CreateAsset = () => {
                 </button>
               </div>
           </div>
-          <div className="col-span-2">
-            <div className="card text-center flex flex-col items-center h-full">
+          <div className="col-span-2 min-w-0">
+            <div className="card text-center flex flex-col items-center h-full w-full min-w-0 overflow-hidden">
               {activeView === 'original' && (
                 <div 
                   className={`w-full h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed rounded-lg transition-colors relative ${isDragging ? 'border-primary bg-primary/10' : 'border-[#333] hover:border-gray-500'}`}
@@ -909,7 +976,7 @@ const CreateAsset = () => {
                   </div>
 
                   {/* SECTION 1: ASSET DISCOVERY */}
-                  <div className="mb-10 bg-[#121215] border border-[#2a2a35] rounded-2xl p-6 shadow-xl text-left">
+                  <div className="mb-10 bg-[#121215] border border-[#2a2a35] rounded-2xl p-6 shadow-xl text-left w-full min-w-0 overflow-hidden">
                     <div className="flex items-center justify-between mb-4 border-b border-[#25252e] pb-3">
                       <div>
                         <h4 className="text-lg font-bold text-white uppercase tracking-wider">1. Asset Discovery & Library Search</h4>
@@ -929,7 +996,7 @@ const CreateAsset = () => {
 
                     {/* Visual Search Panel */}
                     {searchResults && (
-                      <div className="bg-[#18181f] p-4 rounded-xl border border-[#333] mb-4">
+                      <div className="bg-[#18181f] p-4 rounded-xl border border-[#333] mb-4 w-full min-w-0">
                         <div className="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-[#25252e] pb-3">
                           <div>
                             <h5 className="text-sm font-semibold text-white">
@@ -950,7 +1017,7 @@ const CreateAsset = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-2 w-full">
                           {searchResults.matches.map((item, idx) => (
                             <div key={idx} className="flex flex-col items-center bg-[#101014] p-3 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition shadow-sm">
                               <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-20 h-20 object-contain mb-2 bg-[#0c0c10] rounded p-1" style={{ imageRendering: 'pixelated' }} />
@@ -965,16 +1032,18 @@ const CreateAsset = () => {
 
                     {/* Clustering Panel */}
                     {clusterData && (
-                      <div className="bg-[#18181f] p-4 rounded-xl border border-[#333]">
-                         <div className="flex justify-between items-center mb-4 border-b border-[#2a2a35] pb-2">
+                      <div className="bg-[#18181f] p-4 rounded-xl border border-[#333] w-full min-w-0">
+                         <div className="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-[#2a2a35] pb-2">
                            <div>
                              <h5 className="text-sm font-semibold text-white">Indexed Library Category Breakdown</h5>
-                             <p className="text-[10px] text-secondary mt-0.5">Categorized across 25,000 indexed project assets.</p>
+                             <p className="text-[10px] text-gray-400 mt-0.5">Measures separation across 256D latent space (-1 to +1; positive values denote distinct intra-category clusters).</p>
                            </div>
-                           <span className="text-xs font-mono text-indigo-400 font-bold">Category Separation Score: {clusterData.silhouette_score}</span>
+                           <div className="text-right">
+                             <span className="text-xs font-mono text-indigo-400 font-bold">Category Cohesion (Silhouette): {clusterData.silhouette_score}</span>
+                           </div>
                          </div>
                         
-                        <div className="space-y-4">
+                        <div className="space-y-4 w-full min-w-0">
                           {[1, 2, 3, 4].map((cId) => {
                             const cPrefix = `Cluster #${cId}`;
                             const clusterItems = clusterData.clusters.filter(item => item.cluster_name.startsWith(cPrefix));
@@ -982,15 +1051,16 @@ const CreateAsset = () => {
                             const displayName = clusterItems[0].cluster_name;
                             
                             return (
-                              <div key={cId} className="bg-[#101014] p-3.5 rounded-lg border border-[#2a2a35]">
+                              <div key={cId} className="bg-[#101014] p-3.5 rounded-lg border border-[#2a2a35] w-full min-w-0">
                                 <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
                                   <span>{displayName}</span>
                                   <span className="text-[10px] text-gray-500 font-mono font-normal">({clusterItems.length} sprites)</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2.5">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
                                   {clusterItems.map((item, idx) => (
-                                    <div key={idx} className="relative group bg-[#18181f] p-1.5 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition">
-                                      <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-14 h-14 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                    <div key={idx} className="relative group bg-[#18181f] p-2 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition flex flex-col items-center">
+                                      <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-16 h-16 object-contain mb-1" style={{ imageRendering: 'pixelated' }} />
+                                      <span className="text-[9px] text-gray-400 font-mono truncate w-full text-center">{item.label}</span>
                                     </div>
                                   ))}
                                 </div>

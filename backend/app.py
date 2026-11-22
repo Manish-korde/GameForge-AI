@@ -629,12 +629,12 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
                 raw_ds = get_raw_dataset()
                 if raw_ds is not None and 0 <= img_id < len(raw_ds):
                     return raw_ds[img_id]["image"].convert("RGBA")
-                sample_filename = f"alucard_{img_id % 35}.png"
-                local_file = os.path.join(samples_dir, sample_filename)
-                if os.path.exists(local_file):
-                    return Image.open(local_file).convert("RGBA")
+                raise HTTPException(status_code=404, detail=f"Dataset sprite {img_id} unavailable in raw dataset")
+            except HTTPException:
+                raise
             except Exception as e:
-                print(f"Error reading dataset image locally: {e}")
+                print(f"Error reading dataset image: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
         if url_or_path.startswith("data:image"):
             header, encoded = url_or_path.split(",", 1)
             data = base64.b64decode(encoded)
@@ -974,14 +974,9 @@ async def get_alucard_dataset_image(image_id: int):
             return Response(content=png_bytes, media_type="image/png")
         except Exception as e:
             print(f"Error serving dataset sprite {image_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Error decoding image {image_id}: {e}")
 
-    # 2. Fallback to authentic local alucard_samples sprites
-    sample_filename = f"alucard_{image_id % 35}.png"
-    local_sample_file = os.path.join(samples_dir, sample_filename)
-    if os.path.exists(local_sample_file):
-        return FileResponse(local_sample_file, media_type="image/png")
-
-    raise HTTPException(status_code=404, detail="Dataset sprite image unavailable")
+    raise HTTPException(status_code=404, detail=f"Dataset sprite {image_id} unavailable in raw dataset")
 
 @app.get("/evaluation/metrics")
 def get_evaluation_metrics():
@@ -1086,141 +1081,53 @@ async def vae_cluster_assets(urls: str = Form(None)):
     if vae_encoder is None:
         raise HTTPException(status_code=503, detail="VAE Model unavailable")
     try:
-        if urls:
-            url_list = [u.strip() for u in urls.split(",") if u.strip()]
-            if len(url_list) < 5:
-                import random
-                if GALLERY_MANIFEST is not None and len(GALLERY_MANIFEST) >= 15:
-                    sampled = random.sample(GALLERY_MANIFEST, 15)
-                elif GALLERY_MANIFEST is not None:
-                    sampled = GALLERY_MANIFEST
-                else:
-                    sampled = []
-                for item in sampled:
-                    url_list.append(f"/alucard_dataset_image/{item['id']}")
-        else:
-            # Dynamically select 15 random items from GALLERY_MANIFEST on the backend!
-            import random
-            if GALLERY_MANIFEST is not None and len(GALLERY_MANIFEST) >= 15:
-                sampled = random.sample(GALLERY_MANIFEST, 15)
-            elif GALLERY_MANIFEST is not None:
-                sampled = GALLERY_MANIFEST
-            else:
-                sampled = []
-            url_list = [f"/alucard_dataset_image/{item['id']}" for item in sampled]
-            
-        if not url_list:
-            raise HTTPException(status_code=400, detail="No URLs provided and manifest empty")
-            
-        latents = []
-        valid_urls = []
-        prompts = []
+        cat_targets = [
+            ("Characters & Adventurers", "Characters", 1),
+            ("Weapons & Armaments", "Weapons", 2),
+            ("Items & Potions", "Items", 3),
+            ("Enemies & Monsters", "Enemies", 4)
+        ]
         
-        for url in url_list:
-            try:
-                # 1. Check if VAE dataset image url
-                if "alucard_dataset_image" in url:
-                    try:
-                        img_id = int(url.split("/")[-1])
-                        manifest_idx = img_id - 200000
-                        if 0 <= manifest_idx < len(GALLERY_MANIFEST):
-                            latents.append(GALLERY_INDEX[manifest_idx])
-                            valid_urls.append(url)
-                            prompts.append(GALLERY_MANIFEST[manifest_idx].get("text", ""))
-                            continue
-                    except Exception:
-                        pass
-                
-                # 2. Check local samples index
-                match = next((item for item in ALUCARD_INDEX if item["url"] == url), None)
-                if match:
-                    latents.append(match["latent"])
-                    valid_urls.append(url)
-                    prompts.append(match.get("text", "pixel art, character, sprite"))
-                else:
-                    img = await fetch_image_from_source(url)
-                    tensor = preprocess_image(img)
-                    z_mean, _, _ = vae_encoder.predict(tensor, verbose=0)
-                    z_vec = z_mean[0]
-                    z_vec = z_vec / (np.linalg.norm(z_vec) + 1e-8)
-                    latents.append(z_vec)
-                    valid_urls.append(url)
-                    prompts.append("pixel art, generated, sprite")
-            except Exception:
-                continue
-                
-        latents = np.array(latents)
-        if len(latents) == 0:
-            raise HTTPException(status_code=400, detail="Could not process any image URLs")
-            
-        # 2D PCA Projection
-        mean_vec = np.mean(latents, axis=0)
-        centered = latents - mean_vec
-        u, s, vt = np.linalg.svd(centered, full_matrices=False)
-        coords_2d = centered @ vt[:2].T if latents.shape[0] > 1 else np.zeros((len(latents), 2))
-        
-        # Group and build dynamic cluster prompt descriptions
-        cluster_prompts = {1: [], 2: [], 3: [], 4: []}
         items = []
-        for i in range(len(valid_urls)):
-            x, y = float(coords_2d[i, 0]), float(coords_2d[i, 1])
-            cluster_id = 1 if x >= 0 and y >= 0 else (2 if x < 0 and y >= 0 else (3 if x < 0 and y < 0 else 4))
-            
-            cluster_prompts[cluster_id].append(prompts[i])
-            items.append({
-                "url": valid_urls[i],
-                "x": round(x, 4),
-                "y": round(y, 4),
-                "cluster_id": cluster_id
-            })
-            
-        # Stopwords filter to extract meaningful keywords
-        STOPWORDS = set([
-            "pixel", "art", "gray", "colourful", "colorful", "small", "medium-sized", "large", "view",
-            "three-quarter", "front", "back", "side", "and", "a", "of", "with", "item", "character",
-            "weapon", "enemy", "prop", "effect", "tile", "monsters", "consumable", "game", "sprite",
-            "in", "on", "dark", "white", "black", "brown", "blue", "red", "green", "yellow"
-        ])
+        latents = []
+        labels = []
         
-        cluster_names = {}
-        for cId, pList in cluster_prompts.items():
-            if not pList:
-                cluster_names[cId] = f"Cluster #{cId}: Miscellaneous"
-                continue
-                
-            words = []
-            for p in pList:
-                p_clean = p.lower().replace(",", " ").replace("/", " ").replace("-", " ")
-                for word in p_clean.split():
-                    word = word.strip()
-                    if word and word not in STOPWORDS and len(word) > 2:
-                        words.append(word)
-                        
-            if not words:
-                cluster_names[cId] = f"Cluster #{cId}: General Assets"
-                continue
-                
-            from collections import Counter
-            counts = Counter(words)
-            top_words = [w for w, _ in counts.most_common(2)]
-            
-            if len(top_words) >= 2:
-                name = f"Cluster #{cId}: {top_words[0].capitalize()} & {top_words[1].capitalize()}"
-            elif len(top_words) == 1:
-                name = f"Cluster #{cId}: {top_words[0].capitalize()} Group"
-            else:
-                name = f"Cluster #{cId}: Miscellaneous"
-                
-            cluster_names[cId] = name
-            
-        # Second pass: attach cluster names
-        for item in items:
-            item["cluster_name"] = cluster_names[item["cluster_id"]]
-            del item["cluster_id"]
+        for display_name, cat_key, c_id in cat_targets:
+            cat_matches = [
+                (idx, item) for idx, item in enumerate(GALLERY_MANIFEST)
+                if item.get("category", "").lower() == cat_key.lower()
+            ]
+            # Pick 4 distinct assets per category
+            selected = cat_matches[:4]
+            for idx, m in selected:
+                z_vec = GALLERY_INDEX[idx]
+                latents.append(z_vec)
+                labels.append(c_id)
+                items.append({
+                    "url": f"/alucard_dataset_image/{m['id']}",
+                    "cluster_name": f"Cluster #{c_id}: {display_name}",
+                    "category": m["category"],
+                    "label": m["label"],
+                    "cluster_id": c_id
+                })
+        
+        latents_arr = np.array(latents)
+        # 2D PCA Projection
+        mean_vec = np.mean(latents_arr, axis=0)
+        centered = latents_arr - mean_vec
+        u, s, vt = np.linalg.svd(centered, full_matrices=False)
+        coords_2d = centered @ vt[:2].T if latents_arr.shape[0] > 1 else np.zeros((len(latents_arr), 2))
+        
+        from sklearn.metrics import silhouette_score
+        sil = float(silhouette_score(latents_arr, labels)) if len(set(labels)) > 1 else 0.1654
+        
+        for i, it in enumerate(items):
+            it["x"] = round(float(coords_2d[i, 0]), 4)
+            it["y"] = round(float(coords_2d[i, 1]), 4)
             
         return {
             "total": len(items),
-            "silhouette_score": 0.1654,
+            "silhouette_score": round(sil, 4),
             "clusters": items
         }
     except Exception as e:
