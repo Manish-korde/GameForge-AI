@@ -683,6 +683,11 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
         threshold = 0.05
         exact_match = float(np.mean(np.abs(input_tensor - output_tensor) <= threshold) * 100)
         
+        # Spatial Variance & Entropy Check (Composite Anomaly Detection)
+        rgb_spatial_std = float(np.std(input_tensor[0, :, :, :3]))
+        is_transparent = bool(np.any(input_tensor[0, :, :, 3] < 0.5))
+        is_degenerate_canvas = bool(rgb_spatial_std < 0.02)
+        
         alpha_true = input_tensor[0, :, :, 3] > 0.5
         alpha_pred = output_tensor[0, :, :, 3] > 0.5
         intersection = np.logical_and(alpha_true, alpha_pred).sum()
@@ -711,7 +716,11 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
                 "ssim": ssim,
                 "exact_match": exact_match,
                 "alpha_iou": alpha_iou,
-                "color_match": color_match
+                "color_match": color_match,
+                "spatial_std": rgb_spatial_std,
+                "is_transparent": is_transparent,
+                "is_degenerate": is_degenerate_canvas,
+                "p95_threshold": 0.001313
             }
         }
     except Exception as e:
@@ -764,6 +773,10 @@ async def reconstruct_noisy(
         else:
             color_match = 100.0
             
+        rgb_spatial_std = float(np.std(input_tensor[0, :, :, :3]))
+        is_transparent = bool(np.any(input_tensor[0, :, :, 3] < 0.5))
+        is_degenerate_canvas = bool(rgb_spatial_std < 0.02)
+            
         # 5. Postprocess
         original_processed_img = postprocess_image(input_tensor)
         noisy_img = postprocess_image(noisy_tensor)
@@ -780,7 +793,11 @@ async def reconstruct_noisy(
                 "ssim": ssim,
                 "exact_match": exact_match,
                 "alpha_iou": alpha_iou,
-                "color_match": color_match
+                "color_match": color_match,
+                "spatial_std": rgb_spatial_std,
+                "is_transparent": is_transparent,
+                "is_degenerate": is_degenerate_canvas,
+                "p95_threshold": 0.001313
             }
         }
     except Exception as e:

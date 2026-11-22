@@ -381,10 +381,17 @@ const CreateAsset = () => {
           <div className="col-span-1">
               <div className="card text-left">
                 <h3 className="mb-4">Asset Details</h3>
-                <div className="text-sm text-secondary mb-1">Name</div>
-                <div className="mb-3 font-semibold text-white">{generatedAsset.name}</div>
-                <div className="text-sm text-secondary mb-1">Prompt</div>
-                <div className="mb-4 text-sm">{generatedAsset.prompt}</div>
+                <div className="text-sm text-secondary mb-1">Source / Asset Name</div>
+                <div className="mb-2 font-semibold text-white flex items-center justify-between">
+                  <span>{generatedAsset.name}</span>
+                  <span className="badge text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {generatedAsset.source || 'Dataset Sprite'}
+                  </span>
+                </div>
+                <div className="text-sm text-secondary mb-1">Context Prompt</div>
+                <div className="mb-4 text-xs text-gray-300 font-mono bg-[#14141c] p-2 rounded border border-[#252530]">
+                  {generatedAsset.prompt}
+                </div>
 
                 {/* Select Dataset Sprite by Number Dropdown */}
                 <div className="mb-4 text-left border-t border-b border-[#252530] py-3">
@@ -402,6 +409,8 @@ const CreateAsset = () => {
                       setGeneratedAsset({
                         ...generatedAsset,
                         name: newLabel,
+                        source: 'Alucard Test Split',
+                        prompt: `Alucard Dataset Sprite #${spriteNumber} (Held-out Test Split)`,
                         imageUrl: targetUrl
                       });
                       setCharacterAUrl(targetUrl);
@@ -411,6 +420,11 @@ const CreateAsset = () => {
                     }}
                     className="bg-[#181820] border border-[#3a3a45] text-xs text-white rounded-lg p-2.5 w-full focus:outline-none focus:border-primary cursor-pointer font-medium"
                   >
+                    {generatedAsset.source === 'Upload' && (
+                      <option value={generatedAsset.imageUrl}>
+                        📁 Custom Uploaded Image: {generatedAsset.name}
+                      </option>
+                    )}
                     {spriteList.map((s, index) => (
                       <option key={s.id || index} value={s.url}>
                         Sprite #{index + 1}
@@ -518,15 +532,28 @@ const CreateAsset = () => {
 
                   {aeResult.metrics && (
                     <div className="max-w-2xl mx-auto mb-8">
-                      {/* Automated Asset QA Outlier Status Banner */}
-                      {aeResult.metrics.mse <= 0.001313 ? (
+                      {/* Composite Automated Asset QA Outlier Status Banner */}
+                      {aeResult.metrics.is_degenerate ? (
+                        <div className="p-4 mb-6 rounded-xl border bg-rose-950/40 border-rose-500/50 flex items-center justify-between text-left shadow-lg">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">🛑</span>
+                            <div>
+                              <h5 className="text-rose-400 font-bold text-sm">Automated Asset QA: Flagged as Degenerate Canvas (Zero Information)</h5>
+                              <p className="text-xs text-gray-300 mt-0.5">
+                                Spatial variance (<span className="font-mono text-rose-300 font-bold">{aeResult.metrics.spatial_std?.toFixed(4) || "0.0000"}</span>) is below the minimum entropy threshold (&lt; 0.02). This asset is a flat or blank canvas and cannot be certified as a game sprite.
+                              </p>
+                            </div>
+                          </div>
+                          <span className="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs px-3 py-1 font-semibold">Degenerate Canvas</span>
+                        </div>
+                      ) : aeResult.metrics.mse <= 0.001313 ? (
                         <div className="p-4 mb-6 rounded-xl border bg-emerald-950/40 border-emerald-500/50 flex items-center justify-between text-left shadow-lg">
                           <div className="flex items-center gap-3">
                             <span className="text-2xl">🟢</span>
                             <div>
                               <h5 className="text-emerald-400 font-bold text-sm">Automated Asset QA: Passed In-Distribution Audit</h5>
                               <p className="text-xs text-gray-300 mt-0.5">
-                                Reconstruction MSE (<span className="font-mono text-emerald-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) is below the P95 outlier threshold (<code className="text-emerald-300">0.001313</code>). Asset matches the learned 280K visual distribution.
+                                Reconstruction MSE (<span className="font-mono text-emerald-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) is below the P95 outlier threshold (<code className="text-emerald-300">0.001313</code>). Asset matches the learned 254K visual distribution.
                               </p>
                             </div>
                           </div>
@@ -539,7 +566,7 @@ const CreateAsset = () => {
                             <div>
                               <h5 className="text-amber-400 font-bold text-sm">Automated Asset QA: Flagged for Human Review (Outlier Detected)</h5>
                               <p className="text-xs text-gray-300 mt-0.5">
-                                Reconstruction MSE (<span className="font-mono text-amber-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) exceeds the P95 outlier threshold (<code className="text-amber-300">0.001313</code>). This asset is unusual relative to the learned distribution and is flagged for manual inspection.
+                                Reconstruction MSE (<span className="font-mono text-amber-300 font-bold">{aeResult.metrics.mse.toFixed(6)}</span>) exceeds the P95 outlier threshold (<code className="text-amber-300">0.001313</code>). This asset contains unusual high-frequency features or corrupted pixels relative to the learned distribution and is flagged for manual inspection.
                               </p>
                             </div>
                           </div>
@@ -568,14 +595,19 @@ const CreateAsset = () => {
                           <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
                             <div className="text-xs text-secondary mb-1">Color Palette Match</div>
                             <div className="font-mono text-green-400 font-bold">{aeResult.metrics.color_match.toFixed(2)}%</div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">Foreground Only (±0.05)</div>
                           </div>
                           <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
                             <div className="text-xs text-secondary mb-1">Exact Pixel Match</div>
                             <div className="font-mono text-green-400 font-bold">{aeResult.metrics.exact_match.toFixed(2)}%</div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">Global Canvas (±0.05)</div>
                           </div>
                           <div className="bg-[#1a1a1a] p-3 rounded-lg border border-[#333]">
                             <div className="text-xs text-secondary mb-1">Alpha Mask IoU</div>
-                            <div className="font-mono text-green-400 font-bold">{aeResult.metrics.alpha_iou.toFixed(2)}%</div>
+                            <div className="font-mono text-green-400 font-bold">
+                              {aeResult.metrics.is_transparent ? `${aeResult.metrics.alpha_iou.toFixed(2)}%` : "100% (Opaque)"}
+                            </div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">{aeResult.metrics.is_transparent ? "Silhouette Overlap" : "Fully Opaque Canvas"}</div>
                           </div>
                         </div>
 
