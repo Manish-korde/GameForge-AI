@@ -187,7 +187,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # DCGAN Character Generator Service
-from dcgan_service import load_dcgan_generator, generate_character_sprites, generate as dcgan_generate, get_status as get_dcgan_status, CLASS_PRESETS as DCGAN_CLASSES
+from dcgan_service import load_dcgan_generator, generate_character_sprites, generate as dcgan_generate, get_status as get_dcgan_status, CLASS_PRESETS as DCGAN_CLASSES, find_safe_seed
 
 try:
     from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
@@ -296,18 +296,26 @@ async def dcgan_generate_character_endpoint(
     role: str = Form("Hero (Knight)"),
     count: int = Form(4),
     seed: int = Form(None),
-    pixel_art_mode: bool = Form(True)
+    pixel_art_mode: bool = Form(True),
+    quality_filter: bool = Form(False)
 ):
     """Endpoint for generating 64x64 transparent character sprites using the 50-epoch DCGAN model."""
     result = generate_character_sprites(
         role=role,
         count=count,
         seed=seed,
-        pixel_art_mode=pixel_art_mode
+        pixel_art_mode=pixel_art_mode,
+        quality_filter=quality_filter
     )
     if "error" in result and not result.get("sprites"):
         raise HTTPException(status_code=503, detail=result["error"])
     return result
+
+@app.get("/dcgan/safe_seed")
+def dcgan_safe_seed_endpoint(seed: int = None):
+    """Finds a seed with >= 10% foreground canvas coverage, retrying up to 5 times."""
+    safe_seed = find_safe_seed(seed=seed, max_retries=5)
+    return {"seed": safe_seed}
 
 
 def score_sprite_with_ae(sprite_rgba_64):
@@ -542,7 +550,7 @@ def dcgan_classes_endpoint():
     return {
         "classes": list(DCGAN_CLASSES.keys()),
         "dcgan_status": get_dcgan_status(),
-        "model": "DCGAN 169K Characters (50 Epochs)"
+        "model": "Discrete DCGAN 42K Characters (50 Epochs)"
     }
 
 

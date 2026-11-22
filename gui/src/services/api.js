@@ -440,7 +440,7 @@ export const fetchDCGANClasses = async () => {
   }
 };
 
-export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 4, seed = null, pixelArtMode = true }) => {
+export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 4, seed = null, pixelArtMode = true, qualityFilter = false }) => {
   try {
     const formData = new FormData();
     formData.append("role", role);
@@ -449,6 +449,7 @@ export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 
       formData.append("seed", seed);
     }
     formData.append("pixel_art_mode", pixelArtMode ? "true" : "false");
+    formData.append("quality_filter", qualityFilter ? "true" : "false");
 
     const res = await fetch(`${BACKEND_URL}/dcgan/generate_character`, {
       method: "POST",
@@ -462,6 +463,19 @@ export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 
   } catch (err) {
     console.error("DCGAN Generation Error:", err);
     throw err;
+  }
+};
+
+export const fetchSafeSeed = async (seed = null) => {
+  try {
+    const url = seed ? `${BACKEND_URL}/dcgan/safe_seed?seed=${seed}` : `${BACKEND_URL}/dcgan/safe_seed`;
+    const res = await fetch(url);
+    if (!res.ok) return Math.floor(Math.random() * 999999);
+    const data = await res.json();
+    return data.seed;
+  } catch (err) {
+    console.warn("Failed to fetch safe seed from backend, using fallback:", err);
+    return Math.floor(Math.random() * 999999);
   }
 };
 

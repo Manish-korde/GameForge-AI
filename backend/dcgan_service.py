@@ -203,11 +203,12 @@ def score_candidate(c_img: np.ndarray, orphans: int) -> float:
     score = (orphans * 3.0) + (abs(fg_frac - 0.32) * 120.0) + color_penalty
     return score
 
-def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fresh Synthesis)") -> list:
+def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fresh Synthesis)", quality_filter: bool = False) -> list:
     """
     SINGLE ENTRY POINT:
-    generate(n, seed) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
-    Also attaches .b64 attribute or helper if needed.
+    generate(n, seed, role, quality_filter) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
+    quality_filter: if True, applies the paper's best-of-8 candidate search & tight floater filter.
+                    if False (default), performs fast single forward-pass unconditional discrete generation.
     """
     global _generator, _palette_tf
     if _generator is None or _palette_tf is None:
@@ -232,47 +233,71 @@ def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fres
             
         anchor_z = np.clip(anchor_z, -2.0, 2.0)
         
-        # 8 candidate variations for quality rejection sampling
-        candidates_z = [anchor_z]
-        for k in range(7):
-            jitter = rng.normal(0, 0.80, size=(LATENT_DIM,)).astype(np.float32)
-            cand = 0.80 * anchor_z + 0.20 * jitter
-            candidates_z.append(np.clip(cand, -2.0, 2.0))
-        candidates_z = np.array(candidates_z, dtype=np.float32)
-        
-        cand_logits = _generator(candidates_z, training=False)
-        cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
-        
-        best_cleaned = cand_imgs[0]
-        best_score = float("inf")
-        
-        for c_img in cand_imgs:
-            cleaned_cand, orphans = remove_stray_floaters_tight(c_img)
-            score = score_candidate(cleaned_cand, orphans)
-            if score < best_score:
-                best_score = score
-                best_cleaned = cleaned_cand
-                
+        if quality_filter:
+            # Paper's pipeline: 8 candidate variations for quality rejection sampling + floater scoring
+            candidates_z = [anchor_z]
+            for k in range(7):
+                jitter = rng.normal(0, 0.80, size=(LATENT_DIM,)).astype(np.float32)
+                cand = 0.80 * anchor_z + 0.20 * jitter
+                candidates_z.append(np.clip(cand, -2.0, 2.0))
+            candidates_z = np.array(candidates_z, dtype=np.float32)
+            
+            cand_logits = _generator(candidates_z, training=False)
+            cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
+            
+            best_cleaned = cand_imgs[0]
+            best_score = float("inf")
+            
+            for c_img in cand_imgs:
+                cleaned_cand, orphans = remove_stray_floaters_tight(c_img)
+                score = score_candidate(cleaned_cand, orphans)
+                if score < best_score:
+                    best_score = score
+                    best_cleaned = cleaned_cand
+            final_sprite_64 = best_cleaned
+        else:
+            # Raw discrete DCGAN generation: 1 candidate directly from anchor_z
+            z_single = np.expand_dims(anchor_z, axis=0)
+            cand_logits = _generator(z_single, training=False)
+            cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
+            final_sprite_64 = cand_imgs[0]
+            
         # 8x nearest-neighbor upscale: 64x64 -> 512x512
-        pil_img_64 = Image.fromarray(best_cleaned, mode="RGBA")
+        pil_img_64 = Image.fromarray(final_sprite_64, mode="RGBA")
         pil_img_512 = pil_img_64.resize((512, 512), Image.NEAREST)
         # Store 64x64 native array on image object for fast pipeline reuse
-        pil_img_512.native_64 = best_cleaned
+        pil_img_512.native_64 = final_sprite_64
         output_images.append(pil_img_512)
         
     return output_images
+
+def find_safe_seed(seed: int = None, max_retries: int = 5) -> int:
+    """
+    Finds a seed whose generated sprite foreground area fraction is >= 0.10 (10%).
+    Retries up to max_retries times if a seed produces a near-empty canvas.
+    """
+    cur_seed = int(seed) if (seed is not None and str(seed).strip() != "") else int(np.random.randint(1, 999999))
+    for _ in range(max_retries + 1):
+        imgs = generate(n=1, seed=cur_seed, quality_filter=False)
+        arr = getattr(imgs[0], 'native_64', np.array(imgs[0].resize((64, 64), Image.NEAREST)))
+        fg_mask = arr[..., 3] > 127
+        if np.mean(fg_mask) >= 0.10:
+            return cur_seed
+        cur_seed = int(np.random.randint(1, 999999))
+    return cur_seed
 
 def generate_character_sprites(
     role: str = "🎲 Random Latent (Fresh Synthesis)",
     count: int = 4,
     seed: int = None,
     pixel_art_mode: bool = True,
+    quality_filter: bool = False,
     upscale_factor: int = 8
 ):
     """
-    GUI endpoint adapter wrapping generate(n, seed) -> base64 data URLs.
+    GUI endpoint adapter wrapping generate(n, seed, role, quality_filter) -> base64 data URLs.
     """
-    images_512 = generate(n=count, seed=seed, role=role)
+    images_512 = generate(n=count, seed=seed, role=role, quality_filter=quality_filter)
     sprites_b64 = []
     for pil_img in images_512:
         buffer = io.BytesIO()
@@ -286,5 +311,6 @@ def generate_character_sprites(
         "count": len(images_512),
         "generator_status": _status,
         "model": "Discrete DCGAN (50 Epochs, Palette-Conditioned Head)",
+        "quality_filter": quality_filter,
         "sprites": sprites_b64
     }

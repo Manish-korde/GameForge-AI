@@ -33,6 +33,7 @@ dec_*.png
 *.npy
 !models/*.npy
 models/*_282k*.npy
+models/*_282k*.json
 models/*progress*.json
 !models/3_DCGAN_42k_v1/config/*.npy
 *.weights.h5

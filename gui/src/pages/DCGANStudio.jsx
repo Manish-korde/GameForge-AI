@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchDCGANClasses, generateDCGANCharacters } from "../services/api";
+import { fetchDCGANClasses, generateDCGANCharacters, fetchSafeSeed } from "../services/api";
 
 export default function DCGANStudio() {
   const [classes, setClasses] = useState([
@@ -9,7 +9,8 @@ export default function DCGANStudio() {
   const [selectedRole, setSelectedRole] = useState("🎲 Random Latent (Fresh Synthesis)");
   const [count, setCount] = useState(4);
   const [seed, setSeed] = useState("");
-  const [pixelArtMode, setPixelArtMode] = useState(true);
+  const [qualityFilter, setQualityFilter] = useState(false);
+  const [rollingSeed, setRollingSeed] = useState(false);
   const [sprites, setSprites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,11 +25,13 @@ export default function DCGANStudio() {
       setDcganStatus(data?.dcgan_status || "Online");
       const params = new URLSearchParams(window.location.search);
       if (params.get("auto") === "true") {
+        const isQf = params.get("quality_filter") === "true";
+        if (isQf) setQualityFilter(true);
         generateDCGANCharacters({
           role: "🎲 Random Latent (Fresh Synthesis)",
           count: 4,
           seed: 42,
-          pixelArtMode: true,
+          qualityFilter: isQf,
         }).then(res => {
           setSprites(res.sprites || []);
           if (res.sprites && res.sprites.length > 0) {
@@ -39,6 +42,19 @@ export default function DCGANStudio() {
     });
   }, []);
 
+  async function handleRollSeed() {
+    setRollingSeed(true);
+    try {
+      const safe = await fetchSafeSeed();
+      setSeed(safe.toString());
+    } catch (e) {
+      console.warn("Failed to fetch safe seed:", e);
+      setSeed(Math.floor(Math.random() * 999999).toString());
+    } finally {
+      setRollingSeed(false);
+    }
+  }
+
   async function handleGenerate() {
     setLoading(true);
     setError(null);
@@ -47,10 +63,10 @@ export default function DCGANStudio() {
         role: selectedRole,
         count: count,
         seed: seed ? parseInt(seed) : null,
-        pixelArtMode: pixelArtMode,
+        qualityFilter: qualityFilter,
       });
       setSprites(res.sprites || []);
-      setDcganStatus(res.generator_status || "Loaded (DCGAN 169K 50-Epoch)");
+      setDcganStatus(res.generator_status || "Loaded (Discrete DCGAN 50-Epoch)");
       if (res.sprites && res.sprites.length > 0) {
         setSelectedSprite(res.sprites[0]);
       }
@@ -89,8 +105,12 @@ export default function DCGANStudio() {
               </h2>
             </div>
             <p style={{ color: "#94a3b8", margin: 0, fontSize: 14 }}>
-              Trained on <strong>169,094 character sprites</strong> for 50 Epochs (Dual T4 GPUs, 66,050 gradient updates).
+              Trained on <strong>42,212 front-facing character sprites</strong> for 50 Epochs (Dual T4 GPUs, 16,450 gradient updates).
             </p>
+            <div style={{ marginTop: 8, fontSize: 13, color: "#cbd5e1", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: "#fbbf24" }}>ℹ️</span>
+              <span><em>Unconditional generator. Not driven by the planner's JSON.</em></span>
+            </div>
           </div>
           <div style={{
             background: "rgba(16, 185, 129, 0.15)",
@@ -176,8 +196,9 @@ export default function DCGANStudio() {
               <div style={{ display: "flex", gap: 4 }}>
                 <button
                   type="button"
-                  onClick={() => setSeed(Math.floor(Math.random() * 999999).toString())}
-                  title="Roll Random Seed"
+                  onClick={handleRollSeed}
+                  disabled={rollingSeed}
+                  title="Roll Safe Seed (Foreground area >= 10%)"
                   style={{
                     background: "rgba(99, 102, 241, 0.2)",
                     border: "1px solid rgba(99, 102, 241, 0.4)",
@@ -185,10 +206,10 @@ export default function DCGANStudio() {
                     borderRadius: 4,
                     padding: "1px 6px",
                     fontSize: 11,
-                    cursor: "pointer"
+                    cursor: rollingSeed ? "wait" : "pointer"
                   }}
                 >
-                  🎲 Roll
+                  {rollingSeed ? "⏳..." : "🎲 Roll"}
                 </button>
                 {seed && (
                   <button
@@ -227,7 +248,7 @@ export default function DCGANStudio() {
             />
           </div>
 
-          {/* Pixel Art Clamping Toggle */}
+          {/* Quality Filter (Best-of-8) Toggle */}
           <div>
             <label style={{
               display: "flex",
@@ -236,16 +257,18 @@ export default function DCGANStudio() {
               cursor: "pointer",
               padding: "0.6rem 0",
               color: "#cbd5e1",
-              fontSize: 14,
+              fontSize: 13,
               userSelect: "none"
-            }}>
+            }}
+            title="Paper pipeline: 8-candidate jittering & tight floater filter (off by default)"
+            >
               <input
                 type="checkbox"
-                checked={pixelArtMode}
-                onChange={(e) => setPixelArtMode(e.target.checked)}
+                checked={qualityFilter}
+                onChange={(e) => setQualityFilter(e.target.checked)}
                 style={{ width: 18, height: 18, accentColor: "#6366f1" }}
               />
-              <span>Palette Quantization (Crisp Edges)</span>
+              <span>Quality filter (best-of-8)</span>
             </label>
           </div>
 
@@ -382,7 +405,7 @@ export default function DCGANStudio() {
                 <div><strong>Resolution:</strong> 64x64 RGBA (Transparent)</div>
                 <div><strong>Format:</strong> Clean PNG Sprite</div>
                 <div><strong>Synthesis Mode:</strong> {selectedRole}</div>
-                <div><strong>Engine Compatibility:</strong> Godot, Unity, Phaser, Unreal</div>
+                <div><strong>License / Usage:</strong> Standard PNG with alpha. Research use only (CC-BY-NC-SA).</div>
               </div>
 
               <button
