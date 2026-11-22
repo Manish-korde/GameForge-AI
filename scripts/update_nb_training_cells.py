@@ -1,0 +1,91 @@
+import json
+
+nb_path = "Notebook/training/03_cDCGAN_k4_WarmStart_18Epochs.ipynb"
+with open(nb_path, "r", encoding="utf-8") as f:
+    nb = json.load(f)
+
+# Cell 7: Fix training step & pre-build optimizers
+cell_7_lines = [
+    "# 7. DiffAugment, TTUR Optimizers & EMA Distributed Training Step\n",
+    "with strategy.scope():\n",
+    "    aug_layer = layers.RandomTranslation(\n",
+    "        height_factor=(-DIFFAUG_PAD / float(IMG_HEIGHT), DIFFAUG_PAD / float(IMG_HEIGHT)),\n",
+    "        width_factor=(-DIFFAUG_PAD / float(IMG_WIDTH), DIFFAUG_PAD / float(IMG_WIDTH)),\n",
+    "        fill_mode=\"constant\",\n",
+    "        fill_value=-1.0,\n",
+    "        interpolation=\"nearest\"\n",
+    "    )\n",
+    "\n",
+    "    # Justified learning rates: lr_D <= lr_G <= 1e-4\n",
+    "    g_optimizer = keras.optimizers.Adam(learning_rate=G_LR, beta_1=ADAM_BETA1, beta_2=ADAM_BETA2)\n",
+    "    d_optimizer = keras.optimizers.Adam(learning_rate=D_LR, beta_1=ADAM_BETA1, beta_2=ADAM_BETA2)\n",
+    "    \n",
+    "    # Pre-build optimizer slot variables under strategy scope to prevent placeholder uninitialized graph crash\n",
+    "    g_optimizer.build(generator.trainable_variables)\n",
+    "    d_optimizer.build(discriminator.trainable_variables)\n",
+    "\n",
+    "def update_ema_weights(ema_model, source_model, decay=EMA_DECAY):\n",
+    "    for ema_var, src_var in zip(ema_model.weights, source_model.weights):\n",
+    "        ema_var.assign(decay * ema_var + (1.0 - decay) * src_var)\n",
+    "\n",
+    "# Pure Python replica step (NO @tf.function here - inner tf.function inside strategy.run causes placeholder crash)\n",
+    "def train_step_per_replica(real_x, real_y):\n",
+    "    batch_size = tf.shape(real_x)[0]\n",
+    "    z = tf.random.normal((batch_size, LATENT_DIM))\n",
+    "    gen_y = tf.random.uniform((batch_size,), minval=0, maxval=NUM_CLASSES, dtype=tf.int32)\n",
+    "    \n",
+    "    with tf.GradientTape() as d_tape, tf.GradientTape() as g_tape:\n",
+    "        # 1. Synthesize fake images\n",
+    "        fake_logits = generator([z, gen_y], training=True)\n",
+    "        fake_x = logits_to_image(fake_logits, global_palette_tf, tau=1.0, hard=True, noise=True)\n",
+    "        \n",
+    "        # 2. DiffAugment translation\n",
+    "        real_x_aug = aug_layer(real_x, training=True)\n",
+    "        fake_x_aug = aug_layer(fake_x, training=True)\n",
+    "        \n",
+    "        # 3. Projection Discriminator scores\n",
+    "        d_real = discriminator([real_x_aug, real_y], training=True)\n",
+    "        d_fake = discriminator([fake_x_aug, gen_y], training=True)\n",
+    "        \n",
+    "        # 4. Geometric Hinge Loss\n",
+    "        d_loss_real = tf.reduce_mean(tf.nn.relu(1.0 - d_real))\n",
+    "        d_loss_fake = tf.reduce_mean(tf.nn.relu(1.0 + d_fake))\n",
+    "        d_loss = (d_loss_real + d_loss_fake) / float(NUM_REPLICAS)\n",
+    "        \n",
+    "        # Generator Loss\n",
+    "        g_loss = -tf.reduce_mean(d_fake) / float(NUM_REPLICAS)\n",
+    "        \n",
+    "    d_grads = d_tape.gradient(d_loss, discriminator.trainable_variables)\n",
+    "    d_optimizer.apply_gradients(zip(d_grads, discriminator.trainable_variables))\n",
+    "    \n",
+    "    g_grads = g_tape.gradient(g_loss, generator.trainable_variables)\n",
+    "    g_optimizer.apply_gradients(zip(g_grads, generator.trainable_variables))\n",
+    "    \n",
+    "    return d_loss * NUM_REPLICAS, g_loss * NUM_REPLICAS\n",
+    "\n",
+    "# Only the outer multi-GPU orchestration is traced with @tf.function\n",
+    "@tf.function\n",
+    "def distributed_train_step(dist_batch):\n",
+    "    real_x, real_y = dist_batch\n",
+    "    per_d, per_g = strategy.run(train_step_per_replica, args=(real_x, real_y))\n",
+    "    d_loss = strategy.reduce(tf.distribute.ReduceOp.MEAN, per_d, axis=None)\n",
+    "    g_loss = strategy.reduce(tf.distribute.ReduceOp.MEAN, per_g, axis=None)\n",
+    "    return d_loss, g_loss\n",
+    "\n",
+    "print(\"Optimizers pre-built successfully.\")\n",
+    "print(\"Executing 1-step warmup across GPU replicas to trace graph...\")\n",
+    "dummy_ds = tf.data.Dataset.from_tensors((\n",
+    "    tf.zeros((GLOBAL_BATCH_SIZE, IMG_HEIGHT, IMG_WIDTH, CHANNELS), dtype=tf.float32),\n",
+    "    tf.zeros((GLOBAL_BATCH_SIZE,), dtype=tf.int32)\n",
+    "))\n",
+    "dist_dummy = strategy.experimental_distribute_dataset(dummy_ds)\n",
+    "w_d, w_g = distributed_train_step(next(iter(dist_dummy)))\n",
+    "print(f\"Warmup SUCCESS! All replica optimizer states initialized (d_loss={float(w_d):.4f}, g_loss={float(w_g):.4f}).\")\n"
+]
+
+nb['cells'][7]['source'] = cell_7_lines
+
+with open(nb_path, "w", encoding="utf-8") as f:
+    json.dump(nb, f, indent=1)
+
+print("Notebook 03 Cell 7 updated successfully!")
