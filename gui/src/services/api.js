@@ -75,13 +75,13 @@ export const fetchExperiments = async () => {
 };
 
 export const fetchLibraryAssets = async () => {
-  if (DEMO_MODE) {
-    await delay(500);
-    return {
-      status: 'success',
-      data: mockAssets
-    };
-  }
+  const localApproved = typeof window !== 'undefined'
+    ? JSON.parse(localStorage.getItem('gameforge_approved_library') || '[]')
+    : [];
+  return {
+    status: 'success',
+    data: [...localApproved, ...mockAssets]
+  };
 };
 
 export const generateImage = async (spec) => {
@@ -146,11 +146,17 @@ export const generateImage = async (spec) => {
 export const checkAEStatus = async () => {
   try {
     const res = await fetch(`${BACKEND_URL}/status`);
-    if (!res.ok) return "AE: Not Loaded";
+    if (!res.ok) return { online: false, text: "AE: Not Loaded", allLoaded: false };
     const data = await res.json();
-    return `${data.status} | ${data.vae_status}`;
+    const allLoaded = data.status?.includes("Loaded") && data.vae_status?.includes("Loaded") && data.transformer_status?.includes("Loaded");
+    return {
+      online: true,
+      allLoaded,
+      text: `${data.status} | ${data.vae_status} | ${data.transformer_status || "Transformer: Ready"}`,
+      raw: data
+    };
   } catch (err) {
-    return "Models: Offline";
+    return { online: false, text: "Backend Offline", allLoaded: false };
   }
 };
 
