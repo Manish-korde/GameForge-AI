@@ -14,7 +14,7 @@ from PIL import Image
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -263,6 +263,7 @@ def ensure_gallery_loaded():
         transformer_service.unload_model()
     if GALLERY_INDEX is None or len(GALLERY_MANIFEST) == 0:
         load_hierarchical_gallery()
+    get_raw_dataset()
 
 @app.on_event("startup")
 def startup_event():
@@ -617,12 +618,6 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         content = await file.read()
         return Image.open(io.BytesIO(content)).convert("RGBA")
     if url_or_path:
-        if "characters_25" in url_or_path or "demo_offline_gallery" in url_or_path:
-            filename = os.path.basename(url_or_path)
-            for search_d in [chars_dir, gallery_dir]:
-                candidate = os.path.join(search_d, filename)
-                if os.path.exists(candidate):
-                    return Image.open(candidate).convert("RGBA")
         if "alucard_samples" in url_or_path:
             filename = url_or_path.split("alucard_samples/")[-1]
             local_file = os.path.join(samples_dir, filename)
@@ -631,15 +626,9 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         if "alucard_dataset_image" in url_or_path:
             try:
                 img_id = int(url_or_path.rstrip("/").split("/")[-1])
-                sprite_num = (img_id % 25) + 1
-                if os.path.exists(chars_dir):
-                    files = [f for f in os.listdir(chars_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
-                    if files:
-                        return Image.open(os.path.join(chars_dir, files[0])).convert("RGBA")
-                if os.path.exists(gallery_dir):
-                    files = [f for f in os.listdir(gallery_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
-                    if files:
-                        return Image.open(os.path.join(gallery_dir, files[0])).convert("RGBA")
+                raw_ds = get_raw_dataset()
+                if raw_ds is not None and 0 <= img_id < len(raw_ds):
+                    return raw_ds[img_id]["image"].convert("RGBA")
                 sample_filename = f"alucard_{img_id % 35}.png"
                 local_file = os.path.join(samples_dir, sample_filename)
                 if os.path.exists(local_file):
@@ -938,24 +927,61 @@ def load_hierarchical_gallery():
     except Exception as e:
         print(f"Error loading pre-computed gallery index: {e}")
 
-# Fast local serving endpoint for dataset sprites without HuggingFace or network stalls
+RAW_DATASET = None
+DATASET_IMAGE_CACHE = {}
+
+def get_raw_dataset():
+    global RAW_DATASET
+    if RAW_DATASET is not None:
+        return RAW_DATASET
+    try:
+        os.environ["HF_DATASETS_OFFLINE"] = "1"
+        from datasets import load_dataset
+        print("Loading 'evilsocket/alucard-sprites' train split from local cache...")
+        ds = load_dataset("evilsocket/alucard-sprites")
+        RAW_DATASET = ds["train"]
+        print(f"HuggingFace dataset cached successfully ({len(RAW_DATASET)} records) via local cache!")
+    except Exception as e:
+        print(f"Local offline HF dataset load failed ({e}), attempting online fallback...")
+        try:
+            os.environ.pop("HF_DATASETS_OFFLINE", None)
+            from datasets import load_dataset
+            ds = load_dataset("evilsocket/alucard-sprites")
+            RAW_DATASET = ds["train"]
+            print(f"HuggingFace dataset cached successfully ({len(RAW_DATASET)} records) via online fallback!")
+        except Exception as e2:
+            print(f"Could not load HuggingFace dataset: {e2}")
+    return RAW_DATASET
+
+# Fast local serving endpoint for authentic dataset sprites directly from local cache
 @app.get("/alucard_dataset_image/{image_id}")
 async def get_alucard_dataset_image(image_id: int):
-    # Fast instant local serving without network stalls or HuggingFace dependency
-    sprite_num = (image_id % 25) + 1
-    if os.path.exists(chars_dir):
-        files = [f for f in os.listdir(chars_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
-        if files:
-            return FileResponse(os.path.join(chars_dir, files[0]), media_type="image/png")
-    if os.path.exists(gallery_dir):
-        files = [f for f in os.listdir(gallery_dir) if f.startswith(f"sprite_{sprite_num:02d}_")]
-        if files:
-            return FileResponse(os.path.join(gallery_dir, files[0]), media_type="image/png")
+    # Check in-memory image bytes cache for ultra-fast serving
+    if image_id in DATASET_IMAGE_CACHE:
+        return Response(content=DATASET_IMAGE_CACHE[image_id], media_type="image/png")
+
+    # 1. Fetch authentic dataset sprite from cached HuggingFace dataset
+    raw_ds = get_raw_dataset()
+    if raw_ds is not None and 0 <= image_id < len(raw_ds):
+        try:
+            row = raw_ds[image_id]
+            img = row["image"].convert("RGBA")
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            png_bytes = buf.getvalue()
+            if len(DATASET_IMAGE_CACHE) < 2000:
+                DATASET_IMAGE_CACHE[image_id] = png_bytes
+            return Response(content=png_bytes, media_type="image/png")
+        except Exception as e:
+            print(f"Error serving dataset sprite {image_id}: {e}")
+
+    # 2. Fallback to authentic local alucard_samples sprites
     sample_filename = f"alucard_{image_id % 35}.png"
     local_sample_file = os.path.join(samples_dir, sample_filename)
     if os.path.exists(local_sample_file):
         return FileResponse(local_sample_file, media_type="image/png")
-    raise HTTPException(status_code=404, detail="Image unavailable")
+
+    raise HTTPException(status_code=404, detail="Dataset sprite image unavailable")
 
 @app.get("/evaluation/metrics")
 def get_evaluation_metrics():

@@ -49,8 +49,14 @@ from transformers import (
 MODEL_DIR = (
     Path(__file__).resolve().parent.parent
     / "models"
-    / "gameforge_t5"
+    / "4_Transformer_2k_v1"
 )
+if not MODEL_DIR.exists():
+    MODEL_DIR = (
+        Path(__file__).resolve().parent.parent
+        / "models"
+        / "gameforge_t5"
+    )
 
 TEST_FILE = (
     Path(__file__).resolve().parent

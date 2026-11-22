@@ -122,6 +122,28 @@ const CreateAsset = () => {
           p95_threshold: 0.001313
         }
       });
+    } else if (testMode === 'vae') {
+      const asset = {
+        id: 'vae-1',
+        name: 'Sprite #1: Alucard Dataset',
+        type: 'Image',
+        source: 'Alucard Dataset',
+        model: 'VAE Grounded Asset',
+        prompt: 'Alucard Dataset Sprite #1',
+        imageUrl: '/alucard_samples/alucard_0.png',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_samples/alucard_0.png');
+      setCharacterBUrl('/alucard_samples/alucard_5.png');
+      setStep(3);
+      setActiveView('vae');
+      searchSimilarAssets('/alucard_samples/alucard_0.png', 4, 'All').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_samples/alucard_0.png']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
     } else if (testMode === 'signoff') {
       const asset = {
         id: 'signoff-1',
@@ -908,19 +930,19 @@ const CreateAsset = () => {
                     {/* Visual Search Panel */}
                     {searchResults && (
                       <div className="bg-[#18181f] p-4 rounded-xl border border-[#333] mb-4">
-                        <div className="flex justify-between items-center mb-3">
+                        <div className="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-[#25252e] pb-3">
                           <div>
                             <h5 className="text-sm font-semibold text-white">
                               4 similar sprites found in your indexed library <span className="text-indigo-400 font-mono">(25,000 of 282,511 total sprites indexed)</span>
                             </h5>
                             <p className="text-[11px] text-gray-400 mt-0.5">Retrieved via VAE continuous vector similarity matching.</p>
                           </div>
-                          <div className="flex gap-1 bg-[#101014] p-1 rounded-lg border border-[#2a2a35]">
+                          <div className="flex flex-wrap gap-1.5 bg-[#101014] p-1.5 rounded-lg border border-[#2a2a35]">
                             {['All', 'Characters', 'Weapons', 'Items', 'Enemies'].map((cat) => (
                               <button
                                 key={cat}
                                 onClick={() => handleSearchSimilar(cat)}
-                                className={`text-[10px] px-2 py-0.5 rounded transition-colors ${selectedCategory === cat ? 'bg-primary text-white font-bold' : 'text-secondary hover:text-white'}`}
+                                className={`text-xs px-2.5 py-1 rounded transition-colors ${selectedCategory === cat ? 'bg-primary text-white font-bold shadow-sm' : 'text-gray-400 hover:text-white hover:bg-[#202028]'}`}
                               >
                                 {cat}
                               </button>
@@ -928,12 +950,13 @@ const CreateAsset = () => {
                           </div>
                         </div>
 
-                        <div className="flex gap-4 overflow-x-auto pb-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-2">
                           {searchResults.matches.map((item, idx) => (
-                            <div key={idx} className="flex flex-col items-center bg-[#101014] p-3 rounded-lg border border-[#2a2a35] min-w-[140px]">
-                              <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-16 h-16 object-contain mb-2" style={{ imageRendering: 'pixelated' }} />
-                              <span className="text-[11px] text-green-400 font-semibold mb-0.5">High Visual Match</span>
-                              <span className="text-[9px] text-gray-400 font-mono">Sim Score: {item.cosine_similarity}</span>
+                            <div key={idx} className="flex flex-col items-center bg-[#101014] p-3 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition shadow-sm">
+                              <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-20 h-20 object-contain mb-2 bg-[#0c0c10] rounded p-1" style={{ imageRendering: 'pixelated' }} />
+                              <span className="text-xs text-green-400 font-semibold mb-0.5">High Visual Match</span>
+                              <span className="text-[10px] text-gray-400 font-mono">Sim Score: {item.cosine_similarity}</span>
+                              <span className="text-[9px] text-indigo-300 font-medium mt-0.5">{item.category}</span>
                             </div>
                           ))}
                         </div>
@@ -959,12 +982,15 @@ const CreateAsset = () => {
                             const displayName = clusterItems[0].cluster_name;
                             
                             return (
-                              <div key={cId} className="bg-[#101014] p-3 rounded-lg border border-[#2a2a35]">
-                                <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">{displayName}</div>
-                                <div className="flex flex-wrap gap-2">
+                              <div key={cId} className="bg-[#101014] p-3.5 rounded-lg border border-[#2a2a35]">
+                                <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                                  <span>{displayName}</span>
+                                  <span className="text-[10px] text-gray-500 font-mono font-normal">({clusterItems.length} sprites)</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2.5">
                                   {clusterItems.map((item, idx) => (
-                                    <div key={idx} className="relative group bg-[#18181f] p-1.5 rounded border border-[#2a2a35] hover:border-primary/50 transition">
-                                      <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-12 h-12 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                    <div key={idx} className="relative group bg-[#18181f] p-1.5 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition">
+                                      <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-14 h-14 object-contain" style={{ imageRendering: 'pixelated' }} />
                                     </div>
                                   ))}
                                 </div>

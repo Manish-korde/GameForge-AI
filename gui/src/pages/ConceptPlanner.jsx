@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateConcept } from '../services/api';
 import './Pages.css';
@@ -19,6 +19,85 @@ const ConceptPlanner = () => {
   const navigate = useNavigate();
 
   const [isApproved, setIsApproved] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug');
+    if (debug === 'fox') {
+      const foxPrompt = "cozy farming game with a fox";
+      setPrompt(foxPrompt);
+      setConceptSpec({
+        status: "success",
+        prompt: "cozy farming game with a fox",
+        formatted_input: "game concept: cozy farming game with a fox",
+        game_title: "Cool Farming Adventure",
+        theme: "Cool Farming",
+        environment: "Enchanted Forest",
+        visualStyle: "Hand-Drawn 2D",
+        characters: [
+          {
+            name: "Foggy Fox",
+            desc: "A common villager caught up in the conflict."
+          }
+        ],
+        weapons: [
+          {
+            name: "Bow",
+            desc: "A ranged weapon used for hunting and defense."
+          }
+        ],
+        props: [],
+        main_character: {
+          role: "Foggy Fox",
+          attributes: ["A common villager caught up in the conflict."]
+        },
+        art_style: "Hand-Drawn 2D",
+        genre: "Cool Farming RPG",
+        enemies: [],
+        recommended_asset_tags: [
+          "cool_farming_theme",
+          "foggy_fox_character",
+          "bow_weapon"
+        ],
+        raw_t5_output: "{\"theme\": \"Cool Farming\", \"environment\": \"Enchanted Forest\", \"characters\": [{\"name\": \"Foggy Fox\", \"desc\": \"A common villager caught up in the conflict.\"}], \"weapons\": [{\"name\": \"Bow\", \"desc\": \"A ranged weapon used for hunting and defense.\"}], \"props\": [], \"visualStyle\": \"Hand-Drawn 2D\"}",
+        telemetry: {
+          inference_latency_ms: 3292.0,
+          tokens_generated: 121,
+          model_checkpoint: "models/4_Transformer_2k_v1",
+          base_architecture: "google/flan-t5-small",
+          decoding_strategy: "Beam Search (num_beams=4)",
+          schema_valid: true
+        },
+        ethical_guardrails: {
+          safety_status: "Passed Regex Boundary Audit",
+          dataset_attribution: "GameForge Fine-Tuned T5 (2,000 Curated Prompt-JSON Pairs; 80/10/10 Split)",
+          license: "CC-BY-NC-SA 4.0",
+          human_oversight_required: true
+        },
+        enrichment_layer: {
+          pipeline_stage: "Stage 2: Deterministic Asset Mapping (Rule-Based)",
+          recommended_asset_tags: [
+            "cool_farming_theme",
+            "foggy_fox_character",
+            "bow_weapon"
+          ]
+        }
+      });
+      setShowRawOutput(true);
+      return;
+    }
+
+    const p = params.get('prompt');
+    const raw = params.get('raw');
+    if (p) {
+      setPrompt(p);
+      handleGenerate(p).then(() => {
+        if (raw === 'true') {
+          setShowRawOutput(true);
+        }
+      });
+    }
+  }, []);
 
   const handleGenerate = async (selectedPrompt) => {
     const textToUse = selectedPrompt || prompt;
