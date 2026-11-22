@@ -84440,5 +84440,11 @@
     3,
     1,
     0
-  ]
+  ],
+  "group_names": {
+    "0": "Palette group 0",
+    "1": "Palette group 1",
+    "2": "Palette group 2",
+    "3": "Palette group 3"
+  }
 }
