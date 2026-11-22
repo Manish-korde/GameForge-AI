@@ -904,15 +904,19 @@ def load_hierarchical_gallery():
         return
     try:
         models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models"))
+        npy_path_282k = os.path.join(models_dir, "latent_gallery_index_282k_fp16.npy")
+        json_path_282k = os.path.join(models_dir, "latent_gallery_manifest_282k.json")
         npy_path_25k = os.path.join(models_dir, "latent_gallery_index_25k.npy")
         json_path_25k = os.path.join(models_dir, "latent_gallery_manifest_25k.json")
         npy_path_5k = os.path.join(models_dir, "latent_gallery_index.npy")
         json_path_5k = os.path.join(models_dir, "latent_gallery_manifest.json")
         
-        print(f"Gallery check 25k -> npy: {npy_path_25k} (exists: {os.path.exists(npy_path_25k)}), json: {json_path_25k} (exists: {os.path.exists(json_path_25k)})")
-        print(f"Gallery check 5k -> npy: {npy_path_5k} (exists: {os.path.exists(npy_path_5k)}), json: {json_path_5k} (exists: {os.path.exists(json_path_5k)})")
-
-        if os.path.exists(npy_path_25k) and os.path.exists(json_path_25k):
+        if os.path.exists(npy_path_282k) and os.path.exists(json_path_282k):
+            GALLERY_INDEX = np.load(npy_path_282k, mmap_mode="r")
+            with open(json_path_282k, "r") as f:
+                GALLERY_MANIFEST = json.load(f)
+            print(f"Loaded Full 282K Deduplicated VAE Latent Gallery ({GALLERY_INDEX.shape}, {GALLERY_INDEX.dtype}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
+        elif os.path.exists(npy_path_25k) and os.path.exists(json_path_25k):
             GALLERY_INDEX = np.load(npy_path_25k, mmap_mode="r")
             with open(json_path_25k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
@@ -1016,44 +1020,65 @@ async def vae_search_similar(
     try:
         query_img = await fetch_image_from_source(image_url)
         query_tensor = preprocess_image(query_img)
-        q_z, _, _ = vae_encoder.predict(query_tensor, verbose=0)
-        q_vec = q_z[0]
+        q_out = vae_encoder(query_tensor, training=False)
+        q_z = q_out[0].numpy() if isinstance(q_out, (list, tuple)) else q_out.numpy()
+        q_vec = q_z[0].astype(np.float32)
         q_vec = q_vec / (np.linalg.norm(q_vec) + 1e-8)
-        norm_q = 1.0
         
-        # Vectorized lookup on GALLERY_INDEX (5000, 256)
-        if GALLERY_INDEX is None:
+        if GALLERY_INDEX is None or GALLERY_MANIFEST is None:
             raise HTTPException(status_code=503, detail="Gallery Index unavailable")
             
-        dists = np.linalg.norm(GALLERY_INDEX - q_vec, axis=1)
-        
         # Get query_id to exclude self-match
-        query_id = None
+        query_raw_id = None
         if "alucard_dataset_image" in image_url:
             try:
-                query_id = int(image_url.split("/")[-1])
+                query_raw_id = int(image_url.rstrip("/").split("/")[-1])
             except ValueError:
                 pass
                 
+        # Chunked dot product to maintain low memory footprint (< 15 MB temporary buffer)
+        n_items = GALLERY_INDEX.shape[0]
+        scores = np.empty(n_items, dtype=np.float32)
+        chunk_size = 65536
+        for c in range(0, n_items, chunk_size):
+            c_end = min(n_items, c + chunk_size)
+            chunk = GALLERY_INDEX[c:c_end].astype(np.float32)
+            scores[c:c_end] = chunk @ q_vec
+            
+        # Filter candidates by category if requested
+        valid_indices = []
+        cat_lower = category_filter.lower().strip() if category_filter else "all"
+        
+        # Argsort top candidates (top 200 candidates to handle filtering and self exclusion)
+        top_candidates = np.argsort(scores)[::-1][:200]
+        
         results = []
-        for idx in np.argsort(dists):
+        for idx in top_candidates:
             item = GALLERY_MANIFEST[idx]
-            if item["id"] == query_id:
+            raw_id = item.get("raw_id", item.get("id"))
+            
+            # Exclude self-match
+            if query_raw_id is not None and raw_id == query_raw_id:
                 continue
                 
-            if category_filter and category_filter.lower() != "all":
-                if category_filter.lower() not in item["category"].lower():
+            # Category filter
+            if cat_lower != "all" and cat_lower != "":
+                item_cat = item.get("category", "").lower()
+                if cat_lower not in item_cat:
                     continue
                     
-            c_vec = GALLERY_INDEX[idx]
-            norm_c = np.linalg.norm(c_vec)
-            cosine_sim = float(np.dot(q_vec, c_vec) / (norm_q * norm_c + 1e-8))
+            cos_sim = float(scores[idx])
+            # Euclidean distance from cosine sim: dist = sqrt(2 - 2*cos_sim)
+            dist = float(np.sqrt(max(0.0, 2.0 - 2.0 * cos_sim)))
             
             results.append({
-                "url": f"/alucard_dataset_image/{item['id']}",
-                "category": item["category"],
-                "latent_distance": float(round(dists[idx], 4)),
-                "cosine_similarity": float(round(cosine_sim, 4))
+                "raw_id": raw_id,
+                "url": f"/alucard_dataset_image/{raw_id}",
+                "category": item.get("category", "Unknown"),
+                "label": item.get("label", "Game Sprite"),
+                "split": item.get("split", "untracked"),
+                "latent_distance": round(dist, 4),
+                "cosine_similarity": round(cos_sim, 4)
             })
             if len(results) >= top_k:
                 break
@@ -1062,6 +1087,7 @@ async def vae_search_similar(
             "query_url": image_url, 
             "matches": results, 
             "category_filtered": category_filter or "All",
+            "total_indexed": n_items,
             "attribution": {
                 "dataset": "evilsocket/alucard-sprites",
                 "license": "CC-BY-NC-SA 4.0",
@@ -1144,11 +1170,12 @@ async def vae_retrieve_more(category: str = Form("Characters"), top_k: int = For
         if GALLERY_MANIFEST:
             for item in GALLERY_MANIFEST:
                 if category.lower() == "all" or category.lower() in item.get("category", "").lower():
+                    r_id = item.get("raw_id", item.get("id"))
                     results.append({
-                        "id": item["id"],
-                        "url": f"/alucard_dataset_image/{item['id']}",
+                        "id": r_id,
+                        "url": f"/alucard_dataset_image/{r_id}",
                         "category": item.get("category", category),
-                        "label": item.get("label", f"Sprite {item['id']}")
+                        "label": item.get("label", f"Sprite {r_id}")
                     })
                     if len(results) >= top_k:
                         break

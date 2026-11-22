@@ -1,0 +1,418 @@
+{
+  "index_size_mb": 137.94,
+  "manifest_size_mb": 50.41,
+  "total_gallery_records": 282511,
+  "idle_rss_mb": 588.26,
+  "peak_rss_mb": 884.8,
+  "latency_median_ms": 449.75,
+  "latency_p95_ms": 1090.92,
+  "latency_min_ms": 129.21,
+  "latency_max_ms": 2239.12,
+  "cosine_check_50_rows": {
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0,
+    "rows": [
+      {
+        "gallery_idx": 224100,
+        "raw_id": 247153,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, gray, small, helmet, hat",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 12609,
+        "raw_id": 12904,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, charact",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 95712,
+        "raw_id": 103998,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, brown, small, wizard, ma",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 113641,
+        "raw_id": 124061,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, brown, small, key, tool,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 124872,
+        "raw_id": 136562,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, large, UI element",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 120410,
+        "raw_id": 131585,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, gray, small, staff, wand",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 279532,
+        "raw_id": 309202,
+        "split": "validation",
+        "category": "Weapon",
+        "prompt": "pixel art, gray, small, shield, arm",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 26330,
+        "raw_id": 27523,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, warrior, ar",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 2862,
+        "raw_id": 2874,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, large, heart, hea",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 207308,
+        "raw_id": 228392,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, colorful, medium-sized, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 96927,
+        "raw_id": 105366,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, charact",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 64912,
+        "raw_id": 69816,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, brown, medium-sized, swo",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 46946,
+        "raw_id": 50010,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, warrior",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 40368,
+        "raw_id": 42801,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, small, helmet, ha",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 205834,
+        "raw_id": 226759,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, gray, large, shield, arm",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 50127,
+        "raw_id": 53515,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, brown, medium-sized, wiz",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 20862,
+        "raw_id": 21670,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, warrior, ar",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 280581,
+        "raw_id": 310382,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, colorful, small, shield,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 249385,
+        "raw_id": 275445,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, charact",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 15043,
+        "raw_id": 15482,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, medium-sized, ani",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 3749,
+        "raw_id": 3765,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, dark, large, shield, arm",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 135353,
+        "raw_id": 148223,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, colorful, small, helmet,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 226954,
+        "raw_id": 250332,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, charact",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 199833,
+        "raw_id": 220074,
+        "split": "train",
+        "category": "Enemy",
+        "prompt": "pixel art, colorful, medium-sized, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 199578,
+        "raw_id": 219790,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, gray, medium-sized, poti",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 41322,
+        "raw_id": 43833,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, wizard,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 998,
+        "raw_id": 1000,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, wizard,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 71891,
+        "raw_id": 77563,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, warrior",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 138998,
+        "raw_id": 152301,
+        "split": "validation",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, warrior",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 127802,
+        "raw_id": 139845,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, character, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 218492,
+        "raw_id": 240917,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, medium-sized, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 34761,
+        "raw_id": 36705,
+        "split": "validation",
+        "category": "Character",
+        "prompt": "pixel art, colorful, medium-sized, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 83283,
+        "raw_id": 90191,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, small, animal, fr",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 138018,
+        "raw_id": 151224,
+        "split": "train",
+        "category": "Weapon",
+        "prompt": "pixel art, dark, medium-sized, bow,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 221448,
+        "raw_id": 244190,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, wizard,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 214454,
+        "raw_id": 236392,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, colorful, small, helmet,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 45905,
+        "raw_id": 48866,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, brown, small, wizard, ma",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 98685,
+        "raw_id": 107355,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, brown, small, wizard, ma",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 68985,
+        "raw_id": 74331,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, brown, small, UI element",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 125406,
+        "raw_id": 137156,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, gray, large, potion, bot",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 127065,
+        "raw_id": 139020,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, gray, medium-sized, helm",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 81436,
+        "raw_id": 88138,
+        "split": "train",
+        "category": "Enemy",
+        "prompt": "pixel art, brown, large, dragon, bo",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 135526,
+        "raw_id": 148412,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, dark, large, chest, cont",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 7354,
+        "raw_id": 7440,
+        "split": "validation",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, character, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 46407,
+        "raw_id": 49429,
+        "split": "train",
+        "category": "Unknown",
+        "prompt": "pixel art, colorful, small, animal,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 161360,
+        "raw_id": 177189,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, colorful, small, charact",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 147061,
+        "raw_id": 161265,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, character, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 102422,
+        "raw_id": 111537,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, character, ",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 188998,
+        "raw_id": 207929,
+        "split": "train",
+        "category": "Item",
+        "prompt": "pixel art, colorful, large, potion,",
+        "cosine_sim": 1.0
+      },
+      {
+        "gallery_idx": 202398,
+        "raw_id": 222929,
+        "split": "train",
+        "category": "Character",
+        "prompt": "pixel art, gray, small, character, ",
+        "cosine_sim": 1.0
+      }
+    ]
+  }
+}

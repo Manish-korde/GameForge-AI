@@ -1000,32 +1000,70 @@ const CreateAsset = () => {
                         <div className="flex flex-wrap justify-between items-center gap-3 mb-4 border-b border-[#25252e] pb-3">
                           <div>
                             <h5 className="text-sm font-semibold text-white">
-                              4 similar sprites found in your indexed library <span className="text-indigo-400 font-mono">(25,000 of 282,511 total sprites indexed)</span>
+                              4 Similar Sprites Found in Your Indexed Library <span className="text-indigo-400 font-mono">({searchResults.total_indexed ? searchResults.total_indexed.toLocaleString() : '282,511'} unique sprites indexed)</span>
                             </h5>
-                            <p className="text-[11px] text-gray-400 mt-0.5">Retrieved via VAE continuous vector similarity matching.</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">Retrieved via VAE continuous latent space vector similarity matching.</p>
                           </div>
-                          <div className="flex flex-wrap gap-1.5 bg-[#101014] p-1.5 rounded-lg border border-[#2a2a35]">
-                            {['All', 'Characters', 'Weapons', 'Items', 'Enemies'].map((cat) => (
-                              <button
-                                key={cat}
-                                onClick={() => handleSearchSimilar(cat)}
-                                className={`text-xs px-2.5 py-1 rounded transition-colors ${selectedCategory === cat ? 'bg-primary text-white font-bold shadow-sm' : 'text-gray-400 hover:text-white hover:bg-[#202028]'}`}
-                              >
-                                {cat}
-                              </button>
-                            ))}
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-400 font-medium">Filter Category:</label>
+                            <select 
+                              value={selectedCategory} 
+                              onChange={(e) => {
+                                const cat = e.target.value;
+                                setSelectedCategory(cat);
+                                handleSearchSimilar(cat);
+                              }}
+                              className="bg-[#101014] border border-[#2a2a35] text-xs text-white rounded-lg focus:border-primary px-2.5 py-1.5 outline-none cursor-pointer"
+                            >
+                              <option value="All">All Categories (Unfiltered)</option>
+                              <option value="Character">Characters</option>
+                              <option value="Weapon">Weapons</option>
+                              <option value="Item">Items & Potions</option>
+                              <option value="Enemy">Enemies & Monsters</option>
+                              <option value="Prop">Props & Decor</option>
+                              <option value="Effect">Spells & Effects</option>
+                              <option value="Tile">Tiles & Environment</option>
+                              <option value="Unknown">Unknown / Miscellaneous</option>
+                            </select>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-2 w-full">
-                          {searchResults.matches.map((item, idx) => (
-                            <div key={idx} className="flex flex-col items-center bg-[#101014] p-3 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition shadow-sm">
-                              <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-20 h-20 object-contain mb-2 bg-[#0c0c10] rounded p-1" style={{ imageRendering: 'pixelated' }} />
-                              <span className="text-xs text-green-400 font-semibold mb-0.5">High Visual Match</span>
-                              <span className="text-[10px] text-gray-400 font-mono">Sim Score: {item.cosine_similarity}</span>
-                              <span className="text-[9px] text-indigo-300 font-medium mt-0.5">{item.category}</span>
+                        {/* Query vs Matches Layout */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-[#101014] rounded-xl border border-[#2a2a35] mb-2 w-full min-w-0">
+                          {/* Query Sprite */}
+                          <div className="flex flex-col items-center border-b md:border-b-0 md:border-r border-[#2a2a35] pb-3 md:pb-0 md:pr-4 flex-shrink-0">
+                            <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Query Sprite</span>
+                            <div className="w-24 h-24 bg-[#0a0a0d] rounded-lg p-2 border border-indigo-500/30 flex items-center justify-center shadow-inner">
+                              <img src={resolveSpriteUrl(searchResults.query_url || generatedAsset?.imageUrl)} alt="Query" className="w-20 h-20 object-contain" style={{ imageRendering: 'pixelated' }} />
                             </div>
-                          ))}
+                            <span className="text-[10px] text-gray-400 font-mono mt-1.5 truncate max-w-[100px] text-center">Input Concept</span>
+                          </div>
+
+                          {/* Retrieved Top-4 Matches */}
+                          <div className="flex-1 w-full min-w-0">
+                            <span className="text-[11px] font-bold text-gray-300 uppercase tracking-wider mb-2 block">Top Retrieved Library Matches</span>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                              {searchResults.matches.map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center bg-[#18181f] p-3 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition shadow-sm w-full min-w-0">
+                                  <div className="w-20 h-20 bg-[#0c0c10] rounded p-1 mb-2 flex items-center justify-center">
+                                    <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-18 h-18 object-contain" style={{ imageRendering: 'pixelated' }} />
+                                  </div>
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-xs text-green-400 font-mono font-bold">{item.cosine_similarity}</span>
+                                    <span className={`text-[8px] font-mono font-bold px-1 py-0.5 rounded uppercase ${
+                                      item.split === 'test' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                      item.split === 'validation' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' :
+                                      'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    }`}>
+                                      {item.split || 'train'}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] text-indigo-300 font-semibold truncate w-full text-center">{item.label || item.category}</span>
+                                  <span className="text-[9px] text-gray-500 font-mono mt-0.5">#{item.raw_id}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1035,7 +1073,7 @@ const CreateAsset = () => {
                       <div className="bg-[#18181f] p-4 rounded-xl border border-[#333] w-full min-w-0">
                          <div className="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-[#2a2a35] pb-2">
                            <div>
-                             <h5 className="text-sm font-semibold text-white">Indexed Library Category Breakdown</h5>
+                             <h5 className="text-sm font-semibold text-white">Indexed Library Category Breakdown & Semantic Clusters</h5>
                              <p className="text-[10px] text-gray-400 mt-0.5">Measures separation across 256D latent space (-1 to +1; positive values denote distinct intra-category clusters).</p>
                            </div>
                            <div className="text-right">
@@ -1054,7 +1092,7 @@ const CreateAsset = () => {
                               <div key={cId} className="bg-[#101014] p-3.5 rounded-lg border border-[#2a2a35] w-full min-w-0">
                                 <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
                                   <span>{displayName}</span>
-                                  <span className="text-[10px] text-gray-500 font-mono font-normal">({clusterItems.length} sprites)</span>
+                                  <span className="text-[10px] text-gray-500 font-mono font-normal">({clusterItems.length} distinct sprites)</span>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
                                   {clusterItems.map((item, idx) => (

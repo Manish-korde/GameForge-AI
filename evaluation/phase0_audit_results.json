@@ -1,0 +1,69 @@
+{
+  "cat_counts_25k": {
+    "Characters": 17713,
+    "Enemies": 1935,
+    "Items": 3546,
+    "Weapons": 1169,
+    "Effects": 53,
+    "Tiles": 509,
+    "Props": 75
+  },
+  "full_corpus_dist": [
+    {
+      "Category": "Character",
+      "Count": 32596,
+      "Percentage": 65.19
+    },
+    {
+      "Category": "Unknown / Miscellaneous",
+      "Count": 7919,
+      "Percentage": 15.84
+    },
+    {
+      "Category": "Item / Consumable",
+      "Count": 3194,
+      "Percentage": 6.39
+    },
+    {
+      "Category": "Enemy / Monster",
+      "Count": 2877,
+      "Percentage": 5.75
+    },
+    {
+      "Category": "Weapon",
+      "Count": 2188,
+      "Percentage": 4.38
+    },
+    {
+      "Category": "Tile / Environment",
+      "Count": 959,
+      "Percentage": 1.92
+    },
+    {
+      "Category": "Prop / Decor",
+      "Count": 177,
+      "Percentage": 0.35
+    },
+    {
+      "Category": "Effect / Spell",
+      "Count": 90,
+      "Percentage": 0.18
+    }
+  ],
+  "sword_test_case": {
+    "id1": 209416,
+    "id2": 222754,
+    "exact_byte_match": true,
+    "hash1": "19524522897889246843ebfaec487ea36b46910ad3525ca23a3afc8425ad971e",
+    "hash2": "19524522897889246843ebfaec487ea36b46910ad3525ca23a3afc8425ad971e",
+    "mean_pixel_diff": 0.0,
+    "max_pixel_diff": 0.0,
+    "dhash_hamming_dist": 0,
+    "latent_cos_sim": 1.0
+  },
+  "gallery_25k_stats": {
+    "total": 25000,
+    "sha256_unique": 24007,
+    "sha256_duplicates": 993
+  }
+}

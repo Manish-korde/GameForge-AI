@@ -32,6 +32,8 @@ dec_*.png
 # Ignore files over 100MB to avoid GitHub push rejection
 *.npy
 !models/*.npy
+models/*_282k*.npy
+models/*progress*.json
 !models/3_DCGAN_42k_v1/config/*.npy
 *.weights.h5
 !models/3_DCGAN_42k_v1/game_ready_assets/generator_weights_final.weights.h5
