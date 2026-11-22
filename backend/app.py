@@ -293,11 +293,11 @@ def status():
 
 @app.post("/dcgan/generate_character")
 async def dcgan_generate_character_endpoint(
-    role: str = Form("Hero (Knight)"),
-    count: int = Form(4),
-    seed: int = Form(None),
+    role: str = Form("🎲 Random Latent (Fresh Synthesis)"),
+    count: int = Form(16),
+    seed: int = Form(1337),
     pixel_art_mode: bool = Form(True),
-    quality_filter: bool = Form(False)
+    quality_filter: bool = Form(True)
 ):
     """Endpoint for generating 64x64 transparent character sprites using the 50-epoch DCGAN model."""
     result = generate_character_sprites(
@@ -316,6 +316,24 @@ def dcgan_safe_seed_endpoint(seed: int = None):
     """Finds a seed with >= 10% foreground canvas coverage, retrying up to 5 times."""
     safe_seed = find_safe_seed(seed=seed, max_retries=5)
     return {"seed": safe_seed}
+
+@app.get("/dcgan/real_sprites")
+def get_real_training_sprites():
+    """Returns 8 real front-facing training sprites from evilsocket/alucard-sprites."""
+    real_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "alucard_samples", "real_frontfacing"))
+    sprites_b64 = []
+    if os.path.exists(real_dir):
+        for i in range(8):
+            p = os.path.join(real_dir, f"real_{i}.png")
+            if os.path.exists(p):
+                with open(p, "rb") as f:
+                    b64 = base64.b64encode(f.read()).decode("utf-8")
+                    sprites_b64.append(f"data:image/png;base64,{b64}")
+    return {
+        "count": len(sprites_b64),
+        "dataset": "evilsocket/alucard-sprites (front-facing subset)",
+        "sprites": sprites_b64
+    }
 
 
 def score_sprite_with_ae(sprite_rgba_64):

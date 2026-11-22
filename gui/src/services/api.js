@@ -440,7 +440,7 @@ export const fetchDCGANClasses = async () => {
   }
 };
 
-export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 4, seed = null, pixelArtMode = true, qualityFilter = false }) => {
+export const generateDCGANCharacters = async ({ role = "🎲 Random Latent (Fresh Synthesis)", count = 16, seed = 1337, pixelArtMode = true, qualityFilter = true }) => {
   try {
     const formData = new FormData();
     formData.append("role", role);
@@ -463,6 +463,18 @@ export const generateDCGANCharacters = async ({ role = "Hero (Knight)", count = 
   } catch (err) {
     console.error("DCGAN Generation Error:", err);
     throw err;
+  }
+};
+
+export const fetchRealSprites = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/dcgan/real_sprites`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.sprites || [];
+  } catch (err) {
+    console.warn("Failed to fetch real sprites from backend:", err);
+    return [];
   }
 };
 

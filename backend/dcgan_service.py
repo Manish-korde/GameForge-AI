@@ -108,38 +108,49 @@ def logits_to_image(logits, palette_tf, tau=1.0, hard=True, noise=False):
     rgba = tf.concat([rgb * a, a], axis=-1)
     return tf.cast(tf.clip_by_value(rgba * 255.0 + 0.5, 0.0, 255.0), tf.uint8).numpy()
 
-def remove_stray_floaters_tight(rgba_img: np.ndarray, min_standalone_size: int = 12, touch_dilation: int = 2):
+def remove_detached_components_v2(rgba_img: np.ndarray, touch_dilation: int = 2):
     """
-    Tightened LCC: drop pieces under ~12 px unless touching the main body (keep weapons attached to it).
+    Quality Filter v2:
+    - Main body = largest connected component
+    - Kept pieces = main body + any component touching main body within 2 px (dilation=2)
+    - All other components are detached floaters / stray pixels that are removed
+    Returns: cleaned_img, floater_count, stray_pixels
     """
     alpha = rgba_img[..., 3] > 127
     if not np.any(alpha):
-        return rgba_img, 0
+        return rgba_img, 0, 0
     labeled_array, num_features = label(alpha)
     if num_features <= 1:
-        return rgba_img, 0
-    
+        return rgba_img, 0, 0
+        
     sizes = np.bincount(labeled_array.ravel())
     largest_label = np.argmax(sizes[1:]) + 1
     body_mask = (labeled_array == largest_label)
     
-    # Dilate body to find anything touching/adjacent (hilts, weapons, staves, hair)
     dilated_body = binary_dilation(body_mask, iterations=touch_dilation)
     
     keep_mask = body_mask.copy()
+    floater_count = 0
+    stray_pixels = 0
+    
     for i in range(1, num_features + 1):
         if i == largest_label:
             continue
-        sz = sizes[i]
         comp_mask = (labeled_array == i)
-        # Keep if standalone piece is >= 12 px (large detached weapon/shield) OR if it touches main body
-        if sz >= min_standalone_size or np.any(comp_mask & dilated_body):
+        if np.any(comp_mask & dilated_body):
             keep_mask |= comp_mask
+        else:
+            floater_count += 1
+            stray_pixels += int(np.sum(comp_mask))
             
-    removed_pixels = int(np.sum(alpha) - np.sum(keep_mask))
     cleaned = rgba_img.copy()
     cleaned[~keep_mask] = 0
-    return cleaned, removed_pixels
+    return cleaned, floater_count, stray_pixels
+
+def remove_stray_floaters_tight(rgba_img: np.ndarray, min_standalone_size: int = 12, touch_dilation: int = 2):
+    """Backwards compatibility adapter mapping to remove_detached_components_v2."""
+    cleaned, floater_count, stray_pixels = remove_detached_components_v2(rgba_img, touch_dilation=touch_dilation)
+    return cleaned, stray_pixels
 
 def load_dcgan_generator():
     """Initializes and loads weights for the 50-epoch Discrete-Palette DCGAN generator. Fails loudly on missing files."""
@@ -203,12 +214,15 @@ def score_candidate(c_img: np.ndarray, orphans: int) -> float:
     score = (orphans * 3.0) + (abs(fg_frac - 0.32) * 120.0) + color_penalty
     return score
 
-def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fresh Synthesis)", quality_filter: bool = False) -> list:
+def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fresh Synthesis)", quality_filter: bool = True) -> list:
     """
     SINGLE ENTRY POINT:
     generate(n, seed, role, quality_filter) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
-    quality_filter: if True, applies the paper's best-of-8 candidate search & tight floater filter.
-                    if False (default), performs fast single forward-pass unconditional discrete generation.
+    quality_filter: if True (default), applies Quality Filter v2: generates 32 candidates,
+                    removes detached components (keeps main body + parts within 2 px),
+                    rejects candidates with leftover floaters/strays, ranks by quality score,
+                    and returns the best n.
+                    if False, generates n raw unfiltered sprites directly from latents.
     """
     global _generator, _palette_tf
     if _generator is None or _palette_tf is None:
@@ -220,52 +234,73 @@ def generate(n: int = 4, seed: int = None, role: str = "🎲 Random Latent (Fres
     
     output_images = []
     
-    for i in range(n):
+    if quality_filter:
+        # Quality Filter v2: Generate 32 candidates (or at least 2*n candidates)
+        n_candidates = max(32, n * 2)
+        candidates_z = []
+        
         if preset_idx is not None and _fixed_latents is not None and preset_idx < len(_fixed_latents):
             base_latent = _fixed_latents[preset_idx].copy()
-            if i == 0:
-                anchor_z = base_latent
-            else:
-                rand_perturb = rng.normal(0, 0.2, size=(LATENT_DIM,)).astype(np.float32)
-                anchor_z = base_latent + rand_perturb
+            candidates_z.append(base_latent)
+            for _ in range(n_candidates - 1):
+                rand_perturb = rng.normal(0, 0.40, size=(LATENT_DIM,)).astype(np.float32)
+                candidates_z.append(np.clip(base_latent + rand_perturb, -2.0, 2.0))
         else:
-            anchor_z = rng.normal(0, 1.0, size=(LATENT_DIM,)).astype(np.float32)
-            
-        anchor_z = np.clip(anchor_z, -2.0, 2.0)
+            for _ in range(n_candidates):
+                z = rng.normal(0, 1.0, size=(LATENT_DIM,)).astype(np.float32)
+                candidates_z.append(np.clip(z, -2.0, 2.0))
+                
+        candidates_z = np.array(candidates_z, dtype=np.float32)
+        cand_logits = _generator(candidates_z, training=False)
+        cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
         
-        if quality_filter:
-            # Paper's pipeline: 8 candidate variations for quality rejection sampling + floater scoring
-            candidates_z = [anchor_z]
-            for k in range(7):
-                jitter = rng.normal(0, 0.80, size=(LATENT_DIM,)).astype(np.float32)
-                cand = 0.80 * anchor_z + 0.20 * jitter
-                candidates_z.append(np.clip(cand, -2.0, 2.0))
-            candidates_z = np.array(candidates_z, dtype=np.float32)
+        scored_candidates = []
+        backup_candidates = []
+        for c_img in cand_imgs:
+            cleaned_cand, fl_count, stray_px = remove_detached_components_v2(c_img)
+            # Re-check for leftover floaters after cleaning
+            _, left_fl, left_st = remove_detached_components_v2(cleaned_cand)
+            score = score_candidate(cleaned_cand, fl_count)
+            backup_candidates.append((score, cleaned_cand))
             
-            cand_logits = _generator(candidates_z, training=False)
-            cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
+            if left_fl > 0 or left_st > 0 or score == float("inf"):
+                continue # Reject candidates with leftover floaters or out-of-bound silhouettes
+                
+            scored_candidates.append((score, cleaned_cand))
             
-            best_cleaned = cand_imgs[0]
-            best_score = float("inf")
-            
-            for c_img in cand_imgs:
-                cleaned_cand, orphans = remove_stray_floaters_tight(c_img)
-                score = score_candidate(cleaned_cand, orphans)
-                if score < best_score:
-                    best_score = score
-                    best_cleaned = cleaned_cand
-            final_sprite_64 = best_cleaned
+        scored_candidates.sort(key=lambda x: x[0])
+        
+        # If strict rejection left fewer than n candidates, supplement with best available
+        if len(scored_candidates) < n:
+            backup_candidates.sort(key=lambda x: x[0])
+            for item in backup_candidates:
+                if len(scored_candidates) >= n:
+                    break
+                if item not in scored_candidates:
+                    scored_candidates.append(item)
+                    
+        selected_sprites = [x[1] for x in scored_candidates[:n]]
+    else:
+        # Raw discrete DCGAN generation: 1 candidate per requested sprite (unfiltered)
+        raw_z = []
+        if preset_idx is not None and _fixed_latents is not None and preset_idx < len(_fixed_latents):
+            base_latent = _fixed_latents[preset_idx].copy()
+            raw_z.append(base_latent)
+            for _ in range(n - 1):
+                rand_perturb = rng.normal(0, 0.20, size=(LATENT_DIM,)).astype(np.float32)
+                raw_z.append(np.clip(base_latent + rand_perturb, -2.0, 2.0))
         else:
-            # Raw discrete DCGAN generation: 1 candidate directly from anchor_z
-            z_single = np.expand_dims(anchor_z, axis=0)
-            cand_logits = _generator(z_single, training=False)
-            cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
-            final_sprite_64 = cand_imgs[0]
-            
-        # 8x nearest-neighbor upscale: 64x64 -> 512x512
+            for _ in range(n):
+                z = rng.normal(0, 1.0, size=(LATENT_DIM,)).astype(np.float32)
+                raw_z.append(np.clip(z, -2.0, 2.0))
+                
+        raw_z = np.array(raw_z, dtype=np.float32)
+        cand_logits = _generator(raw_z, training=False)
+        selected_sprites = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
+        
+    for final_sprite_64 in selected_sprites:
         pil_img_64 = Image.fromarray(final_sprite_64, mode="RGBA")
         pil_img_512 = pil_img_64.resize((512, 512), Image.NEAREST)
-        # Store 64x64 native array on image object for fast pipeline reuse
         pil_img_512.native_64 = final_sprite_64
         output_images.append(pil_img_512)
         
@@ -288,10 +323,10 @@ def find_safe_seed(seed: int = None, max_retries: int = 5) -> int:
 
 def generate_character_sprites(
     role: str = "🎲 Random Latent (Fresh Synthesis)",
-    count: int = 4,
-    seed: int = None,
+    count: int = 16,
+    seed: int = 1337,
     pixel_art_mode: bool = True,
-    quality_filter: bool = False,
+    quality_filter: bool = True,
     upscale_factor: int = 8
 ):
     """
@@ -305,6 +340,7 @@ def generate_character_sprites(
         b64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         sprites_b64.append(f"data:image/png;base64,{b64_str}")
         
+    filter_label = f"best {len(images_512)} of 32 by quality score" if quality_filter else "unfiltered (raw model)"
     return {
         "status": "success",
         "role": role,
@@ -312,5 +348,6 @@ def generate_character_sprites(
         "generator_status": _status,
         "model": "Discrete DCGAN (50 Epochs, Palette-Conditioned Head)",
         "quality_filter": quality_filter,
+        "filter_label": filter_label,
         "sprites": sprites_b64
     }
