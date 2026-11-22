@@ -108,6 +108,95 @@ def logits_to_image(logits, palette_tf, tau=1.0, hard=True, noise=False):
     rgba = tf.concat([rgb * a, a], axis=-1)
     return tf.cast(tf.clip_by_value(rgba * 255.0 + 0.5, 0.0, 255.0), tf.uint8).numpy()
 
+import colorsys
+
+def rgb_to_hsv_deg(r, g, b):
+    h, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+    return h * 360.0, s, v
+
+def circular_hue_diff(h1, h2):
+    diff = abs(h1 - h2) % 360.0
+    return min(diff, 360.0 - diff)
+
+def check_facial_hue_consistency(rgba_img: np.ndarray, max_divergence: float = 45.0):
+    """
+    Quality Filter v3 Facial Hue Gate:
+    Checks if left and right halves of the head region diverge in hue by >= max_divergence.
+    """
+    alpha = rgba_img[..., 3] > 127
+    if not np.any(alpha):
+        return True, 0.0
+    fg_y, fg_x = np.where(alpha)
+    y_min, y_max = np.min(fg_y), np.max(fg_y)
+    x_min, x_max = np.min(fg_x), np.max(fg_x)
+    h_box = y_max - y_min + 1
+    
+    head_y_cutoff = y_min + int(0.35 * h_box)
+    head_mask = alpha & (np.arange(64)[:, None] <= head_y_cutoff)
+    x_mid = (x_min + x_max) // 2
+    
+    left_head = head_mask & (np.arange(64)[None, :] < x_mid)
+    right_head = head_mask & (np.arange(64)[None, :] >= x_mid)
+    
+    if np.sum(left_head) < 8 or np.sum(right_head) < 8:
+        return True, 0.0
+        
+    l_rgb = rgba_img[..., :3][left_head]
+    r_rgb = rgba_img[..., :3][right_head]
+    
+    l_hues = [rgb_to_hsv_deg(r, g, b)[0] for r, g, b in l_rgb if rgb_to_hsv_deg(r, g, b)[1] > 0.18 and rgb_to_hsv_deg(r, g, b)[2] > 0.18]
+    r_hues = [rgb_to_hsv_deg(r, g, b)[0] for r, g, b in r_rgb if rgb_to_hsv_deg(r, g, b)[1] > 0.18 and rgb_to_hsv_deg(r, g, b)[2] > 0.18]
+    
+    if len(l_hues) < 5 or len(r_hues) < 5:
+        return True, 0.0
+        
+    l_rad = np.deg2rad(l_hues)
+    r_rad = np.deg2rad(r_hues)
+    l_mean_h = np.rad2deg(np.arctan2(np.mean(np.sin(l_rad)), np.mean(np.cos(l_rad)))) % 360.0
+    r_mean_h = np.rad2deg(np.arctan2(np.mean(np.sin(r_rad)), np.mean(np.cos(r_rad)))) % 360.0
+    
+    h_diff = circular_hue_diff(l_mean_h, r_mean_h)
+    return (h_diff < max_divergence), float(h_diff)
+
+def check_head_torso_hue_agreement(rgba_img: np.ndarray, max_clash: float = 100.0):
+    """
+    Independent Metric: Head-vs-Torso Hue Agreement.
+    Extracts chromatic hue of Head zone vs Torso zone.
+    Returns (True, diff) if hues are harmonious or neutral, or (False, diff) if clashing.
+    """
+    alpha = rgba_img[..., 3] > 127
+    if not np.any(alpha):
+        return True, 0.0
+    fg_y, fg_x = np.where(alpha)
+    y_min, y_max = np.min(fg_y), np.max(fg_y)
+    h_box = y_max - y_min + 1
+    
+    head_y_cutoff = y_min + int(0.35 * h_box)
+    torso_y_cutoff = y_min + int(0.70 * h_box)
+    
+    head_mask = alpha & (np.arange(64)[:, None] <= head_y_cutoff)
+    torso_mask = alpha & (np.arange(64)[:, None] > head_y_cutoff) & (np.arange(64)[:, None] <= torso_y_cutoff)
+    
+    if np.sum(head_mask) < 10 or np.sum(torso_mask) < 10:
+        return True, 0.0
+        
+    head_rgb = rgba_img[..., :3][head_mask]
+    torso_rgb = rgba_img[..., :3][torso_mask]
+    
+    head_hues = [rgb_to_hsv_deg(r, g, b)[0] for r, g, b in head_rgb if rgb_to_hsv_deg(r, g, b)[1] > 0.20 and rgb_to_hsv_deg(r, g, b)[2] > 0.20]
+    torso_hues = [rgb_to_hsv_deg(r, g, b)[0] for r, g, b in torso_rgb if rgb_to_hsv_deg(r, g, b)[1] > 0.20 and rgb_to_hsv_deg(r, g, b)[2] > 0.20]
+    
+    if len(head_hues) < 8 or len(torso_hues) < 8:
+        return True, 0.0
+        
+    h_rad = np.deg2rad(head_hues)
+    t_rad = np.deg2rad(torso_hues)
+    h_mean = np.rad2deg(np.arctan2(np.mean(np.sin(h_rad)), np.mean(np.cos(h_rad)))) % 360.0
+    t_mean = np.rad2deg(np.arctan2(np.mean(np.sin(t_rad)), np.mean(np.cos(t_rad)))) % 360.0
+    
+    h_diff = circular_hue_diff(h_mean, t_mean)
+    return (h_diff <= max_clash), float(h_diff)
+
 def remove_detached_components_v2(rgba_img: np.ndarray, touch_dilation: int = 2):
     """
     Quality Filter v2:
@@ -235,8 +324,8 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
     output_images = []
     
     if quality_filter:
-        # Quality Filter v2: Generate 32 candidates (or at least 2*n candidates)
-        n_candidates = max(32, n * 2)
+        # Quality Filter v3: Generate 64 candidates (or max(64, n * 4))
+        n_candidates = max(64, n * 4)
         candidates_z = []
         
         if preset_idx is not None and _fixed_latents is not None and preset_idx < len(_fixed_latents):
@@ -260,11 +349,22 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
             cleaned_cand, fl_count, stray_px = remove_detached_components_v2(c_img)
             # Re-check for leftover floaters after cleaning
             _, left_fl, left_st = remove_detached_components_v2(cleaned_cand)
+            
+            # Facial hue consistency gate (Filter v3)
+            is_consistent, h_div = check_facial_hue_consistency(cleaned_cand, max_divergence=45.0)
+            
+            # Head-vs-torso hue agreement (Filter v3 independent metric)
+            ht_agree, ht_diff = check_head_torso_hue_agreement(cleaned_cand, max_clash=100.0)
+            
             score = score_candidate(cleaned_cand, fl_count)
+            if not ht_agree:
+                score += (ht_diff - 100.0) * 2.0
+                
             backup_candidates.append((score, cleaned_cand))
             
-            if left_fl > 0 or left_st > 0 or score == float("inf"):
-                continue # Reject candidates with leftover floaters or out-of-bound silhouettes
+            # Reject candidates with leftover floaters, invalid silhouettes, or bilateral facial split
+            if left_fl > 0 or left_st > 0 or score == float("inf") or not is_consistent:
+                continue
                 
             scored_candidates.append((score, cleaned_cand))
             
@@ -340,7 +440,7 @@ def generate_character_sprites(
         b64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         sprites_b64.append(f"data:image/png;base64,{b64_str}")
         
-    filter_label = f"best {len(images_512)} of 32 by quality score" if quality_filter else "unfiltered (raw model)"
+    filter_label = f"best {len(images_512)} of 64 by quality & facial hue score" if quality_filter else "unfiltered (raw model)"
     return {
         "status": "success",
         "role": role,

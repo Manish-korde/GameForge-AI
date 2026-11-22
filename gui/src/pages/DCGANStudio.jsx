@@ -83,7 +83,7 @@ export default function DCGANStudio() {
         qualityFilter: qualityFilter,
       });
       setSprites(res.sprites || []);
-      setFilterLabel(res.filter_label || (qualityFilter ? `best ${count} of 32 by quality score` : "unfiltered (raw model)"));
+      setFilterLabel(res.filter_label || (qualityFilter ? `best ${count} of 64 by quality & facial hue score` : "unfiltered (raw model)"));
       setDcganStatus(res.generator_status || "Loaded (Discrete DCGAN 50-Epoch)");
       if (res.sprites && res.sprites.length > 0) {
         setSelectedSprite(res.sprites[0]);
@@ -369,7 +369,7 @@ export default function DCGANStudio() {
               fontSize: 13,
               userSelect: "none"
             }}
-            title="Quality filter v2: generates 32 candidates, removes detached components within 2px, ranks by score"
+            title="Quality filter v3: generates 64 candidates, enforces bilateral facial hue consistency gate (<45°), penalizes head-torso clash, removes detached components, ranks by score"
             >
               <input
                 type="checkbox"
@@ -379,7 +379,7 @@ export default function DCGANStudio() {
               />
               <span>
                 {qualityFilter ? (
-                  <strong style={{ color: "#38bdf8" }}>Quality filter v2 (on)</strong>
+                  <strong style={{ color: "#38bdf8" }}>Quality filter v3 (on)</strong>
                 ) : (
                   <span style={{ color: "#f59e0b" }}>⚠️ Unfiltered (raw model)</span>
                 )}
@@ -451,7 +451,7 @@ export default function DCGANStudio() {
                 color: qualityFilter ? "#38bdf8" : "#f59e0b",
                 border: `1px solid ${qualityFilter ? "rgba(56, 189, 248, 0.3)" : "rgba(245, 158, 11, 0.3)"}`
               }}>
-                {qualityFilter ? "best 16 of 32 by quality score" : "unfiltered (raw model)"}
+                {filterLabel || (qualityFilter ? "best 16 of 64 by quality & facial hue score" : "unfiltered (raw model)")}
               </span>
             </div>
             
