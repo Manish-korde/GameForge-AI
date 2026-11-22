@@ -20,14 +20,10 @@ INDEX_PATH = os.path.join(MODELS_DIR, "latent_gallery_index_282k_fp16.npy")
 MANIFEST_PATH = os.path.join(MODELS_DIR, "latent_gallery_manifest_282k.json")
 
 print("=" * 80)
-print("PHASE 1 BENCHMARK & 50-ROW COSINE VERIFICATION")
+print("PHASE 1 BENCHMARK & 50-ROW COSINE VERIFICATION (8-DECIMAL PRECISION)")
 print("=" * 80)
 
 # Check file sizes
-if not os.path.exists(INDEX_PATH) or not os.path.exists(MANIFEST_PATH):
-    print("Error: Index or Manifest not found!")
-    sys.exit(1)
-
 index_bytes = os.path.getsize(INDEX_PATH)
 manifest_bytes = os.path.getsize(MANIFEST_PATH)
 print(f"Index File Size on Disk:    {index_bytes / (1024*1024):.2f} MB ({index_bytes:,} bytes)")
@@ -37,23 +33,24 @@ print(f"Manifest File Size on Disk: {manifest_bytes / (1024*1024):.2f} MB ({mani
 proc = psutil.Process()
 rss_before = proc.memory_info().rss / (1024 * 1024)
 
-# Load via np.memmap
+# Load via np.memmap and create float32 RAM array
 t0 = time.time()
-gallery = np.load(INDEX_PATH, mmap_mode="r")
+fp16_mmap = np.load(INDEX_PATH, mmap_mode="r")
+gallery_f32 = fp16_mmap.astype(np.float32)
 load_time = time.time() - t0
 
 with open(MANIFEST_PATH, "r") as f:
     manifest = json.load(f)
 
 rss_after_load = proc.memory_info().rss / (1024 * 1024)
-print(f"Gallery Matrix Shape: {gallery.shape}, dtype: {gallery.dtype}")
+print(f"Gallery Matrix Shape: {gallery_f32.shape}, dtype: {gallery_f32.dtype}")
 print(f"Manifest Records: {len(manifest):,}")
-print(f"Load time via mmap: {load_time*1000:.3f} ms")
-print(f"Process RSS at idle (with manifest + memmap): {rss_after_load:.2f} MB (Delta: +{rss_after_load - rss_before:.2f} MB)")
+print(f"Load time (mmap + float32 RAM copy): {load_time*1000:.2f} ms")
+print(f"Process RSS at idle (with manifest + float32 in RAM): {rss_after_load:.2f} MB (Delta: +{rss_after_load - rss_before:.2f} MB)")
 
-# 1. 50-ROW LIVE VS STORED COSINE CHECK
+# 1. 50-ROW LIVE VS STORED COSINE CHECK (8 DECIMALS)
 print("\n" + "=" * 80)
-print("1. 50-ROW LIVE RE-ENCODING VS. STORED FLOAT16 COSINE CHECK")
+print("1. 50-ROW LIVE RE-ENCODING VS. STORED FLOAT16 (8-DECIMAL PRECISION)")
 print("=" * 80)
 
 @tf.keras.utils.register_keras_serializable()
@@ -75,7 +72,7 @@ enc = tf.keras.models.load_model(ENCODER_PATH, custom_objects={'Sampling': Sampl
 
 ds = load_dataset("evilsocket/alucard-sprites")["train"]
 
-# Select 50 deterministic random rows spread across splits
+# Select 50 deterministic random rows
 np.random.seed(42)
 sample_indices = np.random.choice(len(manifest), size=50, replace=False)
 
@@ -89,11 +86,11 @@ for idx in sample_indices:
     split = item["split"]
     txt = item["text"][:35]
     
-    # Stored float16 vector converted to float32
-    stored_vec = gallery[idx].astype(np.float32)
+    # Stored vector: load float16, convert to float32, unit-normalize
+    stored_vec = fp16_mmap[idx].astype(np.float32)
     stored_vec /= (np.linalg.norm(stored_vec) + 1e-8)
     
-    # Live encode from dataset raw image
+    # Live encode from dataset raw image unquantized
     img = ds[raw_id]["image"].convert("RGBA").resize((128, 128))
     arr = np.asarray(img, dtype=np.float32) / 255.0
     arr = np.expand_dims(arr, axis=0)
@@ -110,48 +107,41 @@ for idx in sample_indices:
         "split": split,
         "category": cat,
         "prompt": txt,
-        "cosine_sim": round(cos_sim, 6)
+        "cosine_sim": cos_sim
     })
 
-print(f"| {'#':2s} | {'Gallery Idx':11s} | {'Raw ID':8s} | {'Split':10s} | {'Category':12s} | {'Cosine Sim':10s} | {'Prompt Prefix':32s} |")
-print(f"|{'-'*4}|{'-'*13}|{'-'*10}|{'-'*12}|{'-'*14}|{'-'*12}|{'-'*34}|")
+print(f"| {'#':2s} | {'Gallery Idx':11s} | {'Raw ID':8s} | {'Split':10s} | {'Category':12s} | {'Cosine Sim':12s} | {'Prompt Prefix':32s} |")
+print(f"|{'-'*4}|{'-'*13}|{'-'*10}|{'-'*12}|{'-'*14}|{'-'*14}|{'-'*34}|")
 for i, r in enumerate(cosine_table, 1):
-    print(f"| {i:2d} | {r['gallery_idx']:11d} | {r['raw_id']:8d} | {r['split']:10s} | {r['category']:12s} | {r['cosine_sim']:10.6f} | {r['prompt']:32s} |")
+    print(f"| {i:2d} | {r['gallery_idx']:11d} | {r['raw_id']:8d} | {r['split']:10s} | {r['category']:12s} | {r['cosine_sim']:12.8f} | {r['prompt']:32s} |")
 
-print(f"\n50-Row Cosine Summary: Mean = {np.mean(sims):.6f}, Min = {np.min(sims):.6f}, Max = {np.max(sims):.6f}")
+print(f"\n50-Row Cosine Summary: Mean = {np.mean(sims):.8f}, Min = {np.min(sims):.8f}, Max = {np.max(sims):.8f}")
 
-# 2. LATENCY & RAM BENCHMARK (100 QUERIES)
+# 2. LATENCY & RAM BENCHMARK (100 QUERIES IN FLOAT32 RAM)
 print("\n" + "=" * 80)
-print("2. SEARCH LATENCY & PEAK RAM BENCHMARK (100 REAL SEARCH RUNS)")
+print("2. SEARCH LATENCY & PEAK RAM BENCHMARK (100 QUERIES IN FLOAT32 RAM)")
 print("=" * 80)
 
-query_latencies = []
-peak_rss = rss_after_load
+# Pre-generate 100 normalized 256D query vectors
+np.random.seed(123)
+q_vecs = np.random.randn(100, 256).astype(np.float32)
+q_vecs /= np.linalg.norm(q_vecs, axis=1, keepdims=True)
 
-# Convert entire gallery or chunks? Let's test direct chunked float32 vs matrix
-# We pre-test the most efficient search implementation:
-# Load gallery slice into float32 on the fly
-CHUNK_SIZE = 65536
-num_chunks = int(np.ceil(gallery.shape[0] / CHUNK_SIZE))
+# Warm up
+_ = gallery_f32 @ q_vecs[0]
+
+query_latencies = []
+peak_rss = proc.memory_info().rss / (1024 * 1024)
 
 for q_num in range(100):
-    # Generate random normalized 256D query vector
-    q_vec = np.random.randn(256).astype(np.float32)
-    q_vec /= np.linalg.norm(q_vec)
-    
+    q_vec = q_vecs[q_num]
     t_start = time.perf_counter()
     
-    # Exact brute-force dot product in float32 chunks
-    scores = np.empty(gallery.shape[0], dtype=np.float32)
-    for c in range(num_chunks):
-        c_start = c * CHUNK_SIZE
-        c_end = min(gallery.shape[0], c_start + CHUNK_SIZE)
-        scores[c_start:c_end] = gallery[c_start:c_end].astype(np.float32) @ q_vec
-        
+    # Fast matrix multiplication on in-memory float32 array
+    scores = gallery_f32 @ q_vec
     top5_idx = np.argpartition(scores, -5)[-5:]
-    t_end = time.perf_counter()
     
-    dt_ms = (t_end - t_start) * 1000.0
+    dt_ms = (time.perf_counter() - t_start) * 1000.0
     query_latencies.append(dt_ms)
     
     cur_rss = proc.memory_info().rss / (1024 * 1024)
@@ -183,9 +173,9 @@ results = {
     "latency_min_ms": round(min_lat, 2),
     "latency_max_ms": round(max_lat, 2),
     "cosine_check_50_rows": {
-        "mean": round(float(np.mean(sims)), 6),
-        "min": round(float(np.min(sims)), 6),
-        "max": round(float(np.max(sims)), 6),
+        "mean": float(np.mean(sims)),
+        "min": float(np.min(sims)),
+        "max": float(np.max(sims)),
         "rows": cosine_table
     }
 }

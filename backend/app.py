@@ -895,12 +895,13 @@ async def interpolate_vae(
 
 # Pre-computed Hierarchical VAE Latent Gallery & Category Buckets
 GALLERY_INDEX = None
+GALLERY_INDEX_F32 = None
 GALLERY_MANIFEST = []
 CATEGORY_BUCKET_CACHE = {}
 
 def load_hierarchical_gallery():
-    global GALLERY_INDEX, GALLERY_MANIFEST
-    if GALLERY_INDEX is not None:
+    global GALLERY_INDEX, GALLERY_INDEX_F32, GALLERY_MANIFEST
+    if GALLERY_INDEX is not None and GALLERY_INDEX_F32 is not None:
         return
     try:
         models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models"))
@@ -913,16 +914,19 @@ def load_hierarchical_gallery():
         
         if os.path.exists(npy_path_282k) and os.path.exists(json_path_282k):
             GALLERY_INDEX = np.load(npy_path_282k, mmap_mode="r")
+            GALLERY_INDEX_F32 = GALLERY_INDEX.astype(np.float32)
             with open(json_path_282k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
-            print(f"Loaded Full 282K Deduplicated VAE Latent Gallery ({GALLERY_INDEX.shape}, {GALLERY_INDEX.dtype}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
+            print(f"Loaded Full 282K Deduplicated VAE Latent Gallery ({GALLERY_INDEX.shape}) in RAM ({GALLERY_INDEX_F32.nbytes / (1024*1024):.1f} MB) & Manifest ({len(GALLERY_MANIFEST)} items)!")
         elif os.path.exists(npy_path_25k) and os.path.exists(json_path_25k):
             GALLERY_INDEX = np.load(npy_path_25k, mmap_mode="r")
+            GALLERY_INDEX_F32 = GALLERY_INDEX.astype(np.float32)
             with open(json_path_25k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
             print(f"Loaded Scaled VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
         elif os.path.exists(npy_path_5k) and os.path.exists(json_path_5k):
             GALLERY_INDEX = np.load(npy_path_5k, mmap_mode="r")
+            GALLERY_INDEX_F32 = GALLERY_INDEX.astype(np.float32)
             with open(json_path_5k, "r") as f:
                 GALLERY_MANIFEST = json.load(f)
             print(f"Loaded Pre-computed VAE Latent Gallery Index ({GALLERY_INDEX.shape}) & Manifest ({len(GALLERY_MANIFEST)} items) via mmap!")
@@ -1036,14 +1040,17 @@ async def vae_search_similar(
             except ValueError:
                 pass
                 
-        # Chunked dot product to maintain low memory footprint (< 15 MB temporary buffer)
         n_items = GALLERY_INDEX.shape[0]
-        scores = np.empty(n_items, dtype=np.float32)
-        chunk_size = 65536
-        for c in range(0, n_items, chunk_size):
-            c_end = min(n_items, c + chunk_size)
-            chunk = GALLERY_INDEX[c:c_end].astype(np.float32)
-            scores[c:c_end] = chunk @ q_vec
+        # Fast matrix multiplication on in-memory float32 array (< 30ms latency)
+        if GALLERY_INDEX_F32 is not None:
+            scores = GALLERY_INDEX_F32 @ q_vec
+        else:
+            scores = np.empty(n_items, dtype=np.float32)
+            chunk_size = 65536
+            for c in range(0, n_items, chunk_size):
+                c_end = min(n_items, c + chunk_size)
+                chunk = GALLERY_INDEX[c:c_end].astype(np.float32)
+                scores[c:c_end] = chunk @ q_vec
             
         # Filter candidates by category if requested
         valid_indices = []
@@ -1108,20 +1115,20 @@ async def vae_cluster_assets(urls: str = Form(None)):
         raise HTTPException(status_code=503, detail="VAE Model unavailable")
     try:
         cat_targets = [
-            ("Characters & Adventurers", "Characters", 1),
-            ("Weapons & Armaments", "Weapons", 2),
-            ("Items & Potions", "Items", 3),
-            ("Enemies & Monsters", "Enemies", 4)
+            ("Characters & Adventurers", ["character", "characters"], 1),
+            ("Weapons & Armaments", ["weapon", "weapons"], 2),
+            ("Items & Potions", ["item", "items"], 3),
+            ("Enemies & Monsters", ["enemy", "enemies"], 4)
         ]
         
         items = []
         latents = []
         labels = []
         
-        for display_name, cat_key, c_id in cat_targets:
+        for display_name, cat_keys, c_id in cat_targets:
             cat_matches = [
                 (idx, item) for idx, item in enumerate(GALLERY_MANIFEST)
-                if item.get("category", "").lower() == cat_key.lower()
+                if item.get("category", "").lower() in cat_keys
             ]
             # Pick 4 distinct assets per category
             selected = cat_matches[:4]
@@ -1129,15 +1136,18 @@ async def vae_cluster_assets(urls: str = Form(None)):
                 z_vec = GALLERY_INDEX[idx]
                 latents.append(z_vec)
                 labels.append(c_id)
+                raw_id = m.get("raw_id", m.get("id"))
                 items.append({
-                    "url": f"/alucard_dataset_image/{m['id']}",
+                    "url": f"/alucard_dataset_image/{raw_id}",
                     "cluster_name": f"Cluster #{c_id}: {display_name}",
-                    "category": m["category"],
-                    "label": m["label"],
-                    "cluster_id": c_id
+                    "category": m.get("category", "Unknown"),
+                    "label": m.get("prompt", m.get("label", f"Sprite #{raw_id}")),
+                    "cluster_id": c_id,
+                    "split": m.get("split", "train"),
+                    "raw_id": raw_id
                 })
         
-        latents_arr = np.array(latents)
+        latents_arr = np.array(latents, dtype=np.float32)
         # 2D PCA Projection
         mean_vec = np.mean(latents_arr, axis=0)
         centered = latents_arr - mean_vec

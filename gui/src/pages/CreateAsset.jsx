@@ -188,6 +188,73 @@ const CreateAsset = () => {
       clusterAssets(['/alucard_dataset_image/200081']).then(res => {
         setClusterData(res);
       }).catch(console.error);
+    } else if (testMode === 'character') {
+      const asset = {
+        id: 'char-1',
+        name: 'Knight Hero (Character - #200000)',
+        type: 'Image',
+        source: 'Alucard Dataset (Characters)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, gray, medium-sized, warrior, armor, sword, front view',
+        imageUrl: '/alucard_dataset_image/200000',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200000');
+      setCharacterBUrl('/alucard_samples/alucard_0.png');
+      setStep(3);
+      setActiveView('vae');
+      searchSimilarAssets('/alucard_dataset_image/200000', 4, 'All').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_dataset_image/200000']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
+    } else if (testMode === 'filter_weapon') {
+      const asset = {
+        id: 'sword-filt',
+        name: 'Sword (Weapon - #200319)',
+        type: 'Image',
+        source: 'Alucard Dataset (Weapons)',
+        model: 'VAE Grounded Asset',
+        prompt: 'pixel art, brown, small, sword, blade weapon, side view',
+        imageUrl: '/alucard_dataset_image/200319',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_dataset_image/200319');
+      setCharacterBUrl('/alucard_samples/alucard_0.png');
+      setStep(3);
+      setActiveView('vae');
+      setSelectedCategory('Weapon');
+      searchSimilarAssets('/alucard_dataset_image/200319', 4, 'Weapon').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_dataset_image/200319']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
+    } else if (testMode === 'custom') {
+      const asset = {
+        id: 'custom-1',
+        name: 'Custom Sprite Upload (Red Robe Wizard)',
+        type: 'Image',
+        source: 'External User Upload (Local PNG)',
+        model: 'External Custom Asset',
+        prompt: 'Custom pixel art wizard sprite with red robe and staff',
+        imageUrl: '/alucard_samples/alucard_1.png',
+        createdAt: new Date().toISOString()
+      };
+      setGeneratedAsset(asset);
+      setCharacterAUrl('/alucard_samples/alucard_1.png');
+      setCharacterBUrl('/alucard_samples/alucard_0.png');
+      setStep(3);
+      setActiveView('vae');
+      searchSimilarAssets('/alucard_samples/alucard_1.png', 4, 'All').then(res => {
+        setSearchResults(res);
+      }).catch(console.error);
+      clusterAssets(['/alucard_samples/alucard_1.png']).then(res => {
+        setClusterData(res);
+      }).catch(console.error);
     } else if (testMode === 'signoff') {
       const asset = {
         id: 'signoff-1',
@@ -1048,9 +1115,11 @@ const CreateAsset = () => {
                                   <div className="w-20 h-20 bg-[#0c0c10] rounded p-1 mb-2 flex items-center justify-center">
                                     <img src={resolveSpriteUrl(item.url)} alt="Match" className="w-18 h-18 object-contain" style={{ imageRendering: 'pixelated' }} />
                                   </div>
-                                  <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-xs text-green-400 font-mono font-bold">{item.cosine_similarity}</span>
-                                    <span className={`text-[8px] font-mono font-bold px-1 py-0.5 rounded uppercase ${
+                                  <div className="flex items-center justify-center mb-1.5 w-full">
+                                    <span className="text-xs text-green-400 font-mono font-bold">
+                                      {isNaN(Number(item.cosine_similarity)) ? item.cosine_similarity : Number(item.cosine_similarity).toFixed(4)}
+                                    </span>
+                                    <span className={`ml-2 text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
                                       item.split === 'test' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
                                       item.split === 'validation' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' :
                                       'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
@@ -1098,6 +1167,16 @@ const CreateAsset = () => {
                                   {clusterItems.map((item, idx) => (
                                     <div key={idx} className="relative group bg-[#18181f] p-2 rounded-lg border border-[#2a2a35] hover:border-primary/50 transition flex flex-col items-center">
                                       <img src={resolveSpriteUrl(item.url)} alt="Sprite" className="w-16 h-16 object-contain mb-1" style={{ imageRendering: 'pixelated' }} />
+                                      <div className="flex items-center justify-center mb-1">
+                                        <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                          item.split === 'test' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                          item.split === 'validation' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' :
+                                          'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                        }`}>
+                                          {item.split || 'train'}
+                                        </span>
+                                        <span className="ml-1.5 text-[9px] text-gray-400 font-mono">#{item.raw_id}</span>
+                                      </div>
                                       <span className="text-[9px] text-gray-400 font-mono truncate w-full text-center">{item.label}</span>
                                     </div>
                                   ))}

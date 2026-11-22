@@ -2,16 +2,16 @@
   "index_size_mb": 137.94,
   "manifest_size_mb": 50.41,
   "total_gallery_records": 282511,
-  "idle_rss_mb": 588.26,
-  "peak_rss_mb": 884.8,
-  "latency_median_ms": 449.75,
-  "latency_p95_ms": 1090.92,
-  "latency_min_ms": 129.21,
-  "latency_max_ms": 2239.12,
+  "idle_rss_mb": 1001.91,
+  "peak_rss_mb": 1161.09,
+  "latency_median_ms": 35.96,
+  "latency_p95_ms": 74.66,
+  "latency_min_ms": 23.58,
+  "latency_max_ms": 101.66,
   "cosine_check_50_rows": {
-    "mean": 1.0,
-    "min": 1.0,
-    "max": 1.0,
+    "mean": 0.9999999868869781,
+    "min": 0.9999997615814209,
+    "max": 1.0000001192092896,
     "rows": [
       {
         "gallery_idx": 224100,
@@ -19,7 +19,7 @@
         "split": "train",
         "category": "Unknown",
         "prompt": "pixel art, gray, small, helmet, hat",
-        "cosine_sim": 1.0
+        "cosine_sim": 1.0000001192092896
       },
       {
         "gallery_idx": 12609,
@@ -27,7 +27,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, colorful, small, charact",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999998807907104
       },
       {
         "gallery_idx": 95712,
@@ -43,7 +43,7 @@
         "split": "train",
         "category": "Item",
         "prompt": "pixel art, brown, small, key, tool,",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 124872,
@@ -59,7 +59,7 @@
         "split": "train",
         "category": "Weapon",
         "prompt": "pixel art, gray, small, staff, wand",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 279532,
@@ -91,7 +91,7 @@
         "split": "train",
         "category": "Item",
         "prompt": "pixel art, colorful, medium-sized, ",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 96927,
@@ -99,7 +99,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, colorful, small, charact",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999998807907104
       },
       {
         "gallery_idx": 64912,
@@ -107,7 +107,7 @@
         "split": "train",
         "category": "Weapon",
         "prompt": "pixel art, brown, medium-sized, swo",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999997615814209
       },
       {
         "gallery_idx": 46946,
@@ -115,7 +115,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, colorful, small, warrior",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 40368,
@@ -203,7 +203,7 @@
         "split": "train",
         "category": "Enemy",
         "prompt": "pixel art, colorful, medium-sized, ",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 199578,
@@ -227,7 +227,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, colorful, small, wizard,",
-        "cosine_sim": 1.0
+        "cosine_sim": 1.0000001192092896
       },
       {
         "gallery_idx": 71891,
@@ -267,7 +267,7 @@
         "split": "validation",
         "category": "Character",
         "prompt": "pixel art, colorful, medium-sized, ",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 83283,
@@ -275,7 +275,7 @@
         "split": "train",
         "category": "Unknown",
         "prompt": "pixel art, brown, small, animal, fr",
-        "cosine_sim": 1.0
+        "cosine_sim": 1.0000001192092896
       },
       {
         "gallery_idx": 138018,
@@ -283,7 +283,7 @@
         "split": "train",
         "category": "Weapon",
         "prompt": "pixel art, dark, medium-sized, bow,",
-        "cosine_sim": 1.0
+        "cosine_sim": 1.0000001192092896
       },
       {
         "gallery_idx": 221448,
@@ -291,7 +291,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, colorful, small, wizard,",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 214454,
@@ -315,7 +315,7 @@
         "split": "train",
         "category": "Character",
         "prompt": "pixel art, brown, small, wizard, ma",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 68985,
@@ -331,7 +331,7 @@
         "split": "train",
         "category": "Item",
         "prompt": "pixel art, gray, large, potion, bot",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 127065,
@@ -371,7 +371,7 @@
         "split": "train",
         "category": "Unknown",
         "prompt": "pixel art, colorful, small, animal,",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 161360,
@@ -403,7 +403,7 @@
         "split": "train",
         "category": "Item",
         "prompt": "pixel art, colorful, large, potion,",
-        "cosine_sim": 1.0
+        "cosine_sim": 0.9999999403953552
       },
       {
         "gallery_idx": 202398,

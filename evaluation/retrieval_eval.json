@@ -1,0 +1,100 @@
+{
+  "num_queries": 300,
+  "query_split": "test",
+  "majority_class_baseline": 0.6659,
+  "summary": [
+    {
+      "method": "VAE",
+      "precision_at_1": 0.4533,
+      "precision_at_5": 0.402,
+      "mrr": 0.5669,
+      "delta_vs_majority": -0.2126
+    },
+    {
+      "method": "AE",
+      "precision_at_1": 0.4667,
+      "precision_at_5": 0.4107,
+      "mrr": 0.5859,
+      "delta_vs_majority": -0.1993
+    },
+    {
+      "method": "Raw Pixel L2",
+      "precision_at_1": 0.4633,
+      "precision_at_5": 0.404,
+      "mrr": 0.5779,
+      "delta_vs_majority": -0.2026
+    },
+    {
+      "method": "Color Histogram",
+      "precision_at_1": 0.3333,
+      "precision_at_5": 0.3173,
+      "mrr": 0.4576,
+      "delta_vs_majority": -0.3326
+    },
+    {
+      "method": "Hybrid Re-ranker",
+      "precision_at_1": 0.4567,
+      "precision_at_5": 0.4147,
+      "mrr": 0.5717,
+      "delta_vs_majority": -0.2093
+    }
+  ],
+  "category_breakdown_p5": {
+    "Character": {
+      "VAE": 0.8657,
+      "AE": 0.8543,
+      "Raw Pixel L2": 0.8857,
+      "Color Histogram": 0.7943,
+      "Hybrid Re-ranker": 0.8486
+    },
+    "Enemy": {
+      "VAE": 0.3111,
+      "AE": 0.2889,
+      "Raw Pixel L2": 0.2756,
+      "Color Histogram": 0.1867,
+      "Hybrid Re-ranker": 0.32
+    },
+    "Weapon": {
+      "VAE": 0.3111,
+      "AE": 0.3333,
+      "Raw Pixel L2": 0.2978,
+      "Color Histogram": 0.1733,
+      "Hybrid Re-ranker": 0.3378
+    },
+    "Item": {
+      "VAE": 0.2578,
+      "AE": 0.3378,
+      "Raw Pixel L2": 0.28,
+      "Color Histogram": 0.2178,
+      "Hybrid Re-ranker": 0.28
+    },
+    "Tile": {
+      "VAE": 0.2067,
+      "AE": 0.2133,
+      "Raw Pixel L2": 0.1933,
+      "Color Histogram": 0.1333,
+      "Hybrid Re-ranker": 0.2067
+    },
+    "Prop": {
+      "VAE": 0.176,
+      "AE": 0.152,
+      "Raw Pixel L2": 0.176,
+      "Color Histogram": 0.024,
+      "Hybrid Re-ranker": 0.2
+    },
+    "Effect": {
+      "VAE": 0.05,
+      "AE": 0.12,
+      "Raw Pixel L2": 0.11,
+      "Color Histogram": 0.0,
+      "Hybrid Re-ranker": 0.12
+    },
+    "Unknown": {
+      "VAE": 0.44,
+      "AE": 0.38,
+      "Raw Pixel L2": 0.42,
+      "Color Histogram": 0.45,
+      "Hybrid Re-ranker": 0.46
+    }
+  }
+}
