@@ -3,6 +3,7 @@ import {
   searchSimilarAssets, 
   runVAEInference, 
   runVAEInterpolation,
+  runVAEReconstruction,
   FRONT_FACING_SPRITES_25, 
   fetchSampleSpritesManifest,
   BACKEND_URL 
@@ -28,7 +29,11 @@ export default function VAEStudio() {
   const [isInterpolating, setIsInterpolating] = useState(false);
   const [alphaVal, setAlphaVal] = useState(0.5);
 
-  const [activeTab, setActiveTab] = useState("search"); // 'search' | 'variations' | 'interpolate'
+  // Reconstruction State
+  const [reconResult, setReconResult] = useState(null);
+  const [isReconLoading, setIsReconLoading] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("search"); // 'search' | 'variations' | 'interpolate' | 'reconstruct'
   const [error, setError] = useState(null);
 
   const varDebounceTimer = useRef(null);
@@ -43,6 +48,7 @@ export default function VAEStudio() {
       triggerSearch(spriteList[0].url, "All");
       triggerVariations(spriteList[0].url, 0.6);
       triggerInterpolation(0.5, spriteList[0], spriteList[1] || spriteList[0]);
+      triggerReconstruction(spriteList[0].url);
     });
   }, []);
 
@@ -127,6 +133,33 @@ export default function VAEStudio() {
     }, 150);
   };
 
+  async function triggerReconstruction(imageInput = selectedSprite?.url) {
+    if (!imageInput) return;
+    setIsReconLoading(true);
+    setError(null);
+    try {
+      const payload = typeof imageInput === "string" ? resolveSpriteUrl(imageInput) : imageInput;
+      const res = await runVAEReconstruction(payload);
+      if (res && res.reconstructed) {
+        setReconResult(res);
+      }
+    } catch (err) {
+      console.error("VAE reconstruction failed:", err);
+      setError("VAE Reconstruction notice: " + err.message);
+    } finally {
+      setIsReconLoading(false);
+    }
+  }
+
+  function handleReconUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedSprite({ id: "upload", name: file.name, category: "Custom PNG", url: objectUrl });
+    setActiveTab("reconstruct");
+    triggerReconstruction(file);
+  }
+
   function handleSelectCharacter(item) {
     setSelectedSprite(item);
     if (activeTab === "search") {
@@ -135,6 +168,8 @@ export default function VAEStudio() {
       triggerVariations(item.url, vaeScale);
     } else if (activeTab === "interpolate") {
       triggerInterpolation(alphaVal, item, secondarySprite);
+    } else if (activeTab === "reconstruct") {
+      triggerReconstruction(item.url);
     }
   }
 
@@ -263,7 +298,7 @@ export default function VAEStudio() {
       </div>
 
       {/* Mode Navigation Tabs */}
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
         <button
           onClick={() => {
             setActiveTab("search");
@@ -332,6 +367,28 @@ export default function VAEStudio() {
           }}
         >
           <span>🔄</span> 3. Spherical Latent Interpolation
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab("reconstruct");
+            triggerReconstruction(selectedSprite?.url);
+          }}
+          style={{
+            padding: "0.6rem 1.25rem",
+            borderRadius: 8,
+            border: activeTab === "reconstruct" ? "2px solid #a855f7" : "1px solid rgba(148, 163, 184, 0.2)",
+            background: activeTab === "reconstruct" ? "rgba(168, 85, 247, 0.2)" : "rgba(30, 41, 59, 0.5)",
+            color: activeTab === "reconstruct" ? "#ffffff" : "#94a3b8",
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6
+          }}
+        >
+          <span>🧪</span> 4. VAE Reconstruction
         </button>
       </div>
 
@@ -781,6 +838,234 @@ export default function VAEStudio() {
             />
             <span style={{ fontSize: 12, color: "#94a3b8" }}>Character B (100%)</span>
           </div>
+        </div>
+      )}
+
+      {/* TAB 4: VAE DETERMINISTIC RECONSTRUCTION & PER-SPRITE METRICS */}
+      {activeTab === "reconstruct" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginBottom: "2rem" }}>
+          <div style={{
+            background: "rgba(30, 41, 59, 0.5)",
+            border: "1px solid rgba(168, 85, 247, 0.25)",
+            borderRadius: 12,
+            padding: "1.5rem"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1.25rem" }}>
+              <div>
+                <h3 style={{ margin: "0 0 2px 0", fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
+                  Deterministic VAE Reconstruction (z = μ Posterior Mean)
+                </h3>
+                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>
+                  Encodes the sprite into the 256-D Gaussian bottleneck and decodes cleanly from μ (without stochastic sampling noise).
+                </p>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <label style={{
+                  background: "rgba(168, 85, 247, 0.18)",
+                  border: "1px solid rgba(168, 85, 247, 0.4)",
+                  color: "#d8b4fe",
+                  padding: "0.4rem 0.85rem",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}>
+                  📤 Upload Custom PNG
+                  <input type="file" accept="image/*" onChange={handleReconUpload} style={{ display: "none" }} />
+                </label>
+                <button
+                  onClick={() => triggerReconstruction(selectedSprite?.url)}
+                  disabled={isReconLoading}
+                  style={{
+                    background: "linear-gradient(135deg, #9333ea 0%, #6366f1 100%)",
+                    border: "none",
+                    color: "#ffffff",
+                    padding: "0.45rem 1rem",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  {isReconLoading ? "Reconstructing..." : "Re-run VAE Reconstruction"}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.5rem" }}>
+              {/* Original Input Panel */}
+              <div style={{
+                background: "rgba(15, 23, 42, 0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(148, 163, 184, 0.15)",
+                padding: "1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center"
+              }}>
+                <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Original Input Sprite</span>
+                  <span style={{ fontSize: 12, color: "#60a5fa" }}>{selectedSprite?.name || "Selected Sprite"}</span>
+                </div>
+                <div style={{
+                  background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
+                  borderRadius: 8,
+                  padding: "1rem",
+                  width: 224,
+                  height: 224,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 10
+                }}>
+                  <img
+                    src={reconResult?.original_processed || selectedSprite?.url}
+                    alt="Original Input"
+                    style={{ width: 192, height: 192, imageRendering: "pixelated" }}
+                  />
+                </div>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>Nearest-Neighbor Normalized Canvas</span>
+              </div>
+
+              {/* VAE Reconstructed Panel */}
+              <div style={{
+                background: "rgba(15, 23, 42, 0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(168, 85, 247, 0.35)",
+                padding: "1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center"
+              }}>
+                <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#d8b4fe", textTransform: "uppercase" }}>VAE Reconstructed Output</span>
+                  <span style={{ fontSize: 12, color: "#34d399" }}>VAE_280K ({reconResult?.output_size || "256×256"})</span>
+                </div>
+                <div style={{
+                  background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
+                  borderRadius: 8,
+                  padding: "1rem",
+                  width: 224,
+                  height: 224,
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 10
+                }}>
+                  {reconResult?.reconstructed ? (
+                    <img
+                      src={reconResult.reconstructed}
+                      alt="VAE Reconstructed"
+                      style={{
+                        width: 192,
+                        height: 192,
+                        imageRendering: "pixelated",
+                        opacity: isReconLoading ? 0.4 : 1.0,
+                        transition: "opacity 0.2s ease"
+                      }}
+                    />
+                  ) : (
+                    <div style={{ color: "#64748b", fontSize: 13 }}>Running VAE reconstruction...</div>
+                  )}
+                  {isReconLoading && (
+                    <div style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(15, 23, 42, 0.45)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#d8b4fe"
+                    }}>
+                      Decoding z = μ...
+                    </div>
+                  )}
+                </div>
+                <span style={{ fontSize: 12, color: "#cbd5e1" }}>256-D Latent Bottleneck Decode (z = μ)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Per-Reconstruction Quantitative Metrics Grid */}
+          {reconResult?.metrics && (
+            <div style={{
+              background: "rgba(30, 41, 59, 0.5)",
+              border: "1px solid rgba(148, 163, 184, 0.15)",
+              borderRadius: 12,
+              padding: "1.5rem"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
+                  Per-Sprite VAE Reconstruction Metrics &mdash; <span style={{ color: "#d8b4fe" }}>{selectedSprite?.name || "Selected Sprite"}</span>
+                </h3>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  background: "rgba(168, 85, 247, 0.15)",
+                  color: "#d8b4fe",
+                  border: "1px solid rgba(168, 85, 247, 0.3)"
+                }}>
+                  Deterministic Mean Decode (256-D)
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Reconstruction MSE</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#38bdf8", marginTop: 4 }}>{reconResult.metrics.mse.toFixed(6)}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Bottleneck L2 error</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Mean Abs Error (MAE)</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#38bdf8", marginTop: 4 }}>{reconResult.metrics.mae !== undefined ? reconResult.metrics.mae.toFixed(6) : "—"}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Per-pixel L1 deviation</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>PSNR Fidelity</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{reconResult.metrics.psnr !== undefined ? reconResult.metrics.psnr.toFixed(2) : "—"} dB</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Higher is sharper</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Structural SSIM</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#a5b4fc", marginTop: 4 }}>{reconResult.metrics.ssim !== undefined ? reconResult.metrics.ssim.toFixed(4) : "—"}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Range [0.0, 1.0]</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Exact Pixel Match</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{reconResult.metrics.exact_match !== undefined ? reconResult.metrics.exact_match.toFixed(2) : "—"}%</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Within ±0.05 tolerance</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Alpha Mask IoU</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{reconResult.metrics.alpha_iou !== undefined ? reconResult.metrics.alpha_iou.toFixed(2) : "—"}%</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Silhouette preservation</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Color Palette Match</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#fbbf24", marginTop: 4 }}>{reconResult.metrics.color_match !== undefined ? reconResult.metrics.color_match.toFixed(2) : "—"}%</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Foreground consistency</div>
+                </div>
+
+                <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>KL Divergence (z)</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#d8b4fe", marginTop: 4 }}>{reconResult.metrics.kl_divergence !== undefined ? reconResult.metrics.kl_divergence.toFixed(2) : "—"}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Latent prior regularization</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

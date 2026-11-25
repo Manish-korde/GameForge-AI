@@ -231,6 +231,33 @@ export const runNoisyAEInference = async (imageUrl, noiseScale = 0.1) => {
   }
 };
 
+export const runVAEReconstruction = async (imageInput) => {
+  try {
+    const formData = new FormData();
+    if (typeof imageInput === "string") {
+      formData.append("image_url", imageInput);
+    } else if (imageInput instanceof File || imageInput instanceof Blob) {
+      formData.append("file", imageInput);
+    } else {
+      formData.append("image_url", String(imageInput));
+    }
+
+    const res = await fetch(`${BACKEND_URL}/vae/reconstruct`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `VAE Reconstruction failed (HTTP ${res.status})`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("VAE Reconstruction Error:", err);
+    throw err;
+  }
+};
+
 export const runVAEInference = async (imageUrl, scale = 1.0) => {
   try {
     const formData = new FormData();

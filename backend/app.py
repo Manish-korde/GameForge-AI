@@ -782,6 +782,45 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
             return Image.open(io.BytesIO(response.content)).convert("RGBA")
     raise HTTPException(status_code=400, detail="Must provide file or image_url")
 
+def compute_reconstruction_metrics(input_tensor: np.ndarray, output_tensor: np.ndarray, threshold: float = 0.05) -> dict:
+    """Computes authentic pixel-level and perceptual metrics between 128x128 RGBA tensors."""
+    mse = float(np.mean(np.square(input_tensor - output_tensor)))
+    mae = float(np.mean(np.abs(input_tensor - output_tensor)))
+    psnr = float(tf.image.psnr(input_tensor, output_tensor, max_val=1.0).numpy()[0])
+    ssim = float(tf.image.ssim(input_tensor[:, :, :, :3], output_tensor[:, :, :, :3], max_val=1.0).numpy()[0])
+    exact_match = float(np.mean(np.abs(input_tensor - output_tensor) <= threshold) * 100)
+
+    rgb_spatial_std = float(np.std(input_tensor[0, :, :, :3]))
+    is_transparent = bool(np.any(input_tensor[0, :, :, 3] < 0.5))
+    is_degenerate_canvas = bool(rgb_spatial_std < 0.02)
+
+    alpha_true = input_tensor[0, :, :, 3] > 0.5
+    alpha_pred = output_tensor[0, :, :, 3] > 0.5
+    intersection = np.logical_and(alpha_true, alpha_pred).sum()
+    union = np.logical_or(alpha_true, alpha_pred).sum()
+    alpha_iou = float((intersection / union) * 100) if union > 0 else 100.0
+
+    rgb_true = input_tensor[0, :, :, :3]
+    rgb_pred = output_tensor[0, :, :, :3]
+    color_diff = np.abs(rgb_true - rgb_pred)
+    if alpha_true.sum() > 0:
+        color_match = float(np.mean(color_diff[alpha_true] <= threshold) * 100)
+    else:
+        color_match = 100.0
+
+    return {
+        "mse": mse,
+        "mae": mae,
+        "psnr": psnr,
+        "ssim": ssim,
+        "exact_match": exact_match,
+        "alpha_iou": alpha_iou,
+        "color_match": color_match,
+        "spatial_std": rgb_spatial_std,
+        "is_transparent": is_transparent,
+        "is_degenerate": is_degenerate_canvas,
+    }
+
 @app.post("/reconstruct")
 async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)):
     ensure_ae_loaded()
@@ -798,33 +837,7 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
         output_tensor = model.predict(input_tensor)
         
         # 3. Metrics
-        mse = float(np.mean(np.square(input_tensor - output_tensor)))
-        mae = float(np.mean(np.abs(input_tensor - output_tensor)))
-        psnr = float(tf.image.psnr(input_tensor, output_tensor, max_val=1.0).numpy()[0])
-        ssim = float(tf.image.ssim(input_tensor[:,:,:,:3], output_tensor[:,:,:,:3], max_val=1.0).numpy()[0])
-        
-        # New Advanced Metrics
-        threshold = 0.05
-        exact_match = float(np.mean(np.abs(input_tensor - output_tensor) <= threshold) * 100)
-        
-        # Spatial Variance & Entropy Check (Composite Anomaly Detection)
-        rgb_spatial_std = float(np.std(input_tensor[0, :, :, :3]))
-        is_transparent = bool(np.any(input_tensor[0, :, :, 3] < 0.5))
-        is_degenerate_canvas = bool(rgb_spatial_std < 0.02)
-        
-        alpha_true = input_tensor[0, :, :, 3] > 0.5
-        alpha_pred = output_tensor[0, :, :, 3] > 0.5
-        intersection = np.logical_and(alpha_true, alpha_pred).sum()
-        union = np.logical_or(alpha_true, alpha_pred).sum()
-        alpha_iou = float((intersection / union) * 100) if union > 0 else 100.0
-        
-        rgb_true = input_tensor[0, :, :, :3]
-        rgb_pred = output_tensor[0, :, :, :3]
-        color_diff = np.abs(rgb_true - rgb_pred)
-        if alpha_true.sum() > 0:
-            color_match = float(np.mean(color_diff[alpha_true] <= threshold) * 100)
-        else:
-            color_match = 100.0
+        base_metrics = compute_reconstruction_metrics(input_tensor, output_tensor)
         
         # 4. Postprocess
         reconstructed_img = postprocess_image(output_tensor)
@@ -834,22 +847,49 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
             "original_processed": image_to_base64(original_processed_img),
             "reconstructed": image_to_base64(reconstructed_img),
             "metrics": {
-                "mse": mse,
-                "mae": mae,
-                "psnr": psnr,
-                "ssim": ssim,
-                "exact_match": exact_match,
-                "alpha_iou": alpha_iou,
-                "color_match": color_match,
-                "spatial_std": rgb_spatial_std,
-                "is_transparent": is_transparent,
-                "is_degenerate": is_degenerate_canvas,
+                **base_metrics,
                 "p95_threshold": 0.001313,
                 "mode": "clean",
                 "noise_scale": 0.0
             }
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/vae/reconstruct")
+async def vae_reconstruct(image_url: str = Form(None), file: UploadFile = File(None)):
+    """Deterministic VAE reconstruction from posterior mean z = mu with quantitative metrics."""
+    ensure_vae_loaded()
+    if vae_encoder is None or vae_decoder is None:
+        raise HTTPException(status_code=503, detail="VAE Model unavailable")
+
+    try:
+        image = await fetch_image_from_source(image_url, file)
+        input_tensor = preprocess_image(image)
+
+        z_mean, z_log_var, _ = vae_encoder.predict(input_tensor, verbose=0)
+        output_tensor = vae_decoder.predict(z_mean, verbose=0)
+
+        base_metrics = compute_reconstruction_metrics(input_tensor, output_tensor)
+        kl_div = float(-0.5 * np.sum(1 + z_log_var - np.square(z_mean) - np.exp(z_log_var)))
+
+        original_img = postprocess_image(input_tensor).resize((256, 256), Image.NEAREST)
+        reconstructed_img = postprocess_vae_sprite(output_tensor[0:1], output_size=256)
+
+        return {
+            "original_processed": image_to_base64(original_img),
+            "reconstructed": image_to_base64(reconstructed_img),
+            "output_size": "256×256",
+            "metrics": {
+                **base_metrics,
+                "kl_divergence": round(kl_div, 4),
+                "latent_dim": int(z_mean.shape[-1]),
+                "mode": "vae_mean"
+            }
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/reconstruct_noisy")
