@@ -1,20 +1,5 @@
 # =========================================================
-# Stage 1: Build React Frontend SPA
-# =========================================================
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app/gui
-
-# Copy package manifests & install Node dependencies
-COPY gui/package.json gui/package-lock.json ./
-RUN npm ci
-
-# Copy frontend source code & build production bundle
-COPY gui/ ./
-ENV VITE_BACKEND_URL=""
-RUN npm run build
-
-# =========================================================
-# Stage 2: Unified Python AI Backend & Static Server Runtime
+# Single-Stage: Unified Python AI Backend & Static Server Runtime
 # =========================================================
 FROM python:3.10-slim AS runtime
 
@@ -37,10 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install CPU-optimized PyTorch and Python packages
 COPY backend/requirements_docker.txt ./backend/requirements_docker.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir -r ./backend/requirements_docker.txt
+    pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r ./backend/requirements_docker.txt
 
-# Copy backend source code, ML model checkpoints, and evaluation data
+# Copy backend source code, ML model checkpoints, and runtime directories
 COPY backend/ ./backend/
 COPY models/ ./models/
 COPY evaluation/ ./evaluation/
@@ -48,8 +33,8 @@ COPY config/ ./config/
 COPY documentation/ ./documentation/
 COPY demo_offline_gallery/ ./demo_offline_gallery/
 
-# Copy compiled React frontend bundle from Stage 1 into /app/gui/dist
-COPY --from=frontend-builder /app/gui/dist ./gui/dist
+# Copy pre-compiled production React frontend bundle directly
+COPY gui/dist/ ./gui/dist/
 
 # Expose FastAPI server port
 EXPOSE 8000

@@ -9,7 +9,21 @@ __pycache__
 .pytest_cache
 backend/venv
 gui/node_modules
-gui/dist
 scratch
 *.log
 *.tmp
+
+# Large non-production submission, archive, and dataset files
+GameForge_AI_Practical_Submission.zip
+GameForge_AI_Practical_Submission/
+Dataset/
+trash/
+temp files/
+old diffsuion model stuff/
+zFINAL FILES/
+models/4_Transformer_2k_v1_backup/
+models/4_Transformer_2k_v1/checkpoint-*/
+Notebook/
+submission/
+transformer_training/
+research_paper_assets/
