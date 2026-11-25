@@ -418,7 +418,7 @@ export default function VAEStudio() {
                 <img
                   src={selectedSprite.url}
                   alt="Query"
-                  style={{ width: 80, height: 80, imageRendering: "pixelated" }}
+                  style={{ width: 96, height: 96, imageRendering: "pixelated" }}
                 />
               </div>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#f8fafc", textAlign: "center" }}>
@@ -458,7 +458,7 @@ export default function VAEStudio() {
                         <img
                           src={resolveSpriteUrl(match.url)}
                           alt={match.label}
-                          style={{ width: 64, height: 64, imageRendering: "pixelated" }}
+                          style={{ width: 88, height: 88, imageRendering: "pixelated" }}
                         />
                       </div>
                       <div style={{
@@ -536,13 +536,18 @@ export default function VAEStudio() {
               <div style={{
                 background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
                 borderRadius: 8,
-                padding: "1.5rem",
-                marginBottom: 10
+                padding: "1rem",
+                marginBottom: 10,
+                width: 224,
+                height: 224,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}>
                 <img
                   src={selectedSprite?.url}
                   alt="Original"
-                  style={{ width: 120, height: 120, imageRendering: "pixelated" }}
+                  style={{ width: 192, height: 192, imageRendering: "pixelated" }}
                 />
               </div>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#f8fafc" }}>{selectedSprite?.name}</span>
@@ -559,16 +564,16 @@ export default function VAEStudio() {
               alignItems: "center"
             }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#38bdf8", letterSpacing: "0.5px", marginBottom: 12 }}>
-                SYNTHESIZED VAE VARIATION (σ = {vaeScale})
+                SYNTHESIZED VAE VARIATION (σ = {vaeScale} • {vaeResult?.output_size || "256×256"})
               </span>
               <div style={{
                 background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
                 borderRadius: 8,
-                padding: "1.5rem",
+                padding: "1rem",
                 marginBottom: 10,
                 position: "relative",
-                width: 152,
-                height: 152,
+                width: 224,
+                height: 224,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
@@ -578,15 +583,15 @@ export default function VAEStudio() {
                     src={resolveSpriteUrl(vaeResult?.variant || vaeResult?.reconstructed || vaeResult?.image || selectedSprite?.url)}
                     alt="Variation"
                     style={{
-                      width: 120,
-                      height: 120,
+                      width: 192,
+                      height: 192,
                       imageRendering: "pixelated",
                       opacity: isVaeLoading ? 0.4 : 1.0,
                       transition: "opacity 0.2s ease"
                     }}
                   />
                 ) : (
-                  <div style={{ width: 120, height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+                  <div style={{ width: 192, height: 192, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
                     Generating...
                   </div>
                 )}
@@ -646,7 +651,7 @@ export default function VAEStudio() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 140px", gap: "1.5rem", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "160px 1fr 160px", gap: "1.5rem", alignItems: "center", marginBottom: "1.5rem" }}>
             {/* Character A */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <span style={{ fontSize: 11, color: "#818cf8", fontWeight: 700, marginBottom: 6 }}>Source A (α = 0.0)</span>
@@ -656,7 +661,7 @@ export default function VAEStudio() {
                 padding: "0.5rem",
                 marginBottom: 4
               }}>
-                <img src={selectedSprite?.url} alt="Char A" style={{ width: 80, height: 80, imageRendering: "pixelated" }} />
+                <img src={selectedSprite?.url} alt="Char A" style={{ width: 96, height: 96, imageRendering: "pixelated" }} />
               </div>
               <span style={{ fontSize: 11, color: "#f8fafc", textAlign: "center" }}>{selectedSprite?.name}</span>
             </div>
@@ -667,11 +672,11 @@ export default function VAEStudio() {
                 background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
                 borderRadius: 8,
                 border: "2px solid #10b981",
-                padding: "1.5rem",
+                padding: "1rem",
                 marginBottom: 10,
                 position: "relative",
-                width: 152,
-                height: 152,
+                width: 224,
+                height: 224,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
@@ -681,15 +686,15 @@ export default function VAEStudio() {
                     src={resolveSpriteUrl(interpolatedResult?.interpolated || interpolatedResult?.interpolated_image || interpolatedResult?.image || (alphaVal < 0.5 ? selectedSprite?.url : secondarySprite?.url))}
                     alt="Interpolated"
                     style={{
-                      width: 120,
-                      height: 120,
+                      width: 192,
+                      height: 192,
                       imageRendering: "pixelated",
                       opacity: isInterpolating ? 0.4 : 1.0,
                       transition: "opacity 0.2s ease"
                     }}
                   />
                 ) : (
-                  <div style={{ width: 120, height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+                  <div style={{ width: 192, height: 192, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
                     Interpolating...
                   </div>
                 )}
@@ -711,7 +716,7 @@ export default function VAEStudio() {
                 )}
               </div>
               <span style={{ fontSize: 12, color: "#34d399", fontWeight: 600 }}>
-                Synthesized Blend (α = {alphaVal})
+                Synthesized Blend (α = {alphaVal} • {interpolatedResult?.output_size || "256×256"} {interpolatedResult?.interpolation_mode || "SLERP"})
               </span>
             </div>
 
@@ -724,7 +729,7 @@ export default function VAEStudio() {
                 padding: "0.5rem",
                 marginBottom: 4
               }}>
-                <img src={secondarySprite?.url} alt="Char B" style={{ width: 80, height: 80, imageRendering: "pixelated" }} />
+                <img src={secondarySprite?.url} alt="Char B" style={{ width: 96, height: 96, imageRendering: "pixelated" }} />
               </div>
               <span style={{ fontSize: 11, color: "#f8fafc", textAlign: "center" }}>{secondarySprite?.name}</span>
               <select

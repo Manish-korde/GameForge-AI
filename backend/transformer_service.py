@@ -1028,7 +1028,11 @@ class TransformerService:
                 return
             logger.info(f"Loading Fine-Tuned Flan-T5 Transformer from {self.model_path}...")
             try:
+                import torch
+                import transformers
                 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+                from transformers.utils import import_utils as _tf_import_utils
+                logger.info(f"Runtime Check — torch: {torch.__version__}, transformers: {transformers.__version__}, is_torch_available: {_tf_import_utils.is_torch_available()}")
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
                 self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_path)
                 self.model.eval()

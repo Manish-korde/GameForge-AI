@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 # Step 1: Install PyTorch CPU alone (cached independently across deploys)
-RUN pip install --no-cache-dir --no-compile --prefer-binary torch==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir --no-compile --prefer-binary torch==2.6.0+cpu --index-url https://download.pytorch.org/whl/cpu
 
 # Step 2: Install TensorFlow CPU (Keras 3 compatible) + NumPy alone (memory flushed after completion)
 RUN pip install --no-cache-dir --no-compile --prefer-binary "tensorflow-cpu>=2.18.0" "numpy>=1.26.0"

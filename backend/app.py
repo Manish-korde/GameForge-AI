@@ -10,7 +10,7 @@ import json
 import base64
 import requests
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter, ImageEnhance
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -120,6 +120,34 @@ def postprocess_image(img_array: np.ndarray) -> Image.Image:
     img_array = img_array[0] * 255.0
     img_array = np.clip(img_array, 0, 255).astype(np.uint8)
     return Image.fromarray(img_array, mode="RGBA")
+
+def postprocess_vae_sprite(img_array: np.ndarray, output_size: int = 256) -> Image.Image:
+    """
+    Enhances raw 128x128 VAE decoder outputs into crisp game-ready sprites:
+    - Mild contrast + edge sharpening on RGB foreground
+    - Alpha fringe tightening so silhouettes have clean opaque boundaries
+    - Nearest-neighbor upscale to 256x256 to preserve sharp sprite pixels
+    """
+    raw = np.clip(img_array[0], 0.0, 1.0)
+    rgba = (raw * 255.0).astype(np.uint8)
+    pil = Image.fromarray(rgba, mode="RGBA")
+    r, g, b, a = pil.split()
+    rgb_img = Image.merge("RGB", (r, g, b))
+    rgb_img = ImageEnhance.Contrast(rgb_img).enhance(1.15)
+    rgb_img = rgb_img.filter(ImageFilter.UnsharpMask(radius=1.1, percent=155, threshold=2))
+    rgb_img = ImageEnhance.Sharpness(rgb_img).enhance(1.35)
+
+    a_norm = raw[:, :, 3]
+    a_clean = np.where(
+        a_norm < 0.24,
+        0.0,
+        np.where(a_norm >= 0.50, 255.0, ((a_norm - 0.24) / 0.26) * 255.0),
+    ).astype(np.uint8)
+    a_img = Image.fromarray(a_clean, mode="L")
+    crisp = Image.merge("RGBA", (*rgb_img.split(), a_img))
+    if output_size and crisp.size != (output_size, output_size):
+        crisp = crisp.resize((output_size, output_size), Image.NEAREST)
+    return crisp
 
 def image_to_base64(image: Image.Image) -> str:
     buffered = io.BytesIO()
@@ -733,10 +761,10 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         if "alucard_dataset_image" in url_or_path:
             try:
                 img_id = int(url_or_path.rstrip("/").split("/")[-1])
-                raw_ds = get_raw_dataset()
-                if raw_ds is not None and 0 <= img_id < len(raw_ds):
-                    return raw_ds[img_id]["image"].convert("RGBA")
-                raise HTTPException(status_code=404, detail=f"Dataset sprite {img_id} unavailable in raw dataset")
+                png_bytes = fetch_dataset_sprite_bytes(img_id)
+                if png_bytes:
+                    return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+                raise HTTPException(status_code=404, detail=f"Dataset sprite {img_id} unavailable")
             except HTTPException:
                 raise
             except Exception as e:
@@ -934,10 +962,10 @@ async def generate_variants(
         z_variant = z_mean + (scale * epsilon)
         
         # 4. Decode
-        output_tensor = vae_decoder.predict(z_variant)
+        output_tensor = vae_decoder.predict(z_variant, verbose=0)
         
-        # 5. Postprocess back to PIL image
-        variant_image = postprocess_image(output_tensor[0:1])
+        # 5. Postprocess with crisp pixel-art sharpening & 256x256 upscale
+        variant_image = postprocess_vae_sprite(output_tensor[0:1], output_size=256)
         
         buffered = io.BytesIO()
         variant_image.save(buffered, format="PNG")
@@ -945,7 +973,8 @@ async def generate_variants(
         
         return {
             "variant": f"data:image/png;base64,{variant_b64}",
-            "scale_applied": scale
+            "scale_applied": scale,
+            "output_size": "256×256"
         }
         
     except Exception as e:
@@ -981,14 +1010,27 @@ async def interpolate_vae(
         enc_out_b = vae_encoder.predict(tensor_b, verbose=0)
         z_mean_b = enc_out_b[0] if isinstance(enc_out_b, list) else enc_out_b
         
-        # 3. Interpolate in latent space
-        z_interpolated = (1.0 - alpha) * z_mean_a + alpha * z_mean_b
+        # 3. Spherical Linear Interpolation (SLERP) in 256-D latent space
+        # Preserves latent hypersphere norm rather than collapsing toward blurry origin mean
+        norm_a = float(np.linalg.norm(z_mean_a)) + 1e-8
+        norm_b = float(np.linalg.norm(z_mean_b)) + 1e-8
+        u_a = z_mean_a / norm_a
+        u_b = z_mean_b / norm_b
+        cos_theta = float(np.clip(np.sum(u_a * u_b), -0.9999, 0.9999))
+        omega = float(np.arccos(cos_theta))
+        if abs(omega) < 1e-4:
+            z_unit = (1.0 - alpha) * u_a + alpha * u_b
+        else:
+            sin_omega = float(np.sin(omega))
+            z_unit = (np.sin((1.0 - alpha) * omega) / sin_omega) * u_a + (np.sin(alpha * omega) / sin_omega) * u_b
+        target_norm = (1.0 - alpha) * norm_a + alpha * norm_b
+        z_interpolated = z_unit * target_norm
         
         # 4. Decode
         output_tensor = vae_decoder.predict(z_interpolated, verbose=0)
         
-        # 5. Postprocess back to PIL image
-        interp_image = postprocess_image(output_tensor[0:1])
+        # 5. Postprocess with crisp pixel-art sharpening & 256x256 upscale
+        interp_image = postprocess_vae_sprite(output_tensor[0:1], output_size=256)
         
         buffered = io.BytesIO()
         interp_image.save(buffered, format="PNG")
@@ -996,7 +1038,9 @@ async def interpolate_vae(
         
         return {
             "interpolated": f"data:image/png;base64,{interp_b64}",
-            "alpha": alpha
+            "alpha": alpha,
+            "output_size": "256×256",
+            "interpolation_mode": "SLERP"
         }
         
     except Exception as e:
@@ -1053,6 +1097,9 @@ def get_raw_dataset():
     global RAW_DATASET
     if RAW_DATASET is not None:
         return RAW_DATASET
+    import importlib.util
+    if importlib.util.find_spec("datasets") is None:
+        return None
     try:
         os.environ["HF_DATASETS_OFFLINE"] = "1"
         from datasets import load_dataset
@@ -1061,25 +1108,21 @@ def get_raw_dataset():
         RAW_DATASET = ds["train"]
         print(f"HuggingFace dataset cached successfully ({len(RAW_DATASET)} records) via local cache!")
     except Exception as e:
-        print(f"Local offline HF dataset load failed ({e}), attempting online fallback...")
-        try:
-            os.environ.pop("HF_DATASETS_OFFLINE", None)
-            from datasets import load_dataset
-            ds = load_dataset("evilsocket/alucard-sprites")
-            RAW_DATASET = ds["train"]
-            print(f"HuggingFace dataset cached successfully ({len(RAW_DATASET)} records) via online fallback!")
-        except Exception as e2:
-            print(f"Could not load HuggingFace dataset: {e2}")
+        print(f"Local offline HF dataset load failed ({e}); using lightweight HF API fallback.")
     return RAW_DATASET
 
-# Fast local serving endpoint for authentic dataset sprites directly from local cache
-@app.get("/alucard_dataset_image/{image_id}")
-async def get_alucard_dataset_image(image_id: int):
-    # Check in-memory image bytes cache for ultra-fast serving
+def fetch_dataset_sprite_bytes(image_id: int) -> Optional[bytes]:
+    """
+    Fetches authentic PNG bytes for an indexed Alucard sprite ID:
+    1. In-memory PNG cache (instant)
+    2. Local HuggingFace datasets cache (if installed locally)
+    3. Lightweight HuggingFace Datasets Server row API (zero RAM overhead for cloud containers)
+    4. VAE Decoder fallback from GALLERY_INDEX latent vector if external network is unavailable
+    """
     if image_id in DATASET_IMAGE_CACHE:
-        return Response(content=DATASET_IMAGE_CACHE[image_id], media_type="image/png")
+        return DATASET_IMAGE_CACHE[image_id]
 
-    # 1. Fetch authentic dataset sprite from cached HuggingFace dataset
+    # 1. Local HF dataset cache (when available)
     raw_ds = get_raw_dataset()
     if raw_ds is not None and 0 <= image_id < len(raw_ds):
         try:
@@ -1090,12 +1133,60 @@ async def get_alucard_dataset_image(image_id: int):
             png_bytes = buf.getvalue()
             if len(DATASET_IMAGE_CACHE) < 2000:
                 DATASET_IMAGE_CACHE[image_id] = png_bytes
-            return Response(content=png_bytes, media_type="image/png")
+            return png_bytes
         except Exception as e:
-            print(f"Error serving dataset sprite {image_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error decoding image {image_id}: {e}")
+            print(f"Local raw_ds read error for {image_id}: {e}")
 
-    raise HTTPException(status_code=404, detail=f"Dataset sprite {image_id} unavailable in raw dataset")
+    # 2. HuggingFace Datasets Server HTTP row lookup (works on lightweight Docker/Railpack deploys)
+    try:
+        api_url = (
+            "https://datasets-server.huggingface.co/rows"
+            f"?dataset=evilsocket%2Falucard-sprites&config=default&split=train&offset={int(image_id)}&length=1"
+        )
+        r = requests.get(api_url, timeout=6)
+        if r.status_code == 200:
+            rows = r.json().get("rows") or []
+            if rows and rows[0].get("row", {}).get("image", {}).get("src"):
+                img_src = rows[0]["row"]["image"]["src"]
+                img_resp = requests.get(img_src, timeout=6)
+                if img_resp.status_code == 200:
+                    img = Image.open(io.BytesIO(img_resp.content)).convert("RGBA")
+                    buf = io.BytesIO()
+                    img.save(buf, format="PNG")
+                    png_bytes = buf.getvalue()
+                    if len(DATASET_IMAGE_CACHE) < 2000:
+                        DATASET_IMAGE_CACHE[image_id] = png_bytes
+                    return png_bytes
+    except Exception as e:
+        print(f"HF datasets-server fallback notice for sprite {image_id}: {e}")
+
+    # 3. VAE latent decode fallback from GALLERY_INDEX so image never 404s if offline
+    if GALLERY_INDEX is not None and GALLERY_MANIFEST and vae_decoder is not None:
+        try:
+            for idx, item in enumerate(GALLERY_MANIFEST):
+                rid = item.get("raw_id", item.get("id"))
+                if rid == image_id:
+                    z_vec = np.expand_dims(GALLERY_INDEX[idx].astype(np.float32), axis=0)
+                    dec = vae_decoder.predict(z_vec, verbose=0)
+                    spr = postprocess_vae_sprite(dec[0:1], output_size=128)
+                    buf = io.BytesIO()
+                    spr.save(buf, format="PNG")
+                    png_bytes = buf.getvalue()
+                    if len(DATASET_IMAGE_CACHE) < 2000:
+                        DATASET_IMAGE_CACHE[image_id] = png_bytes
+                    return png_bytes
+        except Exception as e:
+            print(f"VAE fallback decode error for sprite {image_id}: {e}")
+
+    return None
+
+# Fast local serving endpoint for authentic dataset sprites
+@app.get("/alucard_dataset_image/{image_id}")
+async def get_alucard_dataset_image(image_id: int):
+    png_bytes = fetch_dataset_sprite_bytes(image_id)
+    if png_bytes:
+        return Response(content=png_bytes, media_type="image/png")
+    raise HTTPException(status_code=404, detail=f"Dataset sprite {image_id} unavailable")
 
 @app.get("/evaluation/metrics")
 def get_evaluation_metrics():
@@ -1179,10 +1270,11 @@ async def vae_search_similar(
             if query_raw_id is not None and raw_id == query_raw_id:
                 continue
                 
-            # Category filter
+            # Category filter (matches both broad category and specific archetype label like Knight/Mage/Warrior)
             if cat_lower != "all" and cat_lower != "":
                 item_cat = item.get("category", "").lower()
-                if cat_lower not in item_cat:
+                item_label = item.get("label", "").lower()
+                if cat_lower not in item_cat and cat_lower not in item_label:
                     continue
                     
             cos_sim = float(scores[idx])
