@@ -1,6 +1,32 @@
 # GameForge AI 🎮🤖
+### Multimodal Generative AI Platform for 2D Game Asset Synthesis, Latent Representation Learning, and Pose Deformation
 
-Welcome to **GameForge AI**! This project is a multi-model Generative AI pipeline designed for 2D game asset design, semantic planning, adversarial sprite synthesis, latent space analysis, high-fidelity reconstruction, and from-scratch action-conditioned diffusion animation.
+**Course:** Generative AI Practical Evaluation (30 Marks)  
+**Academic Year:** 2026–2027  
+**Institute:** MIT Academy of Engineering (MITAOE), Pune  
+**Department:** Department of Computer Engineering  
+**Project Guide:** Prof. Dr. Savita Mane  
+
+**Group Members:**
+- **Manish Korde** — PRN / Roll: `202301040206`
+- **Samriddhi Das** — PRN / Roll: `202301040276`
+- **Swayam Pagare** — PRN / Roll: `202301040248`
+
+---
+
+## 📁 Practical Submission Deliverables Package (`./submission/`)
+
+All required university evaluation components have been compiled, verified, and placed in the [`submission/`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/) directory:
+
+| Component | Submission Item | File / Resource Link |
+| :--- | :--- | :--- |
+| **1. Code Notebook** | Master Google Colab Notebook (`.ipynb`) | [`submission/GameForge_AI_Master_Demonstration_and_Training.ipynb`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/GameForge_AI_Master_Demonstration_and_Training.ipynb) |
+| **1b. Exported PDF** | Exported Notebook PDF Format | [`submission/GameForge_AI_Master_Demonstration_and_Training.pdf`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/GameForge_AI_Master_Demonstration_and_Training.pdf) |
+| **2. Datasets** | Dataset Sources, Links & Splits | [`submission/DATASET_SOURCES_AND_LINKS.md`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/DATASET_SOURCES_AND_LINKS.md) |
+| **3. Model Files** | Model Checkpoints & Parameter Manifest | [`submission/MODEL_CHECKPOINTS_AND_MANIFEST.md`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/MODEL_CHECKPOINTS_AND_MANIFEST.md) |
+| **4. Presentation (PPT)** | 15-Slide Presentation File (`.pptx`) | [`submission/GameForge_AI_Final_Presentation.pptx`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/GameForge_AI_Final_Presentation.pptx) |
+| **4b. Speaker Script** | Complete Slides & Speaker Notes (`.md`) | [`submission/PRESENTATION_SLIDES_AND_SPEAKER_NOTES.md`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/PRESENTATION_SLIDES_AND_SPEAKER_NOTES.md) |
+| **5. Checklist** | Practical Submission Self-Audit | [`submission/PRACTICAL_SUBMISSION_CHECKLIST.md`](file:///c:/Users/manis/OneDrive/Desktop/Prompt_to_game_asset_generator/submission/PRACTICAL_SUBMISSION_CHECKLIST.md) |
 
 ---
 

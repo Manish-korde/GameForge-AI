@@ -73,6 +73,12 @@ if not os.path.exists(chars_dir):
 if os.path.exists(chars_dir):
     app.mount("/characters_25", StaticFiles(directory=chars_dir), name="characters_25")
 
+frontfacing_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "frontfacing_25"))
+if not os.path.exists(frontfacing_dir):
+    frontfacing_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "gui", "public", "frontfacing_25"))
+if os.path.exists(frontfacing_dir):
+    app.mount("/frontfacing_25", StaticFiles(directory=frontfacing_dir), name="frontfacing_25")
+
 gallery_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "demo_offline_gallery"))
 if not os.path.exists(gallery_dir):
     gallery_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "demo_offline_gallery"))
@@ -141,21 +147,28 @@ def preindex_alucard_samples():
         
         batch_tensors = []
         metadata = []
-        for i in range(35):
-            img_path = os.path.join(samples_dir, f"alucard_{i}.png")
-            if os.path.exists(img_path):
-                img = Image.open(img_path).convert("RGBA")
-                tensor = preprocess_image(img)[0] # (128, 128, 4)
-                cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Sprite #{i}", "text": "pixel art, sprite"})
-                batch_tensors.append(tensor)
-                metadata.append({
-                    "url": f"/alucard_samples/alucard_{i}.png",
-                    "path": img_path,
-                    "category": cat_info["category"],
-                    "label": cat_info["label"],
-                    "index_id": i,
-                    "text": cat_info.get("text", "pixel art, sprite")
-                })
+        # Also index frontfacing_25 sprites
+        ff_manifest_file = os.path.join(frontfacing_dir, "manifest.json")
+        if os.path.exists(ff_manifest_file):
+            try:
+                with open(ff_manifest_file, "r") as mf:
+                    ff_items = json.load(mf)
+                for item in ff_items:
+                    ff_path = os.path.join(frontfacing_dir, item["filename"])
+                    if os.path.exists(ff_path):
+                        img = Image.open(ff_path).convert("RGBA")
+                        tensor = preprocess_image(img)[0]
+                        batch_tensors.append(tensor)
+                        metadata.append({
+                            "url": item["url"],
+                            "path": ff_path,
+                            "category": item.get("category", "Front-Facing Sprite"),
+                            "label": item.get("label", item.get("name", "Front Character")),
+                            "index_id": item["id"],
+                            "text": f"pixel art, front facing character, {item.get('archetype', 'Hero')}"
+                        })
+            except Exception as fe:
+                print(f"Error loading frontfacing manifest for indexing: {fe}")
         
         if batch_tensors:
             batch_array = np.array(batch_tensors)
@@ -187,7 +200,17 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # DCGAN Character Generator Service
-from dcgan_service import load_dcgan_generator, generate_character_sprites, generate as dcgan_generate, get_status as get_dcgan_status, CLASS_PRESETS as DCGAN_CLASSES, find_safe_seed
+from dcgan_service import (
+    load_dcgan_generator,
+    load_cdcgan_generator,
+    generate_character_sprites,
+    generate as dcgan_generate,
+    get_status as get_dcgan_status,
+    get_cdcgan_status,
+    CLASS_PRESETS as DCGAN_CLASSES,
+    CONDITIONAL_CLASS_INFO,
+    find_safe_seed
+)
 
 try:
     from gan.gan_service import load_generator, generate_textures, get_status as get_gan_status
@@ -276,6 +299,8 @@ def startup_event():
     gan_thread.start()
     dcgan_thread = threading.Thread(target=load_dcgan_generator, daemon=True)
     dcgan_thread.start()
+    cdcgan_thread = threading.Thread(target=load_cdcgan_generator, daemon=True)
+    cdcgan_thread.start()
 
 @app.get("/status")
 @app.get("/api/status")
@@ -287,7 +312,8 @@ def status():
         "vae_status": f"VAE: {vae_status}",
         "transformer_status": f"Transformer: {ts}",
         "gan_status": f"GAN: {get_gan_status()}",
-        "dcgan_status": f"Discrete DCGAN: {get_dcgan_status()}"
+        "dcgan_status": f"Discrete DCGAN: {get_dcgan_status()}",
+        "cdcgan_status": f"cDCGAN v3: {get_cdcgan_status()}"
     }
 
 
@@ -297,15 +323,19 @@ async def dcgan_generate_character_endpoint(
     count: int = Form(16),
     seed: int = Form(1337),
     pixel_art_mode: bool = Form(True),
-    quality_filter: bool = Form(True)
+    quality_filter: bool = Form(True),
+    generator_mode: str = Form("unconditional"),
+    class_id: int = Form(0)
 ):
-    """Endpoint for generating 64x64 transparent character sprites using the 50-epoch DCGAN model."""
+    """Endpoint for generating 64x64 transparent character sprites using unconditional DCGAN or cDCGAN v3."""
     result = generate_character_sprites(
         role=role,
         count=count,
         seed=seed,
         pixel_art_mode=pixel_art_mode,
-        quality_filter=quality_filter
+        quality_filter=quality_filter,
+        generator_mode=generator_mode,
+        class_id=class_id
     )
     if "error" in result and not result.get("sprites"):
         raise HTTPException(status_code=503, detail=result["error"])
@@ -476,11 +506,13 @@ class MultiPoseDiffusionRequest(BaseModel):
     seed: Optional[int] = None
     steps: Optional[int] = 50
     reference_b64: Optional[str] = None
+    enable_f7_patch: Optional[bool] = False
 
 class WalkCycleRequest(BaseModel):
     reference_b64: Optional[str] = None
     seed: Optional[int] = 42
     steps: Optional[int] = 50
+    enable_f7_patch: Optional[bool] = False
 
 @app.get("/generate/diffusion/status")
 @app.get("/api/action_diffusion/status")
@@ -497,7 +529,8 @@ def generate_diffusion_endpoint(req: MultiPoseDiffusionRequest):
             action=req.action,
             pose_id=req.pose_id,
             seed=req.seed,
-            steps=req.steps or 50
+            steps=req.steps or 50,
+            enable_f7_patch=req.enable_f7_patch or False
         )
     except HTTPException:
         raise
@@ -518,7 +551,8 @@ def generate_walk_cycle_endpoint(req: WalkCycleRequest):
         return multi_pose_diffusion_service.generate_walk_cycle(
             reference_input=req.reference_b64,
             seed=req.seed if req.seed is not None else 42,
-            steps=req.steps or 50
+            steps=req.steps or 50,
+            enable_f7_patch=req.enable_f7_patch or False
         )
     except HTTPException:
         raise
@@ -537,6 +571,7 @@ class ActionDiffusionRequest(BaseModel):
     reference_b64: Optional[str] = None
     steps: Optional[int] = 50
     seed: Optional[int] = None
+    enable_f7_patch: Optional[bool] = False
 
 @app.post("/api/action_diffusion/generate")
 async def action_diffusion_generate_endpoint(req: ActionDiffusionRequest):
@@ -548,7 +583,8 @@ async def action_diffusion_generate_endpoint(req: ActionDiffusionRequest):
             action=req.action or "walk",
             pose_id=req.pose_id or 0,
             seed=req.seed,
-            steps=req.steps or 50
+            steps=req.steps or 50,
+            enable_f7_patch=req.enable_f7_patch or False
         )
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -567,7 +603,13 @@ def action_diffusion_samples_endpoint():
 def dcgan_classes_endpoint():
     return {
         "classes": list(DCGAN_CLASSES.keys()),
+        "conditional_classes": CONDITIONAL_CLASS_INFO,
+        "modes": [
+            {"id": "unconditional", "name": "Unconditional DCGAN (50 Epochs - Default)", "is_default": True},
+            {"id": "conditional_v3", "name": "Conditional Palette (cDCGAN v3)", "is_default": False}
+        ],
         "dcgan_status": get_dcgan_status(),
+        "cdcgan_status": get_cdcgan_status(),
         "model": "Discrete DCGAN 42K Characters (50 Epochs)"
     }
 
@@ -593,16 +635,29 @@ def gan_categories():
     }
 
 
+@app.get("/frontfacing_manifest")
+@app.get("/api/frontfacing_manifest")
+def get_frontfacing_manifest():
+    manifest_path = os.path.join(frontfacing_dir, "manifest.json")
+    if os.path.exists(manifest_path):
+        with open(manifest_path, "r") as f:
+            return json.load(f)
+    return []
+
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
+    manifest_path = os.path.join(frontfacing_dir, "manifest.json")
+    if os.path.exists(manifest_path):
+        with open(manifest_path, "r") as f:
+            return json.load(f)
     result = []
     for i in range(25):
         result.append({
             "id": i + 1,
-            "label": f"Sprite #{i + 1}",
-            "filename": f"alucard_{i}.png",
-            "category": "Dataset Sprite",
-            "url": f"/alucard_samples/alucard_{i}.png"
+            "label": f"Character #{i + 1}",
+            "filename": f"front_char_{i+1:02d}.png",
+            "category": "Front-Facing Sprite",
+            "url": f"/frontfacing_25/front_char_{i+1:02d}.png"
         })
     return result
 
@@ -644,6 +699,16 @@ async def fetch_image_from_source(url_or_path: str = None, file: UploadFile = No
         content = await file.read()
         return Image.open(io.BytesIO(content)).convert("RGBA")
     if url_or_path:
+        if "frontfacing_25" in url_or_path:
+            filename = url_or_path.split("frontfacing_25/")[-1]
+            local_file = os.path.join(frontfacing_dir, filename)
+            if os.path.exists(local_file):
+                return Image.open(local_file).convert("RGBA")
+        if "characters_25" in url_or_path:
+            filename = url_or_path.split("characters_25/")[-1]
+            local_file = os.path.join(chars_dir, filename)
+            if os.path.exists(local_file):
+                return Image.open(local_file).convert("RGBA")
         if "alucard_samples" in url_or_path:
             filename = url_or_path.split("alucard_samples/")[-1]
             local_file = os.path.join(samples_dir, filename)

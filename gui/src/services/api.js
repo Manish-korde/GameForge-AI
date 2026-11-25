@@ -9,30 +9,54 @@ const DEMO_MODE = true; // Hardcoded for now until backend is connected
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const ALUCARD_DATASET_SPRITES_25 = Array.from({ length: 25 }, (_, i) => ({
-  id: i + 1,
-  label: `Sprite #${i + 1}`,
-  category: "Dataset Sprite",
-  url: `/alucard_samples/alucard_${i}.png`
-}));
+export const FRONT_FACING_SPRITES_25 = [
+  { id: 1, label: "Character #01: Royal Paladin", name: "Royal Paladin", category: "Paladin", url: "/frontfacing_25/front_char_01.png" },
+  { id: 2, label: "Character #02: Elven Archer", name: "Elven Archer", category: "Archer", url: "/frontfacing_25/front_char_02.png" },
+  { id: 3, label: "Character #03: Arcane Sorcerer", name: "Arcane Sorcerer", category: "Mage", url: "/frontfacing_25/front_char_03.png" },
+  { id: 4, label: "Character #04: Shadow Rogue", name: "Shadow Rogue", category: "Rogue", url: "/frontfacing_25/front_char_04.png" },
+  { id: 5, label: "Character #05: Iron Guardian", name: "Iron Guardian", category: "Warrior", url: "/frontfacing_25/front_char_05.png" },
+  { id: 6, label: "Character #06: Forest Ranger", name: "Forest Ranger", category: "Ranger", url: "/frontfacing_25/front_char_06.png" },
+  { id: 7, label: "Character #07: Crimson Knight", name: "Crimson Knight", category: "Knight", url: "/frontfacing_25/front_char_07.png" },
+  { id: 8, label: "Character #08: High Priest", name: "High Priest", category: "Cleric", url: "/frontfacing_25/front_char_08.png" },
+  { id: 9, label: "Character #09: Desert Scout", name: "Desert Scout", category: "Ranger", url: "/frontfacing_25/front_char_09.png" },
+  { id: 10, label: "Character #10: Mystic Druid", name: "Mystic Druid", category: "Mage", url: "/frontfacing_25/front_char_10.png" },
+  { id: 11, label: "Character #11: Heavy Barbarian", name: "Heavy Barbarian", category: "Warrior", url: "/frontfacing_25/front_char_11.png" },
+  { id: 12, label: "Character #12: Dark Assassin", name: "Dark Assassin", category: "Rogue", url: "/frontfacing_25/front_char_12.png" },
+  { id: 13, label: "Character #13: Grand Mage", name: "Grand Mage", category: "Mage", url: "/frontfacing_25/front_char_13.png" },
+  { id: 14, label: "Character #14: Silver Templar", name: "Silver Templar", category: "Paladin", url: "/frontfacing_25/front_char_14.png" },
+  { id: 15, label: "Character #15: Mountain Hunter", name: "Mountain Hunter", category: "Ranger", url: "/frontfacing_25/front_char_15.png" },
+  { id: 16, label: "Character #16: Eldritch Warlock", name: "Eldritch Warlock", category: "Warlock", url: "/frontfacing_25/front_char_16.png" },
+  { id: 17, label: "Character #17: Warden Defender", name: "Warden Defender", category: "Guardian", url: "/frontfacing_25/front_char_17.png" },
+  { id: 18, label: "Character #18: Nomad Warrior", name: "Nomad Warrior", category: "Warrior", url: "/frontfacing_25/front_char_18.png" },
+  { id: 19, label: "Character #19: Rune Enchanter", name: "Rune Enchanter", category: "Mage", url: "/frontfacing_25/front_char_19.png" },
+  { id: 20, label: "Character #20: Battle Cleric", name: "Battle Cleric", category: "Cleric", url: "/frontfacing_25/front_char_20.png" },
+  { id: 21, label: "Character #21: Nightblade Rogue", name: "Nightblade Rogue", category: "Rogue", url: "/frontfacing_25/front_char_21.png" },
+  { id: 22, label: "Character #22: Storm Champion", name: "Storm Champion", category: "Warrior", url: "/frontfacing_25/front_char_22.png" },
+  { id: 23, label: "Character #23: Sun Paladin", name: "Sun Paladin", category: "Paladin", url: "/frontfacing_25/front_char_23.png" },
+  { id: 24, label: "Character #24: Verdant Scout", name: "Verdant Scout", category: "Ranger", url: "/frontfacing_25/front_char_24.png" },
+  { id: 25, label: "Character #25: Arch-Mage", name: "Arch-Mage", category: "Mage", url: "/frontfacing_25/front_char_25.png" },
+];
 
-export const SAMPLE_SPRITES_35 = ALUCARD_DATASET_SPRITES_25;
-export const FRONT_FACING_CHARACTERS_25 = ALUCARD_DATASET_SPRITES_25;
+export const ALUCARD_DATASET_SPRITES_25 = FRONT_FACING_SPRITES_25;
+export const SAMPLE_SPRITES_35 = FRONT_FACING_SPRITES_25;
+export const FRONT_FACING_CHARACTERS_25 = FRONT_FACING_SPRITES_25;
 
-const HUMAN_SPRITES = ALUCARD_DATASET_SPRITES_25.map(c => c.url);
+const HUMAN_SPRITES = FRONT_FACING_SPRITES_25.map(c => c.url);
 
 export const fetchSampleSpritesManifest = async () => {
   try {
-    const res = await fetch(`${BACKEND_URL}/alucard_samples_manifest`);
+    const res = await fetch(`${BACKEND_URL}/frontfacing_manifest`);
     if (res.ok) {
       const data = await res.json();
-      return data.map(item => ({
-        ...item,
-        url: item.url.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, '')
-      }));
+      if (data && data.length > 0) {
+        return data.map(item => ({
+          ...item,
+          url: item.url.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, '')
+        }));
+      }
     }
   } catch (e) {}
-  return ALUCARD_DATASET_SPRITES_25;
+  return FRONT_FACING_SPRITES_25;
 };
 
 export const fetchRandomHumanSprite = () => {
@@ -440,7 +464,15 @@ export const fetchDCGANClasses = async () => {
   }
 };
 
-export const generateDCGANCharacters = async ({ role = "🎲 Random Latent (Fresh Synthesis)", count = 16, seed = 1337, pixelArtMode = true, qualityFilter = true }) => {
+export const generateDCGANCharacters = async ({
+  role = "🎲 Random Latent (Fresh Synthesis)",
+  count = 16,
+  seed = 1337,
+  pixelArtMode = true,
+  qualityFilter = true,
+  generatorMode = "unconditional",
+  classId = 0
+}) => {
   try {
     const formData = new FormData();
     formData.append("role", role);
@@ -450,6 +482,8 @@ export const generateDCGANCharacters = async ({ role = "🎲 Random Latent (Fres
     }
     formData.append("pixel_art_mode", pixelArtMode ? "true" : "false");
     formData.append("quality_filter", qualityFilter ? "true" : "false");
+    formData.append("generator_mode", generatorMode);
+    formData.append("class_id", classId);
 
     const res = await fetch(`${BACKEND_URL}/dcgan/generate_character`, {
       method: "POST",
@@ -547,7 +581,7 @@ export const fetchActionDiffusionStatus = async () => {
   return { status: "Offline", model_version: "Phase F2 Validated (Multi-Pose)" };
 };
 
-export const generateDiffusionPose = async ({ action = "walk", poseId = 0, referenceB64 = null, steps = 50, seed = null }) => {
+export const generateDiffusionPose = async ({ action = "walk", poseId = 0, referenceB64 = null, steps = 50, seed = null, enableF7Patch = false }) => {
   try {
     const res = await fetch(`${BACKEND_URL}/generate/diffusion`, {
       method: "POST",
@@ -557,7 +591,8 @@ export const generateDiffusionPose = async ({ action = "walk", poseId = 0, refer
         pose_id: parseInt(poseId) || 0,
         reference_b64: referenceB64,
         steps: steps ? parseInt(steps) : 50,
-        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : null
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : null,
+        enable_f7_patch: !!enableF7Patch
       }),
     });
     if (!res.ok) {
@@ -571,7 +606,7 @@ export const generateDiffusionPose = async ({ action = "walk", poseId = 0, refer
   }
 };
 
-export const generateDiffusionWalkCycle = async ({ referenceB64 = null, steps = 50, seed = 42 }) => {
+export const generateDiffusionWalkCycle = async ({ referenceB64 = null, steps = 50, seed = 42, enableF7Patch = false }) => {
   try {
     const res = await fetch(`${BACKEND_URL}/generate/diffusion/walk-cycle`, {
       method: "POST",
@@ -579,7 +614,8 @@ export const generateDiffusionWalkCycle = async ({ referenceB64 = null, steps = 
       body: JSON.stringify({
         reference_b64: referenceB64,
         steps: steps ? parseInt(steps) : 50,
-        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : 42
+        seed: seed !== null && seed !== undefined && seed !== "" ? parseInt(seed) : 42,
+        enable_f7_patch: !!enableF7Patch
       }),
     });
     if (!res.ok) {

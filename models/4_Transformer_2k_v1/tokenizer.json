@@ -2,7 +2,7 @@
   "version": "1.0",
   "truncation": {
     "direction": "Right",
-    "max_length": 512,
+    "max_length": 384,
     "strategy": "LongestFirst",
     "stride": 0
   },
@@ -934,24 +934,6 @@
       "rstrip": false,
       "normalized": false,
       "special": true
-    },
-    {
-      "id": 32100,
-      "content": "{",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 32101,
-      "content": "}",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
     }
   ],
   "normalizer": {

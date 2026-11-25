@@ -384,13 +384,42 @@ class MultiPoseDiffusionService:
                 
         return torch.clamp(x_cur, -1.0, 1.0)
 
+
+    def apply_feathered_bilateral_patch_tensor(self, f7_tensor: torch.Tensor, f3_tensor: torch.Tensor) -> torch.Tensor:
+        """Experimental Option: Applies bilateral mirror correction to F7 right-leg apex using flipped F3."""
+        f3_flipped = torch.flip(f3_tensor, dims=[-1])
+        corrected = f7_tensor.clone()
+        if corrected.ndim == 4:
+            corrected[:, :, 41:64, :] = f3_flipped[:, :, 41:64, :]
+            for i, r in enumerate(range(37, 41)):
+                weight = (i + 1) / 5.0
+                corrected[:, :, r, :] = (1.0 - weight) * f7_tensor[:, :, r, :] + weight * f3_flipped[:, :, r, :]
+        else:
+            corrected[:, 41:64, :] = f3_flipped[:, 41:64, :]
+            for i, r in enumerate(range(37, 41)):
+                weight = (i + 1) / 5.0
+                corrected[:, r, :] = (1.0 - weight) * f7_tensor[:, r, :] + weight * f3_flipped[:, r, :]
+        return corrected
+
+    def apply_feathered_bilateral_patch_pil(self, f7_img: Image.Image, f3_img: Image.Image) -> Image.Image:
+        f7_arr = np.array(f7_img, dtype=np.float32)
+        f3_arr = np.array(f3_img, dtype=np.float32)
+        f3_flipped = np.fliplr(f3_arr)
+        corrected = f7_arr.copy()
+        corrected[41:64, :] = f3_flipped[41:64, :]
+        for i, r in enumerate(range(37, 41)):
+            weight = (i + 1) / 5.0
+            corrected[r, :] = (1.0 - weight) * f7_arr[r, :] + weight * f3_flipped[r, :]
+        return Image.fromarray(np.clip(corrected, 0, 255).astype(np.uint8))
+
     def generate_single_pose(
         self,
         reference_input: Any,
         action: Any,
         pose_id: Any,
         seed: Optional[int] = None,
-        steps: int = 50
+        steps: int = 50,
+        enable_f7_patch: bool = False
     ) -> Dict[str, Any]:
         """Public API method for generating a single action/pose sprite."""
         t0 = time.time()
@@ -403,6 +432,9 @@ class MultiPoseDiffusionService:
             
         with self.lock:
             gen_tensor = self.sample_ddim(ref_tensor, action_id, pose_id, steps=steps, seed=seed)
+            if enable_f7_patch and action_id == 1 and pose_id == 6:
+                f3_tensor = self.sample_ddim(ref_tensor, action_id=1, pose_id=2, steps=steps, seed=seed)
+                gen_tensor = self.apply_feathered_bilateral_patch_tensor(gen_tensor, f3_tensor)
             
         gen_pil = self.tensor_to_pil(gen_tensor)
         elapsed_sec = time.time() - t0
@@ -415,6 +447,7 @@ class MultiPoseDiffusionService:
             "pose_name": pose_name,
             "seed": seed,
             "steps": steps,
+            "enable_f7_patch": enable_f7_patch,
             "dimensions": [64, 64],
             "image_b64": self.pil_to_base64(gen_pil),
             "reference_b64": self.pil_to_base64(ref_pil),
@@ -428,7 +461,8 @@ class MultiPoseDiffusionService:
         self,
         reference_input: Any,
         seed: Optional[int] = 42,
-        steps: int = 50
+        steps: int = 50,
+        enable_f7_patch: bool = False
     ) -> Dict[str, Any]:
         """
         Generates the full 8-frame walk cycle (F1 through F8) from one reference sprite.
@@ -447,6 +481,8 @@ class MultiPoseDiffusionService:
             for p_idx in range(8):
                 gen_t = self.sample_ddim(ref_tensor, action_id=1, pose_id=p_idx, steps=steps, seed=seed)
                 p_img = self.tensor_to_pil(gen_t)
+                if enable_f7_patch and p_idx == 6 and len(pil_frames) > 2:
+                    p_img = self.apply_feathered_bilateral_patch_pil(p_img, pil_frames[2])
                 pil_frames.append(p_img)
                 pose_name = self.POSE_NAMES[(1, p_idx)]
                 frames.append({

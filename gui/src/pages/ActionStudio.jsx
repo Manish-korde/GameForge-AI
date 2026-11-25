@@ -25,6 +25,7 @@ export default function ActionStudio() {
   const [poseId, setPoseId] = useState(2); // Default to Walk F3 Apex
   const [steps, setSteps] = useState(50);
   const [seed, setSeed] = useState("42");
+  const [enableF7Patch, setEnableF7Patch] = useState(false);
   const [selectedRef, setSelectedRef] = useState(SAMPLE_SPRITES_35[1]?.url || "");
   const [customRefB64, setCustomRefB64] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,7 @@ export default function ActionStudio() {
     });
     const params = new URLSearchParams(window.location.search);
     if (params.get("auto") === "true") {
-      fetch("/alucard_samples/alucard_0.png")
+      fetch("/frontfacing_25/front_char_01.png")
         .then(r => r.blob())
         .then(blob => new Promise(res => {
           const reader = new FileReader();
@@ -144,7 +145,8 @@ export default function ActionStudio() {
         poseId: action === "idle" ? 0 : poseId,
         referenceB64: await ensureBase64(activeRefDisplayUrl),
         steps: parseInt(steps) || 50,
-        seed: seed ? parseInt(seed) : null
+        seed: seed ? parseInt(seed) : null,
+        enableF7Patch
       });
 
       if (res.status === "success") {
@@ -181,7 +183,8 @@ export default function ActionStudio() {
       const res = await generateDiffusionWalkCycle({
         referenceB64: await ensureBase64(activeRefDisplayUrl),
         steps: parseInt(steps) || 50,
-        seed: seed ? parseInt(seed) : 42
+        seed: seed ? parseInt(seed) : 42,
+        enableF7Patch
       });
 
       if (res.status === "success") {
@@ -342,7 +345,7 @@ export default function ActionStudio() {
                 STEP 1: SELECT REFERENCE FRONT-FACING SPRITE
               </label>
               <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "0.5rem", marginBottom: "0.75rem" }}>
-                {SAMPLE_SPRITES_35.slice(0, 10).map((spr) => (
+                {SAMPLE_SPRITES_35.map((spr) => (
                   <img
                     key={spr.id}
                     src={spr.url}
@@ -357,7 +360,8 @@ export default function ActionStudio() {
                       borderRadius: 8,
                       cursor: "pointer",
                       border: selectedRef === spr.url ? "2px solid #6366f1" : "1px solid rgba(148, 163, 184, 0.2)",
-                      padding: 2
+                      padding: 2,
+                      flexShrink: 0
                     }}
                     title={spr.label}
                   />
@@ -521,6 +525,34 @@ export default function ActionStudio() {
                   }}
                 />
               </div>
+            </div>
+
+            {/* Experimental Bilateral Stride Mirror Patch Toggle */}
+            <div style={{
+              background: enableF7Patch ? "rgba(16, 185, 129, 0.15)" : "rgba(15, 23, 42, 0.6)",
+              border: enableF7Patch ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(148, 163, 184, 0.2)",
+              borderRadius: 8,
+              padding: "0.65rem 0.85rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "0.85rem",
+              transition: "all 0.15s ease"
+            }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: enableF7Patch ? "#34d399" : "#cbd5e1" }}>
+                  Bilateral F7 Stride Mirror Patch (Beta)
+                </div>
+                <div style={{ fontSize: 10, color: "#94a3b8" }}>
+                  Feathered mirror from F3 left-apex to address 38.9% right-stride compression.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={enableF7Patch}
+                onChange={(e) => setEnableF7Patch(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: "#10b981", cursor: "pointer" }}
+              />
             </div>
 
             {/* Action Buttons */}
@@ -949,7 +981,7 @@ export default function ActionStudio() {
           padding: "1.75rem"
         }}>
           <h3 style={{ margin: "0 0 1rem 0", fontSize: 18, fontWeight: 700, color: "#e2e8f0" }}>
-            Phase F2 Independent Validation & Academic Audit
+            Multi-Pose Diffusion Validation &amp; Telemetry Matrix
           </h3>
           <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: "1.5rem" }}>
             Evaluated across 100% of the unseen validation cohort (40 unique character identities × 9 conditions × 16 deterministic seeds = 5,760 samples).
@@ -959,7 +991,7 @@ export default function ActionStudio() {
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.2)", color: "#94a3b8" }}>
                 <th style={{ padding: "0.75rem" }}>Evaluation Criterion</th>
-                <th style={{ padding: "0.75rem" }}>Academic Target</th>
+                <th style={{ padding: "0.75rem" }}>Benchmark Target</th>
                 <th style={{ padding: "0.75rem" }}>Measured (40 Val Cohort)</th>
                 <th style={{ padding: "0.75rem" }}>Status</th>
               </tr>
@@ -1019,7 +1051,7 @@ export default function ActionStudio() {
           <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.15)" }}>
             <h4 style={{ margin: "0 0 6px 0", fontSize: 14, color: "#fca5a5" }}>Documented Limitation: F7 Right-Stride Compression</h4>
             <p style={{ margin: 0, fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
-              On walk cycle frame F7 (right stride apex), the model demonstrates <strong>38.9% stride compression</strong> (-0.349 px vs -0.561 px ground truth) due to pre-training asymmetry in C2 (which had previously only seen left stride apex F3). This limitation is transparently documented for academic publication.
+              On walk cycle frame F7 (right stride apex), the model demonstrates <strong>38.9% stride compression</strong> (-0.349 px vs -0.561 px ground truth) due to pre-training asymmetry in C2 (which had previously only seen left stride apex F3). This documented architectural limitation is tracked for future training iterations.
             </p>
           </div>
         </div>

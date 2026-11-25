@@ -19,9 +19,31 @@ LATENT_VECTORS_PATH = os.path.join(MODEL_RESULTS_DIR, "config", "fixed_latent_ve
 
 LATENT_DIM = 128
 PALETTE_SIZE = 32
+NUM_CLASSES = 4
 G_CHANNELS = [512, 256, 128, 64]
 G_INIT_SPATIAL = 4
 UPSAMPLE_MODE = "nearest"
+
+# cDCGAN v3 Configuration & Paths
+CDCGAN_SCALE_FACTOR = 20.0
+CDCGAN_WEIGHTS_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__),
+    "..", "models", "5_final_cDCGAN_v3", "cgenerator_ema_weights_final.weights.h5"
+))
+
+CONDITIONAL_CLASSES = {
+    "Knight (Group 0)": 0,
+    "Orc (Group 1)": 1,
+    "Ranger (Group 2)": 2,
+    "Mage (Group 3)": 3
+}
+
+CONDITIONAL_CLASS_INFO = [
+    {"id": 0, "name": "Knight (Group 0)", "theme": "Steel Armor / Crimson Red / Gold", "icon": "🛡️"},
+    {"id": 1, "name": "Orc (Group 1)", "theme": "Green Skin / Dark Cloak / Silver", "icon": "🧌"},
+    {"id": 2, "name": "Ranger (Group 2)", "theme": "Woodland Brown / Leather Hood", "icon": "🏹"},
+    {"id": 3, "name": "Mage (Group 3)", "theme": "Light Mystic Robes / Cyan / Teal", "icon": "🔮"}
+]
 
 CLASS_PRESETS = {
     "🎲 Random Latent (Fresh Synthesis)": None,
@@ -29,10 +51,18 @@ CLASS_PRESETS = {
 }
 
 _generator = None
+_cdcgan_generator = None
 _fixed_latents = None
 _global_palette_u8 = None
 _palette_tf = None
 _status = "Not Loaded"
+_cdcgan_status = "Not Loaded"
+
+class SpriteList(list):
+    """Wrapper around list of PIL images that carries Quality Filter candidate statistics."""
+    def __init__(self, items, filter_stats=None):
+        super().__init__(items)
+        self.filter_stats = filter_stats or {}
 
 def build_generator(latent_dim=LATENT_DIM):
     """
@@ -76,6 +106,51 @@ def build_generator(latent_dim=LATENT_DIM):
     # Discrete K+1 Logits Head (32 color logits + 1 alpha logit)
     logits = layers.Conv2D(PALETTE_SIZE + 1, (3, 3), padding="same", name="palette_logits")(x)
     return keras.Model(z_in, logits, name="Discrete_DCGAN_Generator")
+
+def build_scaled_cgenerator(latent_dim=LATENT_DIM, num_classes=NUM_CLASSES, scale_factor=CDCGAN_SCALE_FACTOR):
+    """
+    Builds the exact 20x scaled conditional discrete-palette DCGAN generator architecture.
+    Pretrained layer weights match the unconditional generator topology with class embedding addition.
+    Outputs (B, 64, 64, 33) representing 32 color logits + 1 alpha logit.
+    """
+    z_in = layers.Input(shape=(latent_dim,), name='latent_vector')
+    y_in = layers.Input(shape=(), dtype='int32', name='class_label')
+    
+    dense_proj = layers.Dense(G_INIT_SPATIAL * G_INIT_SPATIAL * G_CHANNELS[0], use_bias=False, name='dense')(z_in)
+    class_emb = layers.Embedding(num_classes, G_INIT_SPATIAL * G_INIT_SPATIAL * G_CHANNELS[0],
+                                 embeddings_initializer='zeros', name='class_embedding')(y_in)
+    scaled_emb = class_emb * scale_factor
+    
+    x = layers.Add(name='add_class')([dense_proj, scaled_emb])
+    x = layers.BatchNormalization(name='batch_normalization')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu')(x)
+    x = layers.Reshape((G_INIT_SPATIAL, G_INIT_SPATIAL, G_CHANNELS[0]), name='reshape')(x)
+    
+    x = layers.UpSampling2D(size=(2, 2), interpolation=UPSAMPLE_MODE, name='up_sampling2d')(x)
+    x = layers.Conv2D(G_CHANNELS[1], (3, 3), padding='same', use_bias=False, name='conv2d')(x)
+    x = layers.BatchNormalization(name='batch_normalization_1')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu_1')(x)
+    
+    x = layers.UpSampling2D(size=(2, 2), interpolation=UPSAMPLE_MODE, name='up_sampling2d_1')(x)
+    x = layers.Conv2D(G_CHANNELS[2], (3, 3), padding='same', use_bias=False, name='conv2d_1')(x)
+    x = layers.BatchNormalization(name='batch_normalization_2')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu_2')(x)
+    
+    x = layers.UpSampling2D(size=(2, 2), interpolation=UPSAMPLE_MODE, name='up_sampling2d_2')(x)
+    x = layers.Conv2D(64, (3, 3), padding='same', use_bias=False, name='conv2d_2')(x)
+    x = layers.BatchNormalization(name='batch_normalization_3')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu_3')(x)
+    
+    x = layers.UpSampling2D(size=(2, 2), interpolation=UPSAMPLE_MODE, name='up_sampling2d_3')(x)
+    x = layers.Conv2D(64, (3, 3), padding='same', use_bias=False, name='conv2d_3')(x)
+    x = layers.BatchNormalization(name='batch_normalization_4')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu_4')(x)
+    
+    x = layers.Conv2D(64, (3, 3), padding='same', name='conv2d_4')(x)
+    x = layers.LeakyReLU(0.2, name='leaky_re_lu_5')(x)
+    
+    logits = layers.Conv2D(PALETTE_SIZE + 1, (3, 3), padding='same', name='palette_logits')(x)
+    return keras.Model([z_in, y_in], logits, name='Scaled_cDCGAN_Generator')
 
 def logits_to_image(logits, palette_tf, tau=1.0, hard=True, noise=False):
     """
@@ -278,6 +353,34 @@ def load_dcgan_generator():
 def get_status():
     return _status
 
+def load_cdcgan_generator():
+    """Initializes and loads weights for the 20x scaled Conditional Palette cDCGAN v3 generator."""
+    global _cdcgan_generator, _cdcgan_status, _palette_tf, _global_palette_u8
+    if _cdcgan_generator is not None:
+        return _cdcgan_generator
+        
+    if _palette_tf is None:
+        if not os.path.exists(PALETTE_PATH):
+            raise FileNotFoundError(f"Palette file not found at {PALETTE_PATH}")
+        _global_palette_u8 = np.load(PALETTE_PATH)
+        _palette_tf = tf.constant(_global_palette_u8 / 255.0, dtype=tf.float32)
+        
+    if not os.path.exists(CDCGAN_WEIGHTS_PATH):
+        _cdcgan_status = f"FATAL ERROR: cDCGAN v3 weights file not found at {CDCGAN_WEIGHTS_PATH}"
+        raise FileNotFoundError(_cdcgan_status)
+        
+    _cdcgan_status = "Loading..."
+    print(f"Loading Scaled cDCGAN v3 Generator from {CDCGAN_WEIGHTS_PATH}...")
+    cgen = build_scaled_cgenerator()
+    cgen.load_weights(CDCGAN_WEIGHTS_PATH)
+    _cdcgan_generator = cgen
+    _cdcgan_status = "Loaded (cDCGAN v3 20x Scale)"
+    print("Scaled cDCGAN v3 Generator weights loaded successfully.")
+    return _cdcgan_generator
+
+def get_cdcgan_status():
+    return _cdcgan_status
+
 def score_candidate(c_img: np.ndarray, orphans: int) -> float:
     """
     Rejection score:
@@ -303,19 +406,51 @@ def score_candidate(c_img: np.ndarray, orphans: int) -> float:
     score = (orphans * 3.0) + (abs(fg_frac - 0.32) * 120.0) + color_penalty
     return score
 
-def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fresh Synthesis)", quality_filter: bool = True) -> list:
+def generate(
+    n: int = 16,
+    seed: int = 1337,
+    role: str = "🎲 Random Latent (Fresh Synthesis)",
+    quality_filter: bool = True,
+    generator_mode: str = "unconditional",
+    class_id: int = 0
+) -> list:
     """
     SINGLE ENTRY POINT:
-    generate(n, seed, role, quality_filter) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
-    quality_filter: if True (default), applies Quality Filter v2: generates 32 candidates,
-                    removes detached components (keeps main body + parts within 2 px),
-                    rejects candidates with leftover floaters/strays, ranks by quality score,
-                    and returns the best n.
-                    if False, generates n raw unfiltered sprites directly from latents.
+    generate(n, seed, role, quality_filter, generator_mode, class_id) -> list of 512x512 RGBA PIL Images (8x nearest neighbor).
+    
+    generator_mode:
+        - "unconditional" (default): Generates using production 50-epoch unconditional DCGAN.
+        - "conditional_v3": Generates using 18-epoch 20x scaled cDCGAN v3 with class conditioning (Knight, Orc, Ranger, Mage).
+    class_id:
+        - 0: Knight (Steel / Red / Gold)
+        - 1: Orc (Green Skin / Dark Cloak / Silver)
+        - 2: Ranger (Woodland Brown / Leather Hood)
+        - 3: Mage (Light Mystic Robes / Cyan / Teal)
+    quality_filter:
+        - if True (default), applies Quality Filter v3: generates 64 candidates,
+          enforces bilateral facial hue consistency gate (<45°), penalizes head-torso clash,
+          removes detached components, ranks by quality score, and returns the best n.
+          Stores candidate filter statistics on output_images.filter_stats.
+        - if False, generates n raw unfiltered sprites directly from latents.
     """
     global _generator, _palette_tf
-    if _generator is None or _palette_tf is None:
-        load_dcgan_generator()
+    
+    mode_str = str(generator_mode or "").lower().strip()
+    is_conditional = (mode_str in ("conditional", "conditional_v3", "cdcgan", "cdcgan_v3")) or (role in CONDITIONAL_CLASSES)
+    
+    if is_conditional:
+        gen_model = load_cdcgan_generator()
+        if role in CONDITIONAL_CLASSES:
+            effective_class_id = CONDITIONAL_CLASSES[role]
+        else:
+            try:
+                effective_class_id = int(class_id)
+            except (ValueError, TypeError):
+                effective_class_id = 0
+        effective_class_id = max(0, min(NUM_CLASSES - 1, effective_class_id))
+    else:
+        effective_class_id = None
+        gen_model = load_dcgan_generator()
         
     n = max(1, min(36, int(n)))
     rng = np.random.RandomState(seed) if seed is not None else np.random.RandomState()
@@ -340,7 +475,14 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
                 candidates_z.append(np.clip(z, -2.0, 2.0))
                 
         candidates_z = np.array(candidates_z, dtype=np.float32)
-        cand_logits = _generator(candidates_z, training=False)
+        z_tensor = tf.constant(candidates_z, dtype=tf.float32)
+        
+        if is_conditional:
+            y_tensor = tf.constant(np.full((len(candidates_z),), effective_class_id, dtype=np.int32))
+            cand_logits = gen_model([z_tensor, y_tensor], training=False)
+        else:
+            cand_logits = gen_model(z_tensor, training=False)
+            
         cand_imgs = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
         
         scored_candidates = []
@@ -370,6 +512,10 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
             
         scored_candidates.sort(key=lambda x: x[0])
         
+        accepted_candidates = len(scored_candidates)
+        rejected_candidates = n_candidates - accepted_candidates
+        attempts_per_accepted = round(n_candidates / max(1, accepted_candidates), 2)
+        
         # If strict rejection left fewer than n candidates, supplement with best available
         if len(scored_candidates) < n:
             backup_candidates.sort(key=lambda x: x[0])
@@ -380,6 +526,13 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
                     scored_candidates.append(item)
                     
         selected_sprites = [x[1] for x in scored_candidates[:n]]
+        filter_stats = {
+            "total_candidates": n_candidates,
+            "accepted_candidates": accepted_candidates,
+            "rejected_candidates": rejected_candidates,
+            "acceptance_rate_pct": round((accepted_candidates / n_candidates) * 100.0, 1),
+            "attempts_per_accepted": attempts_per_accepted
+        }
     else:
         # Raw discrete DCGAN generation: 1 candidate per requested sprite (unfiltered)
         raw_z = []
@@ -395,8 +548,21 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
                 raw_z.append(np.clip(z, -2.0, 2.0))
                 
         raw_z = np.array(raw_z, dtype=np.float32)
-        cand_logits = _generator(raw_z, training=False)
+        z_tensor = tf.constant(raw_z, dtype=tf.float32)
+        if is_conditional:
+            y_tensor = tf.constant(np.full((len(raw_z),), effective_class_id, dtype=np.int32))
+            cand_logits = gen_model([z_tensor, y_tensor], training=False)
+        else:
+            cand_logits = gen_model(z_tensor, training=False)
+            
         selected_sprites = logits_to_image(cand_logits, _palette_tf, hard=True, noise=False)
+        filter_stats = {
+            "total_candidates": n,
+            "accepted_candidates": n,
+            "rejected_candidates": 0,
+            "acceptance_rate_pct": 100.0,
+            "attempts_per_accepted": 1.0
+        }
         
     for final_sprite_64 in selected_sprites:
         pil_img_64 = Image.fromarray(final_sprite_64, mode="RGBA")
@@ -404,7 +570,7 @@ def generate(n: int = 16, seed: int = 1337, role: str = "🎲 Random Latent (Fre
         pil_img_512.native_64 = final_sprite_64
         output_images.append(pil_img_512)
         
-    return output_images
+    return SpriteList(output_images, filter_stats=filter_stats)
 
 def find_safe_seed(seed: int = None, max_retries: int = 5) -> int:
     """
@@ -427,12 +593,22 @@ def generate_character_sprites(
     seed: int = 1337,
     pixel_art_mode: bool = True,
     quality_filter: bool = True,
-    upscale_factor: int = 8
+    upscale_factor: int = 8,
+    generator_mode: str = "unconditional",
+    class_id: int = 0
 ):
     """
-    GUI endpoint adapter wrapping generate(n, seed, role, quality_filter) -> base64 data URLs.
+    GUI endpoint adapter wrapping generate(...) -> base64 data URLs + quality filter metrics.
     """
-    images_512 = generate(n=count, seed=seed, role=role, quality_filter=quality_filter)
+    images_512 = generate(
+        n=count,
+        seed=seed,
+        role=role,
+        quality_filter=quality_filter,
+        generator_mode=generator_mode,
+        class_id=class_id
+    )
+    filter_stats = getattr(images_512, "filter_stats", {})
     sprites_b64 = []
     for pil_img in images_512:
         buffer = io.BytesIO()
@@ -440,14 +616,39 @@ def generate_character_sprites(
         b64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         sprites_b64.append(f"data:image/png;base64,{b64_str}")
         
-    filter_label = f"best {len(images_512)} of 64 by quality & facial hue score" if quality_filter else "unfiltered (raw model)"
+    mode_str = str(generator_mode or "").lower().strip()
+    is_conditional = (mode_str in ("conditional", "conditional_v3", "cdcgan", "cdcgan_v3")) or (role in CONDITIONAL_CLASSES)
+    if is_conditional:
+        eff_id = CONDITIONAL_CLASSES.get(role, int(class_id) if class_id is not None else 0)
+        class_info = [c for c in CONDITIONAL_CLASS_INFO if c["id"] == eff_id]
+        class_name = class_info[0]["name"] if class_info else f"Class {eff_id}"
+        model_name = "Conditional cDCGAN v3 (20x Scaled Embedding + Palette Loss)"
+        active_status = _cdcgan_status
+    else:
+        eff_id = None
+        class_name = None
+        model_name = "Discrete DCGAN (50 Epochs, Palette-Conditioned Head)"
+        active_status = _status
+
+    if quality_filter:
+        acc = filter_stats.get('accepted_candidates', 0)
+        tot = filter_stats.get('total_candidates', 64)
+        att = filter_stats.get('attempts_per_accepted', 1.0)
+        filter_label = f"best {len(images_512)} of {tot} by quality score ({acc} accepted, {att}x attempts/sprite)"
+    else:
+        filter_label = "unfiltered (raw model)"
+
     return {
         "status": "success",
         "role": role,
         "count": len(images_512),
-        "generator_status": _status,
-        "model": "Discrete DCGAN (50 Epochs, Palette-Conditioned Head)",
+        "generator_mode": "conditional_v3" if is_conditional else "unconditional",
+        "class_id": eff_id,
+        "class_name": class_name,
+        "generator_status": active_status,
+        "model": model_name,
         "quality_filter": quality_filter,
         "filter_label": filter_label,
+        "filter_stats": filter_stats,
         "sprites": sprites_b64
     }

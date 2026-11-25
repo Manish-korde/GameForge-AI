@@ -4,9 +4,13 @@ import { generateConcept } from '../services/api';
 import './Pages.css';
 
 const SAMPLE_PROMPTS = [
+  "subway surfers train runner",
+  "chicken cross the road",
+  "flappy bird avoiding pipes",
+  "aim arrow archery challenge",
+  "a pizza delivery simulation game",
   "cozy farming game with a fox",
   "space asteroid destroyer",
-  "a space farming game with a fox",
   "dark fantasy dungeon crawler with skeleton warriors"
 ];
 
@@ -127,10 +131,27 @@ const ConceptPlanner = () => {
   };
 
   return (
-    <div className="page-container max-w-4xl">
-      <div className="page-header">
-        <h1>Transformer Semantic Planner 🎯</h1>
-        <p>End-to-end neural Seq2Seq specification planning powered by our fine-tuned <strong>Flan-T5</strong> model (2,000 prompt-JSON pairs).</p>
+    <div className="page-container max-w-4xl" style={{ maxWidth: 1100, margin: "0 auto", padding: "1.5rem" }}>
+      <div className="page-header" style={{ marginBottom: "1.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <span style={{ fontSize: 28 }}>🎯</span>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: "#f8fafc" }}>Concept Planner</h1>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            background: "rgba(99, 102, 241, 0.2)",
+            color: "#a5b4fc",
+            padding: "2px 8px",
+            borderRadius: 12,
+            border: "1px solid rgba(99, 102, 241, 0.4)",
+            textTransform: "uppercase"
+          }}>
+            Transformer Engine (Flan-T5)
+          </span>
+        </div>
+        <p style={{ margin: 0, color: "#94a3b8", fontSize: 14 }}>
+          End-to-end neural Seq2Seq specification planning powered by our fine-tuned <strong>Flan-T5</strong> model (2,000 prompt-JSON pairs) to generate structured game specifications, lore, and equipment archetypes.
+        </p>
       </div>
 
       {/* Natural Language Prompt Input */}
@@ -240,16 +261,62 @@ const ConceptPlanner = () => {
           {/* Evaluated Schema Header */}
           <div className="spec-header border-b border-[#2a2a35] pb-4 mb-4">
             <div className="spec-title-group">
-              <span className="badge badge-genre">Theme: {conceptSpec.theme || "General"}</span>
-              <h2 className="text-xl font-bold mt-1 text-white">{conceptSpec.game_title}</h2>
+              <div className="flex flex-wrap gap-2 mb-2">
+                <span className="badge badge-genre">Theme: {conceptSpec.theme || "General"}</span>
+                {conceptSpec.genre && (
+                  <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                    Genre: {conceptSpec.genre}
+                  </span>
+                )}
+                {conceptSpec.game_type && (
+                  <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+                    Type: {conceptSpec.game_type}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-xl font-bold text-white">{conceptSpec.game_title}</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               <span className="badge badge-style">Environment: {conceptSpec.environment || "Unspecified"}</span>
               <span className="badge" style={{ background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44' }}>
                 Style: {conceptSpec.visualStyle || "2D Pixel Art"}
               </span>
+              {conceptSpec.target_perspective && (
+                <span className="badge" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
+                  View: {conceptSpec.target_perspective}
+                </span>
+              )}
             </div>
           </div>
+
+          {/* Core Gameplay Loop & Mechanics Foundation */}
+          {conceptSpec.core_loop && (
+            <div className="bg-[#12121c] p-3.5 rounded-xl border border-[#262638] mb-5">
+              <h4 className="text-xs font-bold text-sky-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span>🎮</span> Core Gameplay Loop &amp; Rules Foundation
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-2.5">
+                <div className="p-2.5 rounded bg-[#0d0d14] border border-[#1f1f2e]">
+                  <strong className="text-gray-300 block mb-1">Primary Mechanic:</strong>
+                  <span className="text-gray-400">{conceptSpec.core_loop.mechanic}</span>
+                </div>
+                <div className="p-2.5 rounded bg-[#0d0d14] border border-[#1f1f2e]">
+                  <strong className="text-gray-300 block mb-1">Win Condition / Objective:</strong>
+                  <span className="text-gray-400">{conceptSpec.core_loop.objective}</span>
+                </div>
+              </div>
+              {conceptSpec.core_loop.hazards && conceptSpec.core_loop.hazards.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <span className="text-gray-400 text-[11px] font-semibold">Obstacles &amp; Hazards:</span>
+                  {conceptSpec.core_loop.hazards.map((h, hi) => (
+                    <span key={hi} className="px-2 py-0.5 rounded text-[11px] bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                      ⚠️ {h}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Evaluated Schema Entities Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -305,7 +372,7 @@ const ConceptPlanner = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-500 italic">None generated (Empty list in ground truth distribution)</div>
+                  <div className="text-xs text-gray-500 italic">None generated</div>
                 )}
               </div>
             </div>
@@ -344,7 +411,7 @@ const ConceptPlanner = () => {
             {showRawOutput && (
               <div className="mt-3 p-3 bg-black/80 rounded-lg border border-[#333] text-xs font-mono text-emerald-400 overflow-x-auto">
                 <div className="text-[10px] text-gray-500 mb-1 border-b border-[#222] pb-1">
-                  Format: Model Output ID Decode | Decoding: Beam Search (num_beams=4) | Task Prefix: "game concept: "
+                  Format: Model Output ID Decode | Checkpoint: {conceptSpec.telemetry?.model_checkpoint || "models/4_Transformer_2k_v1"} (v2) | Decoding: {conceptSpec.telemetry?.decoding_strategy || "Greedy Decoding (num_beams=1) with Boundary Repair Auditor"}
                 </div>
                 <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{conceptSpec.raw_t5_output}</pre>
               </div>

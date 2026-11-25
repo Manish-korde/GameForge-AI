@@ -38,6 +38,7 @@ models/*progress*.json
 !models/3_DCGAN_42k_v1/config/*.npy
 *.weights.h5
 !models/3_DCGAN_42k_v1/game_ready_assets/generator_weights_final.weights.h5
+!models/5_final_cDCGAN_v3/cgenerator_ema_weights_final.weights.h5
 Notebook/experimentaion/**/*.keras
 
 # Intermediate/raw training checkpoints
@@ -82,3 +83,9 @@ dataset_audit/hf_cache/
 # Archived legacy files and trash
 trash/
 temp files/
+
+# Submission packages & checkpoints
+GameForge_AI_Practical_Submission.zip
+GameForge_AI_Practical_Submission/
+models/4_Transformer_2k_v1_backup/
+models/4_Transformer_2k_v1/checkpoint-*/
