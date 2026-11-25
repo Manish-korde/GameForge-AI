@@ -110,7 +110,8 @@ VAE_DECODER_PATH = os.path.abspath(os.path.join(
 
 def preprocess_image(image: Image.Image) -> np.ndarray:
     image = image.convert("RGBA")
-    image = image.resize((128, 128))
+    # Preserve crisp pixel-art edges (NEAREST avoids bicubic blur that inflates AE MSE above P95)
+    image = image.resize((128, 128), Image.NEAREST)
     img_array = np.asarray(image, dtype=np.float32)
     img_array /= 255.0
     return np.expand_dims(img_array, axis=0)
@@ -815,7 +816,9 @@ async def reconstruct(image_url: str = Form(None), file: UploadFile = File(None)
                 "spatial_std": rgb_spatial_std,
                 "is_transparent": is_transparent,
                 "is_degenerate": is_degenerate_canvas,
-                "p95_threshold": 0.001313
+                "p95_threshold": 0.001313,
+                "mode": "clean",
+                "noise_scale": 0.0
             }
         }
     except Exception as e:
@@ -892,7 +895,9 @@ async def reconstruct_noisy(
                 "spatial_std": rgb_spatial_std,
                 "is_transparent": is_transparent,
                 "is_degenerate": is_degenerate_canvas,
-                "p95_threshold": 0.001313
+                "p95_threshold": 0.001313,
+                "mode": "noisy",
+                "noise_scale": float(noise_scale)
             }
         }
     except Exception as e:

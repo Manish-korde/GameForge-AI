@@ -243,7 +243,7 @@ export default function AEStudio() {
       )}
 
       {/* Main Reconstruction Workspace */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: aeResult?.noisy_image ? "1fr 1fr 1fr" : "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
         {/* Original Sprite Panel */}
         <div style={{
           background: "rgba(30, 41, 59, 0.5)",
@@ -283,9 +283,54 @@ export default function AEStudio() {
             />
           </div>
           <div style={{ fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
-            64×64 RGBA Clean Canvas (Scaled to 128×128 Neural Input)
+            64×64 RGBA Clean Canvas (Nearest-Neighbor 128×128 Input)
           </div>
         </div>
+
+        {/* Gaussian Noisy Input Panel (Shown during Stress Test) */}
+        {aeResult?.noisy_image && (
+          <div style={{
+            background: "rgba(30, 41, 59, 0.5)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+            borderRadius: 12,
+            padding: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}>
+            <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#fca5a5", textTransform: "uppercase" }}>Noisy Input</span>
+              <span style={{ fontSize: 12, color: "#f87171" }}>σ = {aeResult?.metrics?.noise_scale ?? noiseScale}</span>
+            </div>
+            <div style={{
+              background: "conic-gradient(#334155 90deg, #1e293b 90deg 180deg, #334155 180deg 270deg, #1e293b 270deg) 0 0/16px 16px",
+              borderRadius: 8,
+              border: "1px solid rgba(239, 68, 68, 0.25)",
+              padding: "2rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 220,
+              height: 220,
+              marginBottom: "1rem"
+            }}>
+              <img
+                src={aeResult.noisy_image}
+                alt="Noisy Input"
+                style={{
+                  width: 160,
+                  height: 160,
+                  objectFit: "contain",
+                  imageRendering: "pixelated",
+                  filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.5))"
+                }}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: "#fca5a5", textAlign: "center" }}>
+              Corrupted Sprite Fed into AE Encoder
+            </div>
+          </div>
+        )}
 
         {/* Autoencoder Reconstructed Panel */}
         <div style={{
@@ -372,10 +417,23 @@ export default function AEStudio() {
           padding: "1.5rem",
           marginBottom: "2rem"
         }}>
-          <h3 style={{ margin: "0 0 1.25rem 0", fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
-            Quantitative Quality Assurance Metrics
-          </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.25rem" }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#f8fafc" }}>
+              Per-Reconstruction Quantitative Metrics &mdash; <span style={{ color: "#60a5fa" }}>{selectedSprite?.name || "Selected Sprite"}</span>
+            </h3>
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 999,
+              background: aeResult.noisy_image ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)",
+              color: aeResult.noisy_image ? "#fca5a5" : "#34d399",
+              border: `1px solid ${aeResult.noisy_image ? "rgba(239, 68, 68, 0.3)" : "rgba(16, 185, 129, 0.3)"}`
+            }}>
+              {aeResult.noisy_image ? `Gaussian Denoising Mode (σ=${aeResult.metrics.noise_scale ?? noiseScale})` : "Clean Sprite Reconstruction"}
+            </span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
             <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
               <div style={{ fontSize: 11, color: "#94a3b8" }}>Reconstruction MSE</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#38bdf8", marginTop: 4 }}>{aeResult.metrics.mse.toFixed(6)}</div>
@@ -383,26 +441,38 @@ export default function AEStudio() {
             </div>
 
             <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>Mean Abs Error (MAE)</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#38bdf8", marginTop: 4 }}>{aeResult.metrics.mae !== undefined ? aeResult.metrics.mae.toFixed(6) : "—"}</div>
+              <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Per-pixel L1 deviation</div>
+            </div>
+
+            <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
               <div style={{ fontSize: 11, color: "#94a3b8" }}>PSNR Fidelity</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{aeResult.metrics.psnr ? aeResult.metrics.psnr.toFixed(2) : "28.52"} dB</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{aeResult.metrics.psnr !== undefined ? aeResult.metrics.psnr.toFixed(2) : "—"} dB</div>
               <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Higher is sharper</div>
             </div>
 
             <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
               <div style={{ fontSize: 11, color: "#94a3b8" }}>Structural SSIM</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#a5b4fc", marginTop: 4 }}>{aeResult.metrics.ssim ? aeResult.metrics.ssim.toFixed(4) : "0.9248"}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#a5b4fc", marginTop: 4 }}>{aeResult.metrics.ssim !== undefined ? aeResult.metrics.ssim.toFixed(4) : "—"}</div>
               <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Range [0.0, 1.0]</div>
             </div>
 
             <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>Exact Pixel Match</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{aeResult.metrics.exact_match !== undefined ? aeResult.metrics.exact_match.toFixed(2) : "—"}%</div>
+              <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Within ±0.05 tolerance</div>
+            </div>
+
+            <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
               <div style={{ fontSize: 11, color: "#94a3b8" }}>Alpha Mask IoU</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{aeResult.metrics.alpha_iou ? aeResult.metrics.alpha_iou.toFixed(2) : "98.20"}%</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#34d399", marginTop: 4 }}>{aeResult.metrics.alpha_iou !== undefined ? aeResult.metrics.alpha_iou.toFixed(2) : "—"}%</div>
               <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Silhouette preservation</div>
             </div>
 
             <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "1rem", borderRadius: 8, border: "1px solid rgba(148, 163, 184, 0.1)" }}>
               <div style={{ fontSize: 11, color: "#94a3b8" }}>Color Palette Match</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#fbbf24", marginTop: 4 }}>{aeResult.metrics.color_match ? aeResult.metrics.color_match.toFixed(2) : "96.80"}%</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#fbbf24", marginTop: 4 }}>{aeResult.metrics.color_match !== undefined ? aeResult.metrics.color_match.toFixed(2) : "—"}%</div>
               <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>Foreground consistency</div>
             </div>
           </div>

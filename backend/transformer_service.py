@@ -865,30 +865,30 @@ class TransformerService:
                 matched_arcade = arc
                 break
 
-        # Grounding against out-of-domain vocabulary snap:
+        # Grounding against out-of-domain vocabulary snap or generic repair defaults:
         if matched_arcade:
             theme_val = parsed_spec.get("theme", "")
-            hallucinated_tropes = ["pirate", "warzone", "dungeon", "skeleton", "cyber", "space", "alien", "crypt"]
+            hallucinated_tropes = ["pirate", "warzone", "dungeon", "skeleton", "cyber", "space", "alien", "crypt", "stylized", "fantasy", "generic"]
             if any(t in theme_val.lower() for t in hallucinated_tropes) or not theme_val or "adventure" in theme_val.lower():
                 parsed_spec["theme"] = matched_arcade["theme"]
             
             env_val = parsed_spec.get("environment", "")
-            if any(t in env_val.lower() for t in hallucinated_tropes) or not env_val or "village" in env_val.lower():
+            if any(t in env_val.lower() for t in hallucinated_tropes) or not env_val or "village" in env_val.lower() or "arena" in env_val.lower():
                 parsed_spec["environment"] = matched_arcade["environment"]
 
             # Ensure characters match archetype
             chars = parsed_spec.get("characters", [])
-            if not chars or any(t in chars[0].get("name", "").lower() for t in hallucinated_tropes + ["treasure", "villager", "warzone", "software"]):
+            if not chars or any(t in chars[0].get("name", "").lower() for t in hallucinated_tropes + ["treasure", "villager", "warzone", "software", "protagonist", "hero", "traveler"]):
                 parsed_spec["characters"] = [matched_arcade["character"]]
             
             # Ensure weapons/tools match archetype
             weaps = parsed_spec.get("weapons", [])
-            if not weaps or any(t in weaps[0].get("name", "").lower() for t in ["sword", "knife", "cannon", "gun", "axe", "tome", "blade"]):
+            if not weaps or any(t in weaps[0].get("name", "").lower() for t in ["sword", "knife", "cannon", "gun", "axe", "tome", "blade", "tool", "weapon"]):
                 parsed_spec["weapons"] = [matched_arcade["weapon_or_tool"]]
 
             # Ensure props match archetype
             props = parsed_spec.get("props", [])
-            if not props or any(t in props[0].get("name", "").lower() for t in ["statue", "temple", "ruin", "chest", "altar"]):
+            if not props or any(t in props[0].get("name", "").lower() for t in ["statue", "temple", "ruin", "chest", "altar", "item cache", "cache", "relic"]):
                 parsed_spec["props"] = matched_arcade["props"]
 
         enriched_meta = enrich_game_concept_metadata(parsed_spec, clean_prompt, matched_arcade=matched_arcade)

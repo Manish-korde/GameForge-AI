@@ -201,23 +201,14 @@ export const runAEInference = async (imageInput) => {
       body: formData,
     });
     
-    if (!res.ok) throw new Error("AE Inference failed");
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `AE Inference failed (HTTP ${res.status})`);
+    }
     return await res.json();
   } catch (err) {
-    console.warn("AE Error, using fallback:", err);
-    return {
-      original_processed: typeof imageInput === "string" ? imageInput : "",
-      reconstructed: typeof imageInput === "string" ? imageInput : "",
-      metrics: {
-        mse: 0.001666,
-        mae: 0.012450,
-        psnr: 28.52,
-        ssim: 0.9248,
-        exact_match: 94.50,
-        alpha_iou: 98.20,
-        color_match: 96.80
-      }
-    };
+    console.error("AE Inference Error:", err);
+    throw err;
   }
 };
 
