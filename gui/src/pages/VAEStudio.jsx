@@ -4,15 +4,15 @@ import {
   runVAEInference, 
   runVAEInterpolation,
   runVAEReconstruction,
-  FRONT_FACING_SPRITES_25, 
-  fetchSampleSpritesManifest,
+  ALUCARD_VAE_SPRITES, 
+  fetchAlucardSamplesManifest,
   BACKEND_URL 
 } from "../services/api";
 
 export default function VAEStudio() {
-  const [sprites, setSprites] = useState(FRONT_FACING_SPRITES_25);
-  const [selectedSprite, setSelectedSprite] = useState(FRONT_FACING_SPRITES_25[0]);
-  const [secondarySprite, setSecondarySprite] = useState(FRONT_FACING_SPRITES_25[1]);
+  const [sprites, setSprites] = useState(ALUCARD_VAE_SPRITES);
+  const [selectedSprite, setSelectedSprite] = useState(ALUCARD_VAE_SPRITES[4] || ALUCARD_VAE_SPRITES[0]);
+  const [secondarySprite, setSecondarySprite] = useState(ALUCARD_VAE_SPRITES[9] || ALUCARD_VAE_SPRITES[1]);
   
   // Similarity Retrieval State
   const [similarResults, setSimilarResults] = useState(null);
@@ -40,15 +40,17 @@ export default function VAEStudio() {
   const interpDebounceTimer = useRef(null);
 
   useEffect(() => {
-    fetchSampleSpritesManifest().then((data) => {
-      const spriteList = (data && data.length > 0) ? data : FRONT_FACING_SPRITES_25;
+    fetchAlucardSamplesManifest().then((data) => {
+      const spriteList = (data && data.length > 0) ? data : ALUCARD_VAE_SPRITES;
+      const defaultA = spriteList[4] || spriteList[0];
+      const defaultB = spriteList[9] || spriteList[1] || spriteList[0];
       setSprites(spriteList);
-      setSelectedSprite(spriteList[0]);
-      setSecondarySprite(spriteList[1] || spriteList[0]);
-      triggerSearch(spriteList[0].url, "All");
-      triggerVariations(spriteList[0].url, 0.6);
-      triggerInterpolation(0.5, spriteList[0], spriteList[1] || spriteList[0]);
-      triggerReconstruction(spriteList[0].url);
+      setSelectedSprite(defaultA);
+      setSecondarySprite(defaultB);
+      triggerSearch(defaultA.url, "All");
+      triggerVariations(defaultA.url, 0.6);
+      triggerInterpolation(0.5, defaultA, defaultB);
+      triggerReconstruction(defaultA.url);
     });
   }, []);
 
@@ -227,10 +229,10 @@ export default function VAEStudio() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
           <div>
             <h3 style={{ margin: "0 0 2px 0", fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
-              Verified Front-Facing Dataset Characters (25 Sprites)
+              Authentic Alucard Dataset Characters ({sprites.length} In-Distribution 128×128 Sprites)
             </h3>
             <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>
-              Select any character sprite to project into the 256-D continuous latent manifold for similarity matching or variation generation.
+              Select any 128×128 Alucard dataset character sprite to project into the 256-D latent manifold for similarity matching, variations, SLERP morphing, or reconstruction.
             </p>
           </div>
           <div style={{ fontSize: 12, color: "#a5b4fc", background: "rgba(99, 102, 241, 0.15)", padding: "3px 8px", borderRadius: 6 }}>

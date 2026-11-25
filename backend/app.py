@@ -10,7 +10,7 @@ import json
 import base64
 import requests
 import numpy as np
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -123,31 +123,13 @@ def postprocess_image(img_array: np.ndarray) -> Image.Image:
 
 def postprocess_vae_sprite(img_array: np.ndarray, output_size: int = 256) -> Image.Image:
     """
-    Enhances raw 128x128 VAE decoder outputs into crisp game-ready sprites:
-    - Mild contrast + edge sharpening on RGB foreground
-    - Alpha fringe tightening so silhouettes have clean opaque boundaries
-    - Nearest-neighbor upscale to 256x256 to preserve sharp sprite pixels
+    Returns authentic raw VAE decoder output scaled cleanly via nearest-neighbor
+    (zero blur, sharpening, contrast, or alpha-clipping distortion).
     """
-    raw = np.clip(img_array[0], 0.0, 1.0)
-    rgba = (raw * 255.0).astype(np.uint8)
-    pil = Image.fromarray(rgba, mode="RGBA")
-    r, g, b, a = pil.split()
-    rgb_img = Image.merge("RGB", (r, g, b))
-    rgb_img = ImageEnhance.Contrast(rgb_img).enhance(1.15)
-    rgb_img = rgb_img.filter(ImageFilter.UnsharpMask(radius=1.1, percent=155, threshold=2))
-    rgb_img = ImageEnhance.Sharpness(rgb_img).enhance(1.35)
-
-    a_norm = raw[:, :, 3]
-    a_clean = np.where(
-        a_norm < 0.24,
-        0.0,
-        np.where(a_norm >= 0.50, 255.0, ((a_norm - 0.24) / 0.26) * 255.0),
-    ).astype(np.uint8)
-    a_img = Image.fromarray(a_clean, mode="L")
-    crisp = Image.merge("RGBA", (*rgb_img.split(), a_img))
-    if output_size and crisp.size != (output_size, output_size):
-        crisp = crisp.resize((output_size, output_size), Image.NEAREST)
-    return crisp
+    img = postprocess_image(img_array)
+    if output_size and img.size != (output_size, output_size):
+        img = img.resize((output_size, output_size), Image.NEAREST)
+    return img
 
 def image_to_base64(image: Image.Image) -> str:
     buffered = io.BytesIO()
@@ -690,19 +672,21 @@ def get_frontfacing_manifest():
 
 @app.get("/alucard_samples_manifest")
 def get_alucard_samples_manifest():
-    manifest_path = os.path.join(frontfacing_dir, "manifest.json")
-    if os.path.exists(manifest_path):
-        with open(manifest_path, "r") as f:
-            return json.load(f)
+    """Returns authentic 128x128 Alucard dataset samples for VAE & Similarity benchmarks."""
     result = []
-    for i in range(25):
-        result.append({
-            "id": i + 1,
-            "label": f"Character #{i + 1}",
-            "filename": f"front_char_{i+1:02d}.png",
-            "category": "Front-Facing Sprite",
-            "url": f"/frontfacing_25/front_char_{i+1:02d}.png"
-        })
+    if os.path.exists(samples_dir):
+        for i in range(35):
+            fname = f"alucard_{i}.png"
+            if os.path.exists(os.path.join(samples_dir, fname)):
+                cat_info = SAMPLE_CATEGORIES.get(i, {"category": "Character", "label": f"Alucard Sprite #{i + 1}"})
+                result.append({
+                    "id": i + 1,
+                    "label": cat_info.get("label", f"Sprite #{i + 1}"),
+                    "name": f"Alucard Sprite #{i + 1}",
+                    "filename": fname,
+                    "category": cat_info.get("category", "Dataset Sprite"),
+                    "url": f"/alucard_samples/{fname}"
+                })
     return result
 
 @app.get("/ethical_guidelines")

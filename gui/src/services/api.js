@@ -43,6 +43,30 @@ export const FRONT_FACING_CHARACTERS_25 = FRONT_FACING_SPRITES_25;
 
 const HUMAN_SPRITES = FRONT_FACING_SPRITES_25.map(c => c.url);
 
+export const ALUCARD_VAE_SPRITES = Array.from({ length: 25 }, (_, i) => ({
+  id: i + 1,
+  label: `Alucard Sprite #${i + 1}`,
+  name: `Alucard #${i + 1}`,
+  category: "Dataset Sprite (128×128)",
+  url: `/alucard_samples/alucard_${i}.png`,
+}));
+
+export const fetchAlucardSamplesManifest = async () => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/alucard_samples_manifest`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return data.map(item => ({
+          ...item,
+          url: item.url.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, '')
+        }));
+      }
+    }
+  } catch (e) {}
+  return ALUCARD_VAE_SPRITES;
+};
+
 export const fetchSampleSpritesManifest = async () => {
   try {
     const res = await fetch(`${BACKEND_URL}/frontfacing_manifest`);
