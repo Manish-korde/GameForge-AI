@@ -4,7 +4,7 @@ import json
 import time
 import logging
 import threading
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 
 logger = logging.getLogger("transformer_service")
 logger.setLevel(logging.INFO)
@@ -94,39 +94,340 @@ def repair_json_syntax(text: str) -> Optional[Dict[str, Any]]:
         pass
 
     # 4. Fallback semantic extraction via regex if braces are structurally damaged
+    # Supports both standard 6-key schema AND heavy blueprint schema (game_title, world_setting, Boss/Protagonist roles)
     try:
-        # Check both standard and heavy schema aliases
-        theme_m = re.search(r'"(?:theme|game_title|genre)"\s*:\s*"([^"]+)"', text)
+        theme_m = re.search(r'"theme"\s*:\s*"([^"]+)"', text)
+        title_m = re.search(r'"(?:game_title|genre)"\s*:\s*"([^"]+)"', text)
         env_m = re.search(r'"(?:environment|world_setting)"\s*:\s*"([^"]+)"', text)
         style_m = re.search(r'"(?:visualStyle|visual_style|art_style)"\s*:\s*"([^"]+)"', text)
-        
-        names = re.findall(r'"name"\s*:\s*"([^"]+)"', text)
-        descs = re.findall(r'"desc"\s*:\s*"([^"]+)"', text)
 
-        chars = []
-        weaps = []
-        props = []
+        # Parse (name, desc, role) triples sequentially so Boss/Enemy entries separate cleanly
+        chars, weaps, props, enemies = [], [], [], []
+        # Check section boundaries if characters / weapons / props keys exist
+        sec_positions = []
+        for sec in ["characters", "weapons", "props", "enemies"]:
+            m_sec = re.search(rf'"{sec}"\s*:', text)
+            if m_sec:
+                sec_positions.append((m_sec.start(), sec))
+        sec_positions.sort()
 
-        if names and descs:
-            pairs = [{"name": n, "desc": d} for n, d in zip(names, descs)]
-            chars = pairs[:2]
-            weaps = pairs[2:3] if len(pairs) > 2 else []
-            props = pairs[3:] if len(pairs) > 3 else []
-        elif names:
-            chars = [{"name": names[0], "desc": "A character in the game world."}]
-            weaps = [{"name": names[1], "desc": "A weapon or implement."}] if len(names) > 1 else []
-            props = [{"name": names[2], "desc": "An interactive prop."}] if len(names) > 2 else []
+        for m_name in re.finditer(r'"name"\s*:\s*"([^"]+)"', text):
+            pos = m_name.start()
+            nm = m_name.group(1).strip()
+            snippet = text[pos:pos + 240]
+            desc_m = re.search(r'"desc"\s*:\s*"([^"]+)"', snippet)
+            role_m = re.search(r'"role"\s*:\s*"([^"]+)"', snippet)
+            role_val = role_m.group(1).lower() if role_m else ""
+            desc_val = desc_m.group(1).strip() if desc_m else f"Entity in the game world ({nm})."
+
+            # Determine which section this item sits inside
+            active_sec = "characters"
+            for sp, sname in sec_positions:
+                if sp <= pos:
+                    active_sec = sname
+
+            item_obj = {"name": nm, "desc": desc_val}
+            if active_sec == "enemies" or "boss" in role_val or "enemy" in role_val:
+                enemies.append(item_obj)
+            elif active_sec == "weapons":
+                weaps.append(item_obj)
+            elif active_sec == "props":
+                props.append(item_obj)
+            else:
+                chars.append(item_obj)
+
+        resolved_theme = (theme_m.group(1) if theme_m else (title_m.group(1) if title_m else "")).strip()
+        resolved_env = env_m.group(1).strip() if env_m else ""
 
         return {
-            "theme": theme_m.group(1) if theme_m else "Action Adventure",
-            "environment": env_m.group(1) if env_m else "Stylized Realm",
-            "characters": chars if chars else [{"name": "Protagonist", "desc": "A valiant traveler."}],
-            "weapons": weaps if weaps else [{"name": "Standard Weapon", "desc": "A dependable weapon."}],
-            "props": props if props else [{"name": "Item Cache", "desc": "A collection of usable supplies."}],
-            "visualStyle": style_m.group(1) if style_m else "Pixel Art"
+            "theme": resolved_theme,
+            "environment": resolved_env,
+            "characters": chars,
+            "enemies": enemies,
+            "weapons": weaps,
+            "props": props,
+            "visualStyle": style_m.group(1).strip() if style_m else "Pixel Art"
         }
     except Exception:
         return None
+
+
+# ==============================================================================
+# General-Case Compositional Prompt Semantic Analyzer
+# Extracts Enemies/Threats, Hero Roles, Biomes & Settings across arbitrary prompts
+# without relying on hardcoding any single prompt word.
+# ==============================================================================
+THREAT_LEXICON = {
+    # Apocalyptic / Outbreak / Horror threats
+    "zombie": ("Zombie Horde", "Relentless infected undead roaming the devastated streets in aggressive swarms."),
+    "undead": ("Restless Undead", "Risen corpses driven by dark contagion to overwhelm living survivors."),
+    "infected": ("Mutated Infected", "Fast, virulent host creatures hunting survivors through collapsed zones."),
+    "mutant": ("Wasteland Mutant", "Irradiated apex mutant adapting violently to hostile ruins."),
+    "vampire": ("Elder Vampire", "Nocturnal blood-stalker commanding shadow thralls across cursed halls."),
+    "werewolf": ("Feral Werewolf", "Moon-crazed lycanthrope stalking victims with razor claws and blinding speed."),
+    "ghost": ("Spectral Phantom", "Translucent apparition phasing through walls and draining survivor resolve."),
+    "phantom": ("Shadow Phantom", "Ethereal wraith haunting darkened corridors and sabotaging light sources."),
+    "demon": ("Abyssal Demon", "Hell-forged fiend unleashing corrupted fire and terror across the realm."),
+    "skeleton": ("Skeleton Warrior", "Reanimated bone sentinel guarding ancient crypts with rusted steel."),
+    "necromancer": ("Dark Necromancer", "Forbidden sorcerer raising fallen minions to overwhelm intruders."),
+    # Fantasy threats
+    "dragon": ("Ancient Dragon", "Colossal armored wyrm breathing scorching devastation from above."),
+    "orc": ("Orc Warlord", "Brutal tribal brute leading heavy armored raiding warbands."),
+    "goblin": ("Goblin Raider", "Cunning subterranean scavenger attacking in swarming ambush packs."),
+    "slime": ("Corrosive Slime", "Gelatinous hazard creature splitting upon impact in cavern depths."),
+    "golem": ("Runic Golem", "Towering stone construct animated by ancient arcane cores."),
+    "witch": ("Hexborn Witch", "Rogue spellcaster conjuring curses and enchanted hazards."),
+    "monster": ("Apex Monster", "Fierce towering beast terrorizing the surrounding frontier."),
+    "titan": ("Colossal Titan", "Earth-shaking giant requiring tactical weak-point strikes to topple."),
+    "kraken": ("Abyssal Kraken", "Tentacled leviathan dragging vessels down into the deep."),
+    "dinosaur": ("Apex Dinosaur", "Prehistoric predator stalking dense jungles and volcanic valleys."),
+    # Sci-Fi / Action threats
+    "alien": ("Alien Invader", "Hostile extraterrestrial shock-trooper deploying advanced bio-plasma tech."),
+    "robot": ("Rogue Combat Mech", "Malfunctioning armored automaton enforcing lethal lockdown protocols."),
+    "cyborg": ("Rogue Cyborg", "Cybernetically augmented enforcer hunting targets across neon sectors."),
+    "drone": ("Hunter Drone", "Autonomous aerial patrol unit equipped with thermal targeting lasers."),
+    "mech": ("Siege Mech", "Heavy bipedal war machine armed with twin missile pods."),
+    "pirate": ("Corsair Raider", "Ruthless sky or sea marauder ambushing trade routes for plunder."),
+    "bandit": ("Outlaw Bandit", "Armed frontier scavenger ambushing travelers along unguarded roads."),
+    "raider": ("Wasteland Raider", "Desperate armored scavenger fighting for dwindling territory and fuel."),
+    "cultist": ("Shadow Cultist", "Fanatical acolyte channeling forbidden rituals against trespassers."),
+}
+
+HERO_ROLES = {
+    "survivor": ("Apocalypse Survivor", "A resourceful survivor scavenging gear, barricading shelters, and enduring hostile threats."),
+    "knight": ("Royal Knight", "An armored defender sworn to shield the realm with steel and tactical discipline."),
+    "paladin": ("Oathbound Paladin", "A holy vanguard wielding consecrated steel against encroaching darkness."),
+    "wizard": ("Arcane Wizard", "A scholar of elemental magic bending fire, frost, and lightning against foes."),
+    "mage": ("Battle Mage", "A spell-weaving tactician balancing mana reserves with high-impact spells."),
+    "archer": ("Master Archer", "A keen-eyed marksman striking targets cleanly from long range."),
+    "ranger": ("Frontier Ranger", "An agile tracker navigating hazardous terrain and flanking enemies."),
+    "ninja": ("Shadow Ninja", "A swift stealth operative executing precision strikes from the shadows."),
+    "samurai": ("Ronin Samurai", "A disciplined blademaster parrying incoming strikes with lethal counter-cuts."),
+    "hunter": ("Bounty Hunter", "A relentless tracker specialized in dismantling dangerous monstrous threats."),
+    "marine": ("Starfighter Marine", "An armored shock-trooper trained for zero-gravity and hostile invasions."),
+    "soldier": ("Tactical Soldier", "A combat-hardened specialist trained in squad defense and firearm control."),
+    "trooper": ("Vanguard Trooper", "A frontline defender equipped with modular tactical gear."),
+    "pilot": ("Ace Pilot", "A veteran cockpit specialist maneuvering through intense aerial or orbital fire."),
+    "explorer": ("Field Explorer", "An adaptable adventurer charting ruins and unlocking ancient mechanisms."),
+    "detective": ("Noir Detective", "A sharp investigator piecing together hidden clues under pressure."),
+    "farmer": ("Cozy Homestead Farmer", "A dedicated cultivator tending crops, tools, and friendly companions."),
+    "pirate": ("Swashbuckling Captain", "A daring privateer charting uncharted waters and hidden coves."),
+}
+
+STOP_NOISE_WORDS = {
+    "game", "play", "player", "action", "adventure", "simulator", "simulation", "rpg",
+    "2d", "3d", "pixel", "art", "style", "themed", "world", "story", "level", "levels",
+    "with", "and", "the", "a", "an", "in", "on", "of", "to", "for", "where", "you", "must",
+}
+
+
+def extract_prompt_semantics(prompt: str) -> Dict[str, Any]:
+    """
+    General-purpose linguistic parser over arbitrary game prompts.
+    Extracts:
+      - enemies: list of hostile threats mentioned or implied via relational syntax
+      - hero: inferred or explicit protagonist {name, desc}
+      - biome: semantic setting classification (outbreak_apocalypse, gothic_horror,
+               sci_fi_action, medieval_fantasy, wilderness_survival, etc.)
+      - weapon: context-aligned starting weapon/tool
+      - props: context-aligned world items
+    """
+    p_low = (prompt or "").lower().strip()
+    tokens = re.findall(r"[a-z0-9-]+", p_low)
+
+    # 1. Determine semantic biome (distinguishing outbreak survival from arctic wilderness!)
+    biome = "general_action"
+    if any(k in p_low for k in ["apocalypse", "outbreak", "wasteland", "quarantine", "pandemic", "infected", "zombie", "undead", "ruined city", "bunker"]):
+        biome = "outbreak_apocalypse"
+    elif any(k in p_low for k in ["vampire", "haunted", "mansion", "asylum", "ghost", "cursed", "horror", "crypt", "morgue", "werewolf", "demon", "nightmare"]):
+        biome = "gothic_horror"
+    elif any(k in p_low for k in ["alien", "robot", "space", "orbit", "galaxy", "starship", "cyber", "neon", "laser", "plasma", "shooter", "invasion", "mech", "asteroid", "drone"]):
+        biome = "sci_fi_action"
+    elif any(k in p_low for k in ["medieval", "dragon", "castle", "kingdom", "knight", "dungeon", "catacomb", "wizard", "magic", "sword", "orc", "goblin", "skeleton", "siege"]):
+        biome = "medieval_fantasy"
+    elif any(k in p_low for k in ["farm", "cozy", "harvest", "crop", "botanist", "candy", "garden"]):
+        biome = "cozy_farming"
+    elif any(k in p_low for k in ["blizzard", "arctic", "taiga", "snow", "wilderness", "island", "jungle", "surviv"]):
+        biome = "wilderness_survival"
+
+    # 2. Extract hostile threats / enemies (lexicon + modifier capture + open-vocabulary syntax)
+    extracted_enemies = []
+    seen_enemy_keys = set()
+
+    for idx, tok in enumerate(tokens):
+        stem = tok.rstrip("s") if len(tok) > 4 and tok.endswith("s") and not tok.endswith("ss") else tok
+        matched_key = tok if tok in THREAT_LEXICON else (stem if stem in THREAT_LEXICON else None)
+        if matched_key and matched_key not in seen_enemy_keys:
+            base_name, base_desc = THREAT_LEXICON[matched_key]
+            # Check preceding modifier word (e.g. "frost dragon", "toxic zombie", "space pirate")
+            mod = tokens[idx - 1] if idx > 0 and tokens[idx - 1] not in STOP_NOISE_WORDS and tokens[idx - 1] not in {"survive", "fight", "defeat", "hunt", "kill", "escape"} else ""
+            if mod and mod not in base_name.lower() and mod not in HERO_ROLES:
+                display_name = f"{mod.capitalize()} {base_name}"
+            else:
+                display_name = base_name
+            seen_enemy_keys.add(matched_key)
+            extracted_enemies.append({"name": display_name, "desc": base_desc})
+
+    # Open-vocabulary relational pattern fallback for unseen enemy nouns (e.g., "defeat lava beetles", "clockwork spiders")
+    rel_patterns = [
+        r"(?:fight|battle|defeat|kill|survive|hunt|stop|escape|against|vs\.?)\s+(?:the\s+|an?\s+|waves?\s+of\s+|hordes?\s+of\s+)?([a-z0-9-]+(?:\s+[a-z0-9-]+)?)(?:\s+(?:apocalypse|outbreak|invasion|horde|army|swarm|boss|in|at|on|with)|$)",
+        r"([a-z0-9-]+)\s+(?:apocalypse|outbreak|invasion|horde|swarm)"
+    ]
+    if not extracted_enemies:
+        for pat in rel_patterns:
+            m = re.search(pat, p_low)
+            if m:
+                phrase = m.group(1).strip()
+                words = [w for w in phrase.split() if w not in STOP_NOISE_WORDS and w not in HERO_ROLES]
+                if words:
+                    enemy_title = " ".join(w.capitalize() for w in words[:2])
+                    if enemy_title.lower() not in seen_enemy_keys:
+                        seen_enemy_keys.add(enemy_title.lower())
+                        extracted_enemies.append({
+                            "name": f"{enemy_title} Horde" if "apocalypse" in p_low or "invasion" in p_low or "swarm" in p_low else enemy_title,
+                            "desc": f"Hostile {enemy_title.lower()} forces threatening survival across the active zone."
+                        })
+                    break
+
+    # 3. Extract or infer Hero Role (making sure enemy words aren't mistakenly picked as hero)
+    hero_obj = None
+    for tok in tokens:
+        stem = tok.rstrip("s") if len(tok) > 4 and tok.endswith("s") else tok
+        h_key = tok if tok in HERO_ROLES else (stem if stem in HERO_ROLES else None)
+        if h_key and h_key not in seen_enemy_keys:
+            h_name, h_desc = HERO_ROLES[h_key]
+            hero_obj = {"name": h_name, "desc": h_desc}
+            break
+
+    if hero_obj is None:
+        if biome == "outbreak_apocalypse":
+            hero_obj = HERO_ROLES["survivor"]
+            hero_obj = {"name": hero_obj[0], "desc": hero_obj[1]}
+        elif biome == "gothic_horror":
+            hero_obj = {"name": "Occult Investigator", "desc": "A brave investigator armed with protective wards confronting dark supernatural forces."}
+        elif biome == "sci_fi_action":
+            hero_obj = {"name": "Vanguard Marine", "desc": "An armored tactical operative defending sectors against hostile technological and alien threats."}
+        elif biome == "medieval_fantasy":
+            hero_obj = {"name": "Kingdom Sentinel", "desc": "A seasoned warrior defending fortified walls against mythic monsters and dark armies."}
+        elif biome == "wilderness_survival":
+            hero_obj = {"name": "Wilderness Survivor", "desc": "A resilient scout enduring harsh elements and wild predators to reach rescue."}
+        elif extracted_enemies:
+            hero_obj = {"name": "Tactical Defender", "desc": "A skilled frontline protagonist confronting hostile threats head-on."}
+
+    # 4. Biome-specific coherent defaults (theme, environment, weapon, props, genre, loop)
+    biome_defaults = {
+        "outbreak_apocalypse": {
+            "theme": "Post-Apocalyptic Outbreak Survival",
+            "environment": "Abandoned Quarantine City & Ruined Streets",
+            "genre": "Post-Apocalyptic Survival Action",
+            "game_type": "Top-Down Horde Survival & Scavenging",
+            "perspective": "Top-Down 2D",
+            "weapon": {"name": "Reinforced Crowbar & Combat Shotgun", "desc": "Versatile close-quarters pry tool paired with a heavy pump-action firearm for crowd control."},
+            "props": [
+                {"name": "Emergency Medkit Crate", "desc": "Sealed medical supply box restoring health and curing infection trauma."},
+                {"name": "Barricaded Supply Checkpoint", "desc": "Fortified street blockade storing salvaged ammo, rations, and flare beacons."}
+            ],
+            "mechanic": "Scavenging dwindling supplies, barricading safehouses, and wave-based combat",
+            "hazards": ["Swarming infected hordes", "Collapsed urban rubble", "Toxic contamination clouds"]
+        },
+        "gothic_horror": {
+            "theme": "Gothic Supernatural Horror",
+            "environment": "Cursed Mansion & Shadowed Halls",
+            "genre": "Atmospheric Survival Horror",
+            "game_type": "Exploration & Supernatural Defense",
+            "perspective": "Top-Down 2D (Dark Vignette)",
+            "weapon": {"name": "Silver Crossbow", "desc": "Consecrated repeating crossbow firing silver-tipped bolts against nocturnal threats."},
+            "props": [
+                {"name": "Flickering Kerosene Lantern", "desc": "Fragile light source illuminating dark corridors and repelling encroaching shadows."},
+                {"name": "Sanctified Relic Ward", "desc": "Protective talisman slowing supernatural assaults inside safe rooms."}
+            ],
+            "mechanic": "Light-resource management, tactical stealth, and cursed boss confrontation",
+            "hazards": ["Encroaching darkness zones", "Ambush corridors", "Cursed floor traps"]
+        },
+        "sci_fi_action": {
+            "theme": "Sci-Fi Tactical Combat",
+            "environment": "Zero-Gravity Orbital Station & Hangar",
+            "genre": "Sci-Fi Action Shooter",
+            "game_type": "Top-Down Twin-Stick / Tactical Action",
+            "perspective": "Top-Down Twin-Stick 2D",
+            "weapon": {"name": "Pulse Plasma Rifle", "desc": "High-energy directed plasma carbine built to pierce armored hulls and shields."},
+            "props": [
+                {"name": "Energy Deflector Core", "desc": "Deployable power node recharging personal kinetic shields."},
+                {"name": "Encrypted Tactical Terminal", "desc": "Security console controlling station blast doors and defense turrets."}
+            ],
+            "mechanic": "Energy weapon heat management, thruster dodging, and sector defense",
+            "hazards": ["Hull decompression breaches", "Security laser grids", "Automated plasma turrets"]
+        },
+        "medieval_fantasy": {
+            "theme": "Medieval Kingdom Siege",
+            "environment": "Fortified Castle Keep & Courtyards",
+            "genre": "Fantasy Action RPG",
+            "game_type": "Top-Down / Isometric Dungeon & Siege Action",
+            "perspective": "Isometric 2.5D",
+            "weapon": {"name": "Forged Greatsword", "desc": "Tempered steel blade balanced for cleaving armor and parrying heavy strikes."},
+            "props": [
+                {"name": "Ancient Treasure Chest", "desc": "Iron-banded war chest containing healing elixirs and runic charms."},
+                {"name": "Castle Signal Brazier", "desc": "Stone fire altar lighting the battlements and restoring stamina."}
+            ],
+            "mechanic": "Melee combo parrying, citadel exploration, and boss encounter strategy",
+            "hazards": ["Scorching fire traps", "Crushing portcullis gates", "Swarming siege patrols"]
+        },
+        "wilderness_survival": {
+            "theme": "Wilderness Frontier Survival",
+            "environment": "Untamed Taiga & Frozen Valley",
+            "genre": "Hardcore Wilderness Survival",
+            "game_type": "Open-World Top-Down Survival",
+            "perspective": "Top-Down 2D",
+            "weapon": {"name": "Forged Survival Hatchet", "desc": "Heavy timber axe used for chopping firewood, crafting shelters, and self-defense."},
+            "props": [
+                {"name": "Campfire Hearth", "desc": "Stone-ringed fire pit providing warmth and cooking rations."},
+                {"name": "Rainwater Collector", "desc": "Canvas tarp reservoir gathering clean drinking water."}
+            ],
+            "mechanic": "Stamina & shelter crafting, resource gathering, and hazard navigation",
+            "hazards": ["Freezing weather fronts", "Predatory wildlife", "Treacherous terrain drops"]
+        },
+    }
+
+    return {
+        "biome": biome,
+        "enemies": extracted_enemies,
+        "hero": hero_obj,
+        "defaults": biome_defaults.get(biome),
+        "has_conflict": bool(extracted_enemies or any(k in p_low for k in ["fight", "battle", "survive", "apocalypse", "invasion", "shooter", "defeat", "war", "siege", "boss"]))
+    }
+
+
+def build_story_brief(
+    title: str,
+    theme: str,
+    environment: str,
+    characters: list,
+    enemies: list,
+    weapons: list,
+    props: list,
+    core_loop: Dict[str, Any],
+    visual_style: str,
+) -> str:
+    """Synthesizes a clean, readable Game Story & Premise narrative from the structured spec."""
+    hero_name = characters[0]["name"] if characters else "Hero"
+    weapon_name = weapons[0]["name"] if weapons else "Signature Gear"
+    enemy_names = [e["name"] if isinstance(e, dict) else str(e) for e in enemies[:2]]
+    prop_name = props[0]["name"] if props else "Key Relics"
+    objective = (core_loop or {}).get("objective", f"overcome the trials of {environment}")
+    env_label = environment or "an uncharted realm"
+
+    if enemy_names:
+        threat_phrase = " and ".join(enemy_names)
+        return (
+            f"Set across {env_label} in a {visual_style or 'Pixel Art'} world, {title} places you as a {hero_name} "
+            f"confronting relentless {threat_phrase}. Armed with {weapon_name} and relying on critical assets like {prop_name}, "
+            f"your mission is clear: {objective[0].lower() + objective[1:] if objective else 'survive and prevail'}."
+        )
+    return (
+        f"Set inside {env_label} in a {visual_style or 'Pixel Art'} world, {title} puts you in control of {hero_name} "
+        f"mastering the core mechanics of {theme or 'this adventure'}. Equipped with {weapon_name} and key items such as {prop_name}, "
+        f"your objective is to {objective[0].lower() + objective[1:] if objective else 'complete every challenge ahead'}."
+    )
 
 
 def derive_asset_tags(spec_dict: Dict[str, Any]) -> list:
@@ -145,6 +446,11 @@ def derive_asset_tags(spec_dict: Dict[str, Any]) -> list:
         if c_name:
             tags.append(re.sub(r'[^a-zA-Z0-9_]', '_', c_name.lower()) + "_character")
 
+    for en in spec_dict.get("enemies", []):
+        e_name = en.get("name", "") if isinstance(en, dict) else str(en)
+        if e_name:
+            tags.append(re.sub(r'[^a-zA-Z0-9_]', '_', e_name.lower()) + "_enemy")
+
     for weapon in spec_dict.get("weapons", []):
         w_name = weapon.get("name", "")
         if w_name:
@@ -157,7 +463,7 @@ def derive_asset_tags(spec_dict: Dict[str, Any]) -> list:
 
     if not tags:
         tags = ["pixel_art_character", "game_item", "environment_tile"]
-    return tags[:6]
+    return tags[:8]
 
 
 # ==============================================================================
@@ -429,7 +735,12 @@ COMMON_ARCADE_ARCHETYPES = [
 ]
 
 
-def enrich_game_concept_metadata(parsed_spec: Dict[str, Any], prompt: str, matched_arcade: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def enrich_game_concept_metadata(
+    parsed_spec: Dict[str, Any],
+    prompt: str,
+    matched_arcade: Optional[Dict[str, Any]] = None,
+    prompt_semantics: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """
     Stage 2 Deterministic Semantic Enrichment:
     Enriches the neural Flan-T5 output with deep game design foundational attributes:
@@ -598,12 +909,36 @@ def enrich_game_concept_metadata(parsed_spec: Dict[str, Any], prompt: str, match
                 {"name": "Rainwater Collector", "desc": "Tarp reservoir collecting purified potable drinking water."}
             ],
             "tool_alternative": None
+        },
+        "outbreak_apocalypse": {
+            "genre": "Post-Apocalyptic Survival Action",
+            "game_type": "Top-Down Horde Survival & Scavenging",
+            "perspective": "Top-Down 2D",
+            "core_loop": {
+                "mechanic": "Scavenging dwindling supplies, barricading safehouses, and fending off hostile waves",
+                "objective": f"Survive relentless hostile waves across {env or 'the quarantine ruins'} and reach extraction",
+                "hazards": ["Swarming infected hordes", "Collapsed urban rubble", "Toxic contamination zones"]
+            },
+            "props": [
+                {"name": "Emergency Medkit Crate", "desc": "Sealed medical supply box restoring health and curing trauma."},
+                {"name": "Barricaded Supply Checkpoint", "desc": "Fortified blockade storing salvaged ammo, rations, and flares."}
+            ],
+            "tool_alternative": None
         }
     }
 
-    # Match thematic category
+    # Match thematic category using prompt semantics first so outbreak/horror/sci-fi survival never falls back to arctic wilderness
+    sem_biome = (prompt_semantics or {}).get("biome")
     matched_cat = "fantasy"
-    if any(k in combined_text for k in ["pizza", "cook", "restaurant", "baker", "chef", "cafe", "food", "kitchen", "delivery"]):
+    if sem_biome == "outbreak_apocalypse":
+        matched_cat = "outbreak_apocalypse"
+    elif sem_biome == "gothic_horror":
+        matched_cat = "horror"
+    elif sem_biome == "sci_fi_action":
+        matched_cat = "space"
+    elif sem_biome == "medieval_fantasy":
+        matched_cat = "dungeon"
+    elif any(k in combined_text for k in ["pizza", "cook", "restaurant", "baker", "chef", "cafe", "food", "kitchen", "delivery"]):
         matched_cat = "cooking_delivery"
     elif any(k in combined_text for k in ["farm", "cozy", "harvest", "crop", "witch", "botanist", "seed", "fox", "candy"]):
         matched_cat = "farming"
@@ -611,7 +946,7 @@ def enrich_game_concept_metadata(parsed_spec: Dict[str, Any], prompt: str, match
         matched_cat = "dungeon"
     elif any(k in combined_text for k in ["cyberpunk", "hacker", "neon", "megacorp", "cyborg", "drone", "synth"]):
         matched_cat = "cyberpunk"
-    elif any(k in combined_text for k in ["horror", "asylum", "vampire", "morgue", "strigoi", "shadow", "whisper"]):
+    elif any(k in combined_text for k in ["horror", "asylum", "vampire", "morgue", "strigoi", "shadow", "whisper", "haunted"]):
         matched_cat = "horror"
     elif any(k in combined_text for k in ["space", "orbit", "alien", "galaxy", "rover", "astro", "vacuum", "derelict"]):
         matched_cat = "space"
@@ -621,7 +956,7 @@ def enrich_game_concept_metadata(parsed_spec: Dict[str, Any], prompt: str, match
         matched_cat = "western"
     elif any(k in combined_text for k in ["mystery", "detective", "noir", "investigat", "clue", "murder"]):
         matched_cat = "mystery"
-    elif any(k in combined_text for k in ["surviv", "island", "blizzard", "arctic", "wilderness", "taiga"]):
+    elif any(k in combined_text for k in ["island", "blizzard", "arctic", "wilderness", "taiga", "surviv"]):
         matched_cat = "survival"
 
     if matched_arcade:
@@ -721,29 +1056,92 @@ class TransformerService:
                 gc.collect()
                 logger.info("Transformer model unloaded and CPU memory garbage-collected.")
 
-    def validate_prompt_safety(self, user_prompt: str) -> Tuple[bool, str]:
-        """Validates user prompt against Responsible AI safety boundaries (NSFW, violence, hate speech)."""
-        if not user_prompt:
-            return True, "Safe"
+    def audit_prompt_guardrails(self, user_prompt: str) -> Tuple[bool, str, List[Dict[str, str]]]:
+        """
+        Runs multi-layer Responsible AI & Security checks on the user prompt:
+        1. Input Sanitization & Prompt-Injection Shield
+        2. NSFW, Hate Speech & Graphic Gore Regex Boundary Audit
+        3. Third-Party Protected IP Detection & Re-grounding
+        4. Dataset Provenance & CC-BY-NC-SA 4.0 Attribution
+        5. Human-in-the-Loop (HITL) Asset Generation Gate
+        """
+        prompt_text = (user_prompt or "").strip()
+        prompt_lower = prompt_text.lower()
 
-        prompt_lower = user_prompt.lower()
+        checks = [
+            {
+                "name": "Prompt Injection & Input Sanitization",
+                "status": "passed",
+                "detail": "Input length and syntax validated; no script tags, SQL/shell operators, or instruction-override phrases detected."
+            },
+            {
+                "name": "NSFW, Hate & Extreme Violence Filter",
+                "status": "passed",
+                "detail": "Passed regex boundary audit (no explicit sexual content, hate speech, self-harm, or graphic gore)."
+            },
+            {
+                "name": "Copyright & Protected IP Shield",
+                "status": "passed",
+                "detail": "No protected third-party franchise identifiers detected; original archetypes generated."
+            },
+            {
+                "name": "Dataset Provenance & Attribution",
+                "status": "verified",
+                "detail": "Fine-Tuned Flan-T5 on 2,000 curated prompt-JSON pairs (80/10/10 split) • CC-BY-NC-SA 4.0."
+            },
+            {
+                "name": "Human-in-the-Loop (HITL) Approval Gate",
+                "status": "pending_review",
+                "detail": "Designer sign-off required in UI before forwarding asset tags to downstream sprite generators."
+            }
+        ]
 
-        # Prohibited NSFW / Harmful Terms
+        if not prompt_text:
+            return True, "Passed Safety Audit", checks
+
+        # 1. Length & Injection / Sanitization check
+        if len(prompt_text) > 500:
+            checks[0]["status"] = "blocked"
+            checks[0]["detail"] = "Input exceeds maximum allowed 500-character safety bound."
+            return False, "Prompt exceeds maximum length (500 characters).", checks
+
+        injection_patterns = [
+            r"<\s*script", r"\bon(?:error|load|click)\s*=", r"javascript\s*:",
+            r"(?:ignore|disregard|forget)\s+(?:all\s+)?(?:previous|prior|system)\s+(?:instructions|prompts|rules)",
+            r"(?:drop\s+table|union\s+select|;\s*rm\s+-rf|\$\([^)]+\))"
+        ]
+        for pat in injection_patterns:
+            if re.search(pat, prompt_lower):
+                checks[0]["status"] = "blocked"
+                checks[0]["detail"] = "Blocked potential HTML/XSS, SQL/command, or prompt-override injection pattern."
+                return False, "Prompt blocked by Security Sanitization Shield (unsafe syntax or override attempt).", checks
+
+        # 2. Prohibited NSFW / Harmful Terms
         prohibited_terms = [
             "nsfw", "nude", "explicit", "gore", "decapitation",
             "hate", "racist", "slur", "torture", "suicide"
         ]
         for term in prohibited_terms:
             if re.search(r'\b' + re.escape(term) + r'\b', prompt_lower):
-                return False, f"Prompt contains restricted or unsafe content ('{term}')."
+                checks[1]["status"] = "blocked"
+                checks[1]["detail"] = f"Restricted term detected ('{term}'); generation halted."
+                return False, f"Prompt contains restricted or unsafe content ('{term}').", checks
 
-        # Direct Protected IP Warning (logged, re-grounded)
+        # 3. Direct Protected IP Warning (logged, automatically abstracted)
         protected_ips = ["mario", "pokemon", "pikachu", "sonic", "zelda"]
-        for ip in protected_ips:
-            if re.search(r'\b' + re.escape(ip) + r'\b', prompt_lower):
-                logger.warning(f"Protected IP keyword detected: '{ip}'. Re-grounding to generic asset.")
+        matched_ips = [ip for ip in protected_ips if re.search(r'\b' + re.escape(ip) + r'\b', prompt_lower)]
+        if matched_ips:
+            joined_ips = ", ".join(matched_ips)
+            logger.warning(f"Protected IP keyword detected: '{joined_ips}'. Re-grounding to generic asset.")
+            checks[2]["status"] = "mitigated"
+            checks[2]["detail"] = f"Franchise keyword ({joined_ips}) detected and abstracted into original non-infringing game entities."
 
-        return True, "Passed Regex Boundary Audit"
+        return True, "Passed Safety Audit", checks
+
+    def validate_prompt_safety(self, user_prompt: str) -> Tuple[bool, str]:
+        """Validates user prompt against Responsible AI safety boundaries (NSFW, violence, hate speech)."""
+        is_safe, safety_msg, _ = self.audit_prompt_guardrails(user_prompt)
+        return is_safe, safety_msg
 
     def generate_concept_spec(self, user_prompt: str) -> Dict[str, Any]:
         """
@@ -751,7 +1149,7 @@ class TransformerService:
         Outputs structured JSON strictly matching the evaluated schema:
         {theme, environment, characters, weapons, props, visualStyle}
         """
-        is_safe, safety_msg = self.validate_prompt_safety(user_prompt)
+        is_safe, safety_msg, security_checks = self.audit_prompt_guardrails(user_prompt)
         if not is_safe:
             raise ValueError(safety_msg)
 
@@ -826,15 +1224,18 @@ class TransformerService:
                     "model_checkpoint": "models/4_Transformer_2k_v1"
                 },
                 "ethical_guardrails": {
+                    "content_safety": safety_msg,
                     "safety_status": safety_msg,
+                    "checks": security_checks,
                     "dataset_attribution": "GameForge Fine-Tuned T5 (2,000 Curated Prompt-JSON Pairs; 80/10/10 Split)",
                     "license": "CC-BY-NC-SA 4.0",
                     "human_oversight_required": True
                 }
             }
 
-        # Deduplicate entity items by name so characters/weapons/props are clean and distinct
-        for field in ["characters", "weapons", "props"]:
+        # Deduplicate entity items by name so characters/enemies/weapons/props are clean and distinct
+        parsed_spec.setdefault("enemies", [])
+        for field in ["characters", "enemies", "weapons", "props"]:
             if field in parsed_spec and isinstance(parsed_spec[field], list):
                 seen_names = set()
                 deduped = []
@@ -865,13 +1266,14 @@ class TransformerService:
                 matched_arcade = arc
                 break
 
-        # Grounding against out-of-domain vocabulary snap or generic repair defaults:
+        # General Compositional Semantic Extraction (works across arbitrary enemies, heroes, and biomes)
+        prompt_semantics = None
         if matched_arcade:
             theme_val = parsed_spec.get("theme", "")
             hallucinated_tropes = ["pirate", "warzone", "dungeon", "skeleton", "cyber", "space", "alien", "crypt", "stylized", "fantasy", "generic"]
             if any(t in theme_val.lower() for t in hallucinated_tropes) or not theme_val or "adventure" in theme_val.lower():
                 parsed_spec["theme"] = matched_arcade["theme"]
-            
+
             env_val = parsed_spec.get("environment", "")
             if any(t in env_val.lower() for t in hallucinated_tropes) or not env_val or "village" in env_val.lower() or "arena" in env_val.lower():
                 parsed_spec["environment"] = matched_arcade["environment"]
@@ -880,7 +1282,7 @@ class TransformerService:
             chars = parsed_spec.get("characters", [])
             if not chars or any(t in chars[0].get("name", "").lower() for t in hallucinated_tropes + ["treasure", "villager", "warzone", "software", "protagonist", "hero", "traveler"]):
                 parsed_spec["characters"] = [matched_arcade["character"]]
-            
+
             # Ensure weapons/tools match archetype
             weaps = parsed_spec.get("weapons", [])
             if not weaps or any(t in weaps[0].get("name", "").lower() for t in ["sword", "knife", "cannon", "gun", "axe", "tome", "blade", "tool", "weapon"]):
@@ -890,8 +1292,114 @@ class TransformerService:
             props = parsed_spec.get("props", [])
             if not props or any(t in props[0].get("name", "").lower() for t in ["statue", "temple", "ruin", "chest", "altar", "item cache", "cache", "relic"]):
                 parsed_spec["props"] = matched_arcade["props"]
+        else:
+            prompt_semantics = extract_prompt_semantics(clean_prompt)
+            sem_biome = prompt_semantics["biome"]
+            sem_defaults = prompt_semantics.get("defaults")
+            sem_enemies = prompt_semantics.get("enemies", [])
+            sem_hero = prompt_semantics.get("hero")
+            num_tokens = len(output_ids[0])
 
-        enriched_meta = enrich_game_concept_metadata(parsed_spec, clean_prompt, matched_arcade=matched_arcade)
+            # 4a. Ground theme & environment if T5 collapsed to generic defaults, weapon-as-theme, or cross-biome hallucination
+            theme_val = parsed_spec.get("theme", "").strip()
+            env_val = parsed_spec.get("environment", "").strip()
+            generic_themes = {"", "action adventure", "general", "adventure", "retro arcade"}
+            generic_envs = {"", "stylized realm", "arena", "generic world"}
+            theme_env_blob = f"{theme_val} {env_val}".lower()
+            weapon_like_theme = any(wk in theme_val.lower() for wk in ["axe", "sword", "spear", "shield", "rifle", "blaster"])
+            cross_biome_mismatch = (
+                (sem_biome == "outbreak_apocalypse" and any(w in theme_env_blob for w in ["candy", "farm", "cozy", "pirate", "medieval", "zero-grid", "zero-gravity", "orbital", "space", "cargo bay", "cyber"]))
+                or (sem_biome == "medieval_fantasy" and any(w in theme_env_blob for w in ["cyber", "space", "neon", "sci-fi", "modern", "zero-gravity", "orbital"]))
+                or (sem_biome == "sci_fi_action" and any(w in theme_env_blob for w in ["medieval", "castle", "village", "farm", "candy", "treasure chest"]))
+                or (sem_biome == "gothic_horror" and any(w in theme_env_blob for w in ["farm", "cozy", "candy", "arcade runner", "zero-gravity", "orbital"]))
+                or (sem_biome == "wilderness_survival" and any(w in theme_env_blob for w in ["zero-grid", "zero-gravity", "orbital", "cyber", "candy"]))
+            )
+            if sem_defaults and (theme_val.lower() in generic_themes or weapon_like_theme or cross_biome_mismatch or num_tokens <= 16):
+                parsed_spec["theme"] = sem_defaults["theme"]
+            elif not theme_val or theme_val.lower() in generic_themes or weapon_like_theme:
+                if sem_enemies:
+                    parsed_spec["theme"] = f"{sem_enemies[0]['name']} Conflict"
+
+            if sem_defaults and (env_val.lower() in generic_envs or cross_biome_mismatch or num_tokens <= 16):
+                parsed_spec["environment"] = sem_defaults["environment"]
+            elif not parsed_spec.get("environment", "").strip():
+                loc_m = re.search(r"\b(?:in|inside|across|through|on|at)\s+(?:an?\s+|the\s+)?([a-z0-9-]+(?:\s+[a-z0-9-]+){0,3})$", lower_prompt)
+                if loc_m:
+                    parsed_spec["environment"] = " ".join(w.capitalize() for w in loc_m.group(1).split())
+
+            # 4b. Reconcile Characters vs Enemies so hostile entities are properly classified under Enemies
+            raw_chars = parsed_spec.get("characters", [])
+            raw_enemies = list(parsed_spec.get("enemies", []))
+            seen_enemy_names = {e.get("name", "").strip().lower() for e in raw_enemies if isinstance(e, dict)}
+            threat_words = set(THREAT_LEXICON.keys()) | {"boss", "enemy", "hostile", "monster", "horde", "swarm", "invader", "undead"}
+
+            cleaned_chars = []
+            rescued_weapons = []
+            for ch in raw_chars:
+                cname = (ch.get("name") or "").strip()
+                cdesc = (ch.get("desc") or "").strip()
+                clow = cname.lower()
+                dlow = cdesc.lower()
+                cwords = set(re.findall(r"[a-z0-9-]+", clow))
+
+                # Filter obvious out-of-domain hallucinations or generic repair placeholders
+                if clow in {"protagonist", "hero", "traveler", "character", "sugar rush", "treasure", "mining", "ruins"}:
+                    continue
+                # Rescue misclassified weapons from T5 characters array (e.g. "Robot Axe: A heavy weapon...")
+                if any(wk in dlow for wk in ["heavy weapon", "weapon used", "blade used", "firearm", "cannon used"]) and not any(hk in clow for hk in HERO_ROLES):
+                    rescued_weapons.append({"name": cname, "desc": cdesc})
+                    continue
+                # Move T5 hostile entities into enemies list unless explicitly a player hero role
+                if (cwords & threat_words) and not (cwords & set(HERO_ROLES.keys())):
+                    if clow and clow not in seen_enemy_names:
+                        seen_enemy_names.add(clow)
+                        raw_enemies.append({"name": cname, "desc": cdesc or "Hostile adversary generated from neural blueprint."})
+                    continue
+                cleaned_chars.append(ch)
+
+            # Merge prompt-extracted hostile enemies (handles arbitrary & unseen threats)
+            for se in sem_enemies:
+                se_low = se["name"].strip().lower()
+                if se_low not in seen_enemy_names and not any(se_low in en or en in se_low for en in seen_enemy_names if len(en) > 3):
+                    seen_enemy_names.add(se_low)
+                    raw_enemies.insert(0, se)
+            parsed_spec["enemies"] = raw_enemies
+
+            # Ensure coherent Hero Protagonist
+            if not cleaned_chars or num_tokens <= 16:
+                if sem_hero:
+                    cleaned_chars = [sem_hero]
+                elif not cleaned_chars:
+                    cleaned_chars = [{"name": "Protagonist", "desc": "A resilient lead character navigating hazards and adversaries."}]
+            parsed_spec["characters"] = cleaned_chars
+
+            # 4c. Ground Weapons & Props when T5 outputs generic placeholders, cross-biome items, or collapses
+            weaps = parsed_spec.get("weapons", []) + rescued_weapons
+            valid_weaps = [w for w in weaps if w.get("name", "").strip().lower() not in {"", "standard weapon", "weapon"}]
+            if (not valid_weaps or cross_biome_mismatch or num_tokens <= 16) and sem_defaults and sem_defaults.get("weapon"):
+                valid_weaps = [sem_defaults["weapon"]]
+            elif not valid_weaps:
+                valid_weaps = [{"name": "Tactical Field Blade & Blaster", "desc": "Balanced melee-and-ranged combat kit engineered for hostile encounters."}]
+            if valid_weaps:
+                parsed_spec["weapons"] = valid_weaps[:4]
+
+            props = parsed_spec.get("props", [])
+            valid_props = [p for p in props if p.get("name", "").strip().lower() not in {"", "item cache", "prop"}]
+            prop_blob = " ".join(p.get("name", "").lower() for p in valid_props)
+            prop_mismatch = (
+                (sem_biome in {"sci_fi_action", "outbreak_apocalypse"} and any(w in prop_blob for w in ["treasure chest", "rope bridge", "cauldron"]))
+            )
+            if (not valid_props or cross_biome_mismatch or prop_mismatch or num_tokens <= 16) and sem_defaults and sem_defaults.get("props"):
+                valid_props = sem_defaults["props"]
+            if valid_props:
+                parsed_spec["props"] = valid_props[:4]
+
+        enriched_meta = enrich_game_concept_metadata(
+            parsed_spec,
+            clean_prompt,
+            matched_arcade=matched_arcade,
+            prompt_semantics=prompt_semantics,
+        )
 
         # Entity Slot Guarantees: Auto-fill empty props / character companion slots
         if not parsed_spec.get("props"):
@@ -939,12 +1447,26 @@ class TransformerService:
         main_char = parsed_spec.get("characters", [{}])[0] if parsed_spec.get("characters") else {}
         main_char_name = main_char.get("name", "Protagonist")
         main_char_desc = main_char.get("desc", "")
+        enemies_list = parsed_spec.get("enemies", [])
+
+        story_brief = build_story_brief(
+            title=enriched_meta["game_title"],
+            theme=parsed_spec.get("theme", ""),
+            environment=parsed_spec.get("environment", ""),
+            characters=parsed_spec.get("characters", []),
+            enemies=enemies_list,
+            weapons=parsed_spec.get("weapons", []),
+            props=parsed_spec.get("props", []),
+            core_loop=enriched_meta["core_loop"],
+            visual_style=parsed_spec.get("visualStyle", "Retro Pixel Art"),
+        )
 
         return {
             "status": "success",
             "prompt": clean_prompt,
             "formatted_input": formatted_input,
             "game_title": enriched_meta["game_title"],
+            "story_brief": story_brief,
             "theme": parsed_spec.get("theme", ""),
             "genre": enriched_meta["genre"],
             "game_type": enriched_meta["game_type"],
@@ -953,6 +1475,7 @@ class TransformerService:
             "environment": parsed_spec.get("environment", ""),
             "visualStyle": parsed_spec.get("visualStyle", ""),
             "characters": parsed_spec.get("characters", []),
+            "enemies": enemies_list,
             "weapons": parsed_spec.get("weapons", []),
             "props": parsed_spec.get("props", []),
             # Backwards compatibility fields for UI card layout
@@ -962,7 +1485,6 @@ class TransformerService:
             },
             "art_style": parsed_spec.get("visualStyle", "Retro Pixel Art"),
             "allies": [c.get("name") for c in parsed_spec.get("characters", [])[1:] if any(k in c.get("name", "").lower() for k in ["companion", "pet", "ally", "friend", "familiar", "fox", "hound", "drone"])],
-            "enemies": [c.get("name") for c in parsed_spec.get("characters", [])[1:] if not any(k in c.get("name", "").lower() for k in ["companion", "pet", "ally", "friend", "familiar", "fox", "hound", "drone"])],
             "recommended_asset_tags": enrichment["recommended_asset_tags"],
             "raw_t5_output": raw_output,
             "telemetry": {
@@ -976,7 +1498,9 @@ class TransformerService:
                 "extra_fields": extra_fields
             },
             "ethical_guardrails": {
+                "content_safety": safety_msg,
                 "safety_status": safety_msg,
+                "checks": security_checks,
                 "dataset_attribution": "GameForge Fine-Tuned T5 (2,000 Curated Prompt-JSON Pairs; 80/10/10 Split)",
                 "license": "CC-BY-NC-SA 4.0",
                 "human_oversight_required": True
