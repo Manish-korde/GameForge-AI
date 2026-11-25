@@ -46,9 +46,15 @@ def convert_ipynb_to_pdf(ipynb_path: str, pdf_path: str) -> bool:
         if cell.get("cell_type") == "code":
             src = "".join(cell.get("source", []))
             if len(src) > 12000:
-                lines = src.splitlines(keepends=True)
-                truncated = "".join(lines[:35]) + "\n# ... [Truncated massive embedded dataset/data block for PDF readability; full data is in the .ipynb file] ...\n" + "".join(lines[-15:])
-                cell["source"] = [truncated]
+                clean_lines = []
+                for line in src.splitlines(keepends=True):
+                    if "EMBEDDED_B64_DATASET" in line and len(line) > 300:
+                        clean_lines.append('    EMBEDDED_B64_DATASET = "<BASE64_GZIP_DATASET_2051_PAIRS_EMBEDDED_IN_IPYNB>"\n')
+                    elif len(line) > 1000:
+                        clean_lines.append(line[:120] + " ... # [Long inline data omitted in PDF; full data in .ipynb]\n")
+                    else:
+                        clean_lines.append(line)
+                cell["source"] = clean_lines
     with open(tmp_ipynb, "w", encoding="utf-8") as f:
         json.dump(nb, f)
 
@@ -242,7 +248,6 @@ def write_root_submission_overview():
 **Student Group Members:**
 1. **Manish Korde** — PRN / Roll: `202301040206`
 2. **Samriddhi Das** — PRN / Roll: `202301040276`
-3. **Swayam Pagare** — PRN / Roll: `202301040248`
 
 ---
 

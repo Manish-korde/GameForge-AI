@@ -23,29 +23,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 # Step 1: Install PyTorch CPU alone (cached independently across deploys)
-RUN pip install --no-cache-dir --no-compile --prefer-binary torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir --no-compile --prefer-binary torch==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
 
-# --- DEPLOY 1 (CACHE PRIMER) ---
-# TensorFlow, remaining packages, models, and uvicorn are commented out for Deploy 1
-# so PyTorch finishes and caches cleanly under Hostless's 30-minute limit.
-#
-# # Step 2: Install TensorFlow CPU + compatible NumPy alone (memory flushed after completion)
-# RUN pip install --no-cache-dir --no-compile --prefer-binary tensorflow-cpu==2.15.0 "numpy<2.0.0,>=1.23.5"
-#
-# # Step 3: Install remaining lightweight packages
-# COPY backend/requirements_docker.txt ./backend/requirements_docker.txt
-# RUN pip install --no-cache-dir --no-compile --prefer-binary -r ./backend/requirements_docker.txt
-#
-# # Copy backend source code, ML model checkpoints, and runtime directories
-# COPY backend/ ./backend/
-# COPY models/ ./models/
-# COPY evaluation/ ./evaluation/
-# COPY config/ ./config/
-# COPY documentation/ ./documentation/
-# COPY demo_offline_gallery/ ./demo_offline_gallery/
-#
-# # Copy pre-compiled production React frontend bundle directly
-# COPY gui/dist/ ./gui/dist/
+# Step 2: Install TensorFlow CPU + compatible NumPy alone (memory flushed after completion)
+RUN pip install --no-cache-dir --no-compile --prefer-binary tensorflow-cpu==2.15.0 "numpy<2.0.0,>=1.23.5"
+
+# Step 3: Install remaining lightweight packages
+COPY backend/requirements_docker.txt ./backend/requirements_docker.txt
+RUN pip install --no-cache-dir --no-compile --prefer-binary -r ./backend/requirements_docker.txt
+
+# Copy backend source code, ML model checkpoints, and runtime directories
+COPY backend/ ./backend/
+COPY models/ ./models/
+COPY evaluation/ ./evaluation/
+COPY config/ ./config/
+COPY documentation/ ./documentation/
+COPY demo_offline_gallery/ ./demo_offline_gallery/
+
+# Copy pre-compiled production React frontend bundle directly
+COPY gui/dist/ ./gui/dist/
 
 # Expose FastAPI server port
 EXPOSE 8000
@@ -54,5 +50,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/status || exit 1
 
-# Deploy 1 minimal health endpoint (replaced by uvicorn in Deploy 2)
-CMD ["sh", "-c", "mkdir -p /tmp/h && echo '{\"status\":\"cache_primer\"}' > /tmp/h/status && python3 -m http.server ${PORT:-8000} --directory /tmp/h"]
+# Launch Uvicorn server with dynamic PORT environment variable support
+CMD ["sh", "-c", "uvicorn backend.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
