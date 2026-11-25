@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install CPU-optimized PyTorch and Python packages
 COPY backend/requirements_docker.txt ./backend/requirements_docker.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r ./backend/requirements_docker.txt
+    pip install --no-cache-dir --prefer-binary torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --prefer-binary -r ./backend/requirements_docker.txt
 
 # Copy backend source code, ML model checkpoints, and runtime directories
 COPY backend/ ./backend/
