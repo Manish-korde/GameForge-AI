@@ -288,19 +288,34 @@ def ensure_gallery_loaded():
         load_hierarchical_gallery()
     get_raw_dataset()
 
+def _load_models_sequentially():
+    import gc
+    try:
+        load_dcgan_generator()
+        gc.collect()
+    except Exception as e:
+        print(f"DCGAN load notice: {e}")
+    try:
+        load_cdcgan_generator()
+        gc.collect()
+    except Exception as e:
+        print(f"cDCGAN load notice: {e}")
+    try:
+        load_all_models_background()
+        gc.collect()
+    except Exception as e:
+        print(f"AE/VAE load notice: {e}")
+    try:
+        load_hierarchical_gallery()
+        gc.collect()
+    except Exception as e:
+        print(f"Gallery load notice: {e}")
+
 @app.on_event("startup")
 def startup_event():
-    print("Backend API server started instantly. Triggering background model load...")
-    thread = threading.Thread(target=load_all_models_background, daemon=True)
+    print("Backend API server started instantly. Triggering sequential model loading...")
+    thread = threading.Thread(target=_load_models_sequentially, daemon=True)
     thread.start()
-    gallery_thread = threading.Thread(target=load_hierarchical_gallery, daemon=True)
-    gallery_thread.start()
-    gan_thread = threading.Thread(target=load_generator, daemon=True)
-    gan_thread.start()
-    dcgan_thread = threading.Thread(target=load_dcgan_generator, daemon=True)
-    dcgan_thread.start()
-    cdcgan_thread = threading.Thread(target=load_cdcgan_generator, daemon=True)
-    cdcgan_thread.start()
 
 @app.get("/status")
 @app.get("/api/status")

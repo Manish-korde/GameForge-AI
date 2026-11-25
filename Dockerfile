@@ -19,11 +19,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-optimized PyTorch and Python packages
+# Install CPU-optimized PyTorch and Python packages (Layered to prevent 1024MB RAM OOM)
 COPY backend/requirements_docker.txt ./backend/requirements_docker.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --prefer-binary torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir --prefer-binary -r ./backend/requirements_docker.txt
+RUN pip install --no-cache-dir --upgrade pip
+
+# Step 1: Install PyTorch CPU alone (memory flushed after completion)
+RUN pip install --no-cache-dir --no-compile --prefer-binary torch --index-url https://download.pytorch.org/whl/cpu
+
+# Step 2: Install TensorFlow CPU + compatible NumPy alone (memory flushed after completion)
+RUN pip install --no-cache-dir --no-compile --prefer-binary tensorflow-cpu==2.15.0 "numpy<2.0.0,>=1.23.5"
+
+# Step 3: Install remaining lightweight packages
+RUN pip install --no-cache-dir --no-compile --prefer-binary -r ./backend/requirements_docker.txt
 
 # Copy backend source code, ML model checkpoints, and runtime directories
 COPY backend/ ./backend/
